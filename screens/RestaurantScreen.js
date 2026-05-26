@@ -70,10 +70,17 @@ export default function RestaurantScreen({ route, navigation }) {
           <Text style={s.restAddr}>📍 {restaurant.address}</Text>
         </View>
         <View style={{ alignItems: 'flex-end', gap: 4 }}>
-          <Text style={s.restNote}>⭐ 4.8</Text>
-          <Text style={s.restNoteCount}>124 avis</Text>
+          <Text style={s.restNote}>⭐ {restaurant.avg_rating > 0 ? Number(restaurant.avg_rating).toFixed(1) : '—'}</Text>
+          <Text style={s.restNoteCount}>{restaurant.review_count > 0 ? restaurant.review_count + ' avis' : 'Nouveau'}</Text>
         </View>
       </View>
+
+      {/* DESCRIPTION */}
+      {!!restaurant.description && (
+        <View style={s.descBlock}>
+          <Text style={s.descTxt}>{restaurant.description}</Text>
+        </View>
+      )}
 
       {/* STATS */}
       <View style={s.statsRow}>
@@ -83,12 +90,12 @@ export default function RestaurantScreen({ route, navigation }) {
         </View>
         <View style={s.statDivider} />
         <View style={s.statItem}>
-          <Text style={s.statVal}>~1 800 DA</Text>
+          <Text style={s.statVal}>{restaurant.avg_ticket > 0 ? restaurant.avg_ticket.toLocaleString('fr-FR') + ' DA' : '—'}</Text>
           <Text style={s.statLbl}>Prix moyen</Text>
         </View>
         <View style={s.statDivider} />
         <View style={s.statItem}>
-          <Text style={s.statVal}>60</Text>
+          <Text style={s.statVal}>{restaurant.capacity > 0 ? restaurant.capacity : '—'}</Text>
           <Text style={s.statLbl}>Couverts</Text>
         </View>
       </View>
@@ -198,6 +205,8 @@ const s = StyleSheet.create({
   restAddr:       { color: C.dim, fontSize: 11 },
   restNote:       { color: C.accent, fontSize: 18, fontWeight: '300' },
   restNoteCount:  { color: C.dimmer, fontSize: 10 },
+  descBlock:      { paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: C.border },
+  descTxt:        { color: C.dim, fontSize: 13, fontWeight: '300', lineHeight: 20 },
   statsRow:       { flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: C.border },
   statItem:       { flex: 1, alignItems: 'center' },
   statVal:        { color: C.text, fontSize: 13, fontWeight: '400', marginBottom: 3 },
