@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
 const C = { bg:'#0d1628', bg2:'#111827', bg3:'#1a2332', accent:'#c8975a', accent2:'#4a7fa5', text:'#f0ece4', dim:'#8a9ab0', dimmer:'#4a5568', green:'#3d9970', card:'#141e2e', border:'rgba(255,255,255,0.07)' };
@@ -13,18 +13,24 @@ export default function ProfilScreen({ navigation }) {
   const [activeSits, setActiveSits] = useState([0]);
   const [activeCuisines, setActiveCuisines] = useState([0, 2]);
   const [avatarUri, setAvatarUri] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const [userInitial, setUserInitial] = useState('?');
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [authId, setAuthId] = useState(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       const u = data?.user;
       if (!u) return;
+      setAuthId(u.id);
       setUserEmail(u.email || '');
       setUserInitial((u.email || '?')[0].toUpperCase());
       const meta = u.user_metadata || {};
       setUserName(meta.full_name || meta.name || '');
+      // Charger l'avatar existant depuis la table users
+      supabase.from('users').select('avatar_url').eq('auth_id', u.id).single()
+        .then(({ data: row }) => { if (row?.avatar_url) setAvatarUri(row.avatar_url); });
     });
   }, []);
 
@@ -37,8 +43,27 @@ export default function ProfilScreen({ navigation }) {
       aspect: [1, 1],
       quality: 0.8,
     });
-    if (!result.canceled && result.assets[0]) {
-      setAvatarUri(result.assets[0].uri);
+    if (result.canceled || !result.assets[0]) return;
+    const uri = result.assets[0].uri;
+    setUploading(true);
+    try {
+      const ext = uri.split('.').pop().toLowerCase().replace('jpg', 'jpeg');
+      const path = `${authId}/avatar.${ext}`;
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      const { error: upErr } = await supabase.storage.from('avatars').upload(path, blob, {
+        upsert: true,
+        contentType: `image/${ext}`,
+      });
+      if (upErr) throw upErr;
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
+      const publicUrl = urlData.publicUrl;
+      await supabase.from('users').update({ avatar_url: publicUrl }).eq('auth_id', authId);
+      setAvatarUri(publicUrl);
+    } catch (e) {
+      console.error('upload avatar', e);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -49,12 +74,17 @@ export default function ProfilScreen({ navigation }) {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={s.hero}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight:12 }}><Text style={{ color:'#C8975A', fontSize:22 }}>←</Text></TouchableOpacity>
-          <TouchableOpacity style={s.avatarWrap} onPress={pickAvatar}>
+          <TouchableOpacity style={s.avatarWrap} onPress={pickAvatar} disabled={uploading}>
             {avatarUri
               ? <Image source={{ uri: avatarUri }} style={s.avatarImg} />
               : <View style={s.avatar}><Text style={s.avatarTxt}>{userInitial}</Text></View>
             }
-            <View style={s.avatarEdit}><Text style={{ fontSize:11 }}>📷</Text></View>
+            <View style={s.avatarEdit}>
+              {uploading
+                ? <ActivityIndicator size={10} color={C.bg} />
+                : <Text style={{ fontSize:11 }}>📷</Text>
+              }
+            </View>
           </TouchableOpacity>
           <View style={{ flex:1 }}>
             <Text style={s.heroName}>{userName || userEmail.split('@')[0] || 'Mon profil'}</Text>
