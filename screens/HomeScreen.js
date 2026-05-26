@@ -96,10 +96,15 @@ export default function HomeScreen({ navigation }) {
   const [loading, setLoading]         = useState(false);
   const [bannerVisible, setBannerVisible] = useState(false);
   const [userInitial, setUserInitial] = useState("?");
+  const [avatarUrl, setAvatarUrl] = useState(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data?.user?.email) setUserInitial(data.user.email[0].toUpperCase());
+      const u = data?.user;
+      if (!u) return;
+      if (u.email) setUserInitial(u.email[0].toUpperCase());
+      supabase.from('users').select('avatar_url').eq('auth_id', u.id).single()
+        .then(({ data: row }) => { if (row?.avatar_url) setAvatarUrl(row.avatar_url); });
     });
     const t = setTimeout(() => setBannerVisible(true), 150);
     return () => clearTimeout(t);
@@ -125,7 +130,12 @@ export default function HomeScreen({ navigation }) {
         <Text style={s.logo}>MIDA</Text>
         <View style={s.headerRight}>
           <TouchableOpacity style={s.iconBtn}><Text style={s.iconBtnTxt}>🔍</Text></TouchableOpacity>
-          <TouchableOpacity style={s.avatar} onPress={() => navigation.navigate("Profil")}><Text style={s.avatarTxt}>{userInitial}</Text></TouchableOpacity>
+          <TouchableOpacity style={s.avatar} onPress={() => navigation.navigate("Profil")}>
+            {avatarUrl
+              ? <Image source={{ uri: avatarUrl }} style={s.avatarPhoto} />
+              : <Text style={s.avatarTxt}>{userInitial}</Text>
+            }
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -260,8 +270,9 @@ const s = StyleSheet.create({
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   iconBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' },
   iconBtnTxt: { fontSize: 16 },
-  avatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: C.bg3, borderWidth: 1, borderColor: C.accent, alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: C.bg3, borderWidth: 1, borderColor: C.accent, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   avatarTxt: { color: C.accent, fontWeight: '600', fontSize: 14 },
+  avatarPhoto: { width: 36, height: 36, borderRadius: 18 },
 
   /* City chips */
   cityRow: { maxHeight: 48 },
