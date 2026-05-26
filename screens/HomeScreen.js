@@ -73,7 +73,7 @@ export default function HomeScreen({ navigation }) {
         <Text style={s.logo}>MIDA</Text>
         <View style={s.headerRight}>
           <TouchableOpacity style={s.iconBtn}><Text style={s.iconBtnTxt}>🔍</Text></TouchableOpacity>
-          <View style={s.avatar}><Text style={s.avatarTxt}>{userInitial}</Text></View>
+          <TouchableOpacity style={s.avatar} onPress={() => navigation.navigate("Profil")}><Text style={s.avatarTxt}>{userInitial}</Text></TouchableOpacity>
         </View>
       </View>
 
