@@ -53,9 +53,13 @@ export default function ProInscriptionScreen({ navigation }) {
       phone:        form.telephone,
       status:       'pending',
     });
+    console.log('[Supabase error]', err);
     if (err) {
       setError(err.message);
+      setLoading(false);
+      return;
     } else {
+      setSuccess(true);
       const resendRes = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
