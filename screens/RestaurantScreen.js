@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import { Platform, StatusBar as RNStatusBar } from 'react-native';
+import { useState, useRef } from 'react';
+import { Platform, StatusBar as RNStatusBar, Dimensions } from 'react-native';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Image } from 'react-native';
+
+const SW = Dimensions.get('window').width;
 
 const C = {
   bg:'#0d1628', bg2:'#111827', bg3:'#1a2332',
@@ -41,6 +43,8 @@ export default function RestaurantScreen({ route, navigation }) {
   };
 
   const [activeTab, setActiveTab] = useState('menu');
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const photos = restaurant.photos && restaurant.photos.length > 0 ? restaurant.photos : null;
 
   const avis = [
     { nom:'Karim B.', note:5, date:'12 mai', txt:'Excellent! La chorba etait parfaite, service impeccable.' },
@@ -50,15 +54,36 @@ export default function RestaurantScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={s.container}>
-      {/* HEADER IMAGE */}
+      {/* GALERIE HERO */}
       <View style={s.heroImg}>
-        {restaurant.photos && restaurant.photos.length > 0
-          ? <Image source={{ uri: restaurant.photos[0] }} style={s.heroPhoto} resizeMode="cover" />
-          : <Text style={s.heroEmoji}>{EMOJI[restaurant.cuisine_type] || '🍽️'}</Text>
-        }
+        {photos ? (
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            style={s.heroScroll}
+            onMomentumScrollEnd={(e) => {
+              const idx = Math.round(e.nativeEvent.contentOffset.x / e.nativeEvent.layoutMeasurement.width);
+              setPhotoIndex(idx);
+            }}
+          >
+            {photos.map((uri, i) => (
+              <Image key={i} source={{ uri }} style={s.heroPhoto} resizeMode="cover" />
+            ))}
+          </ScrollView>
+        ) : (
+          <Text style={s.heroEmoji}>{EMOJI[restaurant.cuisine_type] || '🍽️'}</Text>
+        )}
         <TouchableOpacity style={s.backBtn} onPress={() => navigation?.goBack()}>
           <Text style={s.backBtnTxt}>←</Text>
         </TouchableOpacity>
+        {photos && photos.length > 1 && (
+          <View style={s.dots}>
+            {photos.map((_, i) => (
+              <View key={i} style={[s.dot, i === photoIndex && s.dotOn]} />
+            ))}
+          </View>
+        )}
         <View style={s.heroBadge}>
           <View style={s.heroDot} />
           <Text style={s.heroBadgeTxt}>Ouvert · ~20 min</Text>
@@ -195,9 +220,13 @@ export default function RestaurantScreen({ route, navigation }) {
 
 const s = StyleSheet.create({
   container:      { flex: 1, backgroundColor: C.bg },
-  heroImg:        { height: 240, backgroundColor: '#1a2e1a', alignItems: 'center', justifyContent: 'center', position: 'relative' },
-  heroPhoto:      { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  heroImg:        { height: 260, backgroundColor: '#1a2e1a', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' },
+  heroScroll:     { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  heroPhoto:      { width: SW, height: 260 },
   heroEmoji:      { fontSize: 72 },
+  dots:           { position: 'absolute', bottom: 44, flexDirection: 'row', gap: 5 },
+  dot:            { width: 5, height: 5, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.4)' },
+  dotOn:          { backgroundColor: '#fff', width: 16 },
   backBtn:        { position: 'absolute', top: Platform.OS === 'android' ? (RNStatusBar.currentHeight || 0) + 10 : 16, left: 16, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(10,15,26,0.8)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.border },
   backBtnTxt:     { color: C.text, fontSize: 18 },
   heroBadge:      { position: 'absolute', bottom: 14, right: 14, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(10,15,26,0.85)', borderRadius: 100, paddingHorizontal: 12, paddingVertical: 5, borderWidth: 1, borderColor: 'rgba(61,153,112,0.3)' },
