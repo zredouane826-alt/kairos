@@ -17,6 +17,7 @@ export default function ProfilScreen({ navigation }) {
     <View style={s.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={s.hero}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight:12 }}><Text style={{ color:'#C8975A', fontSize:22 }}>←</Text></TouchableOpacity>
           <View style={s.avatar}><Text style={s.avatarTxt}>R</Text></View>
           <View style={{ flex:1 }}>
             <Text style={s.heroName}>Redouane</Text>
