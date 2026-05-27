@@ -247,7 +247,7 @@ export default function ProfilScreen({ navigation }) {
                       <Text style={[s.resaBadgeTxt, { color }]}>{STATUS_LABEL[r.status] || r.status}</Text>
                     </View>
                   </View>
-                  {r.status === 'pending' && (
+                  {(r.status === 'pending' || r.status === 'confirmed') && (
                     <TouchableOpacity
                       style={s.cancelBtn}
                       onPress={() => cancelReservation(r.id)}
