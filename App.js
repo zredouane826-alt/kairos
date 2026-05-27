@@ -3,7 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View, Text } from 'react-native';
+import { View, Text, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { supabase } from './supabase';
 import OnboardingScreen from './screens/OnboardingScreen';
@@ -128,7 +128,10 @@ export default function App() {
         </View>
       );
     }
-    if (!session && !userType) return <OnboardingScreen onSelect={setUserType} />;
+    if (!session && !userType) {
+      if (Platform.OS === 'web') return <AuthScreen userType="client" onAuth={(s) => setSession(s)} />;
+      return <OnboardingScreen onSelect={setUserType} />;
+    }
     if (!session) return <AuthScreen userType={userType} onAuth={(s) => setSession(s)} />;
     return (
       <NavigationContainer>
