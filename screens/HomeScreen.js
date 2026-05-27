@@ -163,6 +163,12 @@ export default function HomeScreen({ navigation }) {
         </View>
       </View>
 
+      {/* ── Barre de recherche ── */}
+      <TouchableOpacity style={s.searchBar} onPress={() => navigation.navigate('Search')} activeOpacity={0.8}>
+        <Text style={s.searchBarIcon}>🔍</Text>
+        <Text style={s.searchBarPlaceholder}>Restaurant, cuisine, quartier…</Text>
+      </TouchableOpacity>
+
       {/* ── City chips ── */}
       <ScrollView
         horizontal
@@ -299,6 +305,11 @@ const s = StyleSheet.create({
   avatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: C.bg3, borderWidth: 1, borderColor: C.accent, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   avatarTxt: { color: C.accent, fontWeight: '600', fontSize: 14 },
   avatarPhoto: { width: 36, height: 36, borderRadius: 18 },
+
+  /* Search bar */
+  searchBar:        { flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 20, marginBottom: 10, marginTop: 4, backgroundColor: C.bg2, borderRadius: 14, borderWidth: 1, borderColor: C.border, paddingHorizontal: 14, height: 44 },
+  searchBarIcon:    { fontSize: 15 },
+  searchBarPlaceholder: { color: C.dimmer, fontSize: 14, fontWeight: '300' },
 
   /* City chips */
   cityRow: { maxHeight: 48 },
