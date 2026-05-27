@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
 const C = { bg:'#0d1628', bg2:'#111827', bg3:'#1a2332', accent:'#c8975a', accent2:'#4a7fa5', text:'#f0ece4', dim:'#8a9ab0', dimmer:'#4a5568', green:'#3d9970', card:'#141e2e', border:'rgba(255,255,255,0.07)', red:'#e74c3c' };
@@ -98,16 +98,28 @@ export default function ProfilScreen({ navigation }) {
     finally { setUploading(false); }
   };
 
-  const cancelReservation = async (id) => {
-    setCancelling(prev => new Set(prev).add(id));
-    const { error } = await supabase
-      .from('reservations')
-      .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
-      .eq('id', id);
-    if (!error) {
-      setReservations(prev => prev.map(r => r.id === id ? { ...r, status: 'cancelled' } : r));
-    }
-    setCancelling(prev => { const s = new Set(prev); s.delete(id); return s; });
+  const cancelReservation = (id, restoName) => {
+    Alert.alert(
+      'Annuler la réservation',
+      `Confirmer l'annulation chez ${restoName || 'ce restaurant'} ?`,
+      [
+        { text: 'Retour', style: 'cancel' },
+        {
+          text: 'Annuler la réservation', style: 'destructive',
+          onPress: async () => {
+            setCancelling(prev => new Set(prev).add(id));
+            const { error } = await supabase
+              .from('reservations')
+              .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+              .eq('id', id);
+            if (!error) {
+              setReservations(prev => prev.map(r => r.id === id ? { ...r, status: 'cancelled' } : r));
+            }
+            setCancelling(prev => { const s = new Set(prev); s.delete(id); return s; });
+          },
+        },
+      ]
+    );
   };
 
   const toggleSit     = (i) => setActiveSits(p => p.includes(i) ? p.filter(x => x !== i) : [...p, i]);
@@ -250,7 +262,7 @@ export default function ProfilScreen({ navigation }) {
                   {(r.status === 'pending' || r.status === 'confirmed') && (
                     <TouchableOpacity
                       style={s.cancelBtn}
-                      onPress={() => cancelReservation(r.id)}
+                      onPress={() => cancelReservation(r.id, resto.name)}
                       disabled={cancelling.has(r.id)}
                     >
                       {cancelling.has(r.id)
