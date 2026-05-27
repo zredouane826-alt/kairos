@@ -32,7 +32,8 @@ const f = StyleSheet.create({
   icon:  { fontSize: 15, marginRight: 10, opacity: 0.6 },
 });
 
-export default function AuthScreen({ onAuth }) {
+export default function AuthScreen({ onAuth, userType }) {
+  const isPro = userType === 'pro';
   const [mode,     setMode]     = useState('signin');
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
@@ -133,6 +134,13 @@ export default function AuthScreen({ onAuth }) {
             <Text style={s.tagline}>La bonne table, au bon moment.</Text>
           </View>
 
+          {/* Badge rôle */}
+          {isPro && (
+            <View style={s.roleBadge}>
+              <Text style={s.roleBadgeTxt}>📊  Espace Restaurateur</Text>
+            </View>
+          )}
+
           {/* ── Onglets Connexion / Inscription ── */}
           <View style={s.tabRow}>
             <TouchableOpacity
@@ -155,12 +163,14 @@ export default function AuthScreen({ onAuth }) {
           <Animated.View style={[s.card, { opacity: fadeAnim, transform: [{ translateX: shakeX }] }]}>
             <View style={s.cardHead}>
               <Text style={s.cardTitle}>
-                {mode === 'signin' ? 'Ravi de vous revoir 👋' : 'Créer un compte'}
+                {mode === 'signin' ? 'Ravi de vous revoir 👋' : isPro ? 'Créer un compte Pro' : 'Créer un compte'}
               </Text>
               <Text style={s.cardSub}>
                 {mode === 'signin'
-                  ? 'Connectez-vous pour accéder à vos réservations.'
-                  : 'Rejoignez MIDA en quelques secondes.'}
+                  ? 'Connectez-vous pour accéder à votre espace.'
+                  : isPro
+                    ? 'Créez votre compte, puis complétez votre dossier restaurateur.'
+                    : 'Rejoignez MIDA en quelques secondes.'}
               </Text>
             </View>
 
@@ -214,9 +224,12 @@ export default function AuthScreen({ onAuth }) {
             {!!success && (
               <View style={s.successBox}>
                 <View style={s.successRow}>
-                  <Text style={s.successIcon}>✉️</Text>
+                  <Text style={s.successIcon}>{isPro ? '📊' : '✉️'}</Text>
                   <Text style={s.successTxt}>{success}</Text>
                 </View>
+                {isPro && (
+                  <Text style={s.proHint}>Une fois connecté → Profil → "Devenir restaurateur" pour soumettre votre dossier.</Text>
+                )}
                 <TouchableOpacity onPress={() => { setSuccess(''); switchMode('signin'); }} style={s.successLink}>
                   <Text style={s.successLinkTxt}>→ Se connecter</Text>
                 </TouchableOpacity>
@@ -300,6 +313,13 @@ const s = StyleSheet.create({
   forgotBtn:  { alignSelf: 'flex-end', marginTop: -6, marginBottom: 10 },
   forgotTxt:  { color: C.accent2, fontSize: 12 },
   forgotSent: { color: C.green, fontSize: 12 },
+
+  /* Role badge */
+  roleBadge:    { alignSelf: 'center', flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(74,127,165,0.12)', borderRadius: 20, borderWidth: 1, borderColor: 'rgba(74,127,165,0.3)', paddingHorizontal: 16, paddingVertical: 8, marginBottom: 14 },
+  roleBadgeTxt: { color: C.accent2, fontSize: 12, fontWeight: '500', letterSpacing: 0.5 },
+
+  /* Pro hint */
+  proHint: { color: C.dim, fontSize: 11, lineHeight: 17, fontStyle: 'italic' },
 
   /* Legal */
   legal:     { color: C.dimmer, fontSize: 10, textAlign: 'center', lineHeight: 16 },

@@ -130,7 +130,7 @@ export default function App() {
       );
     }
     if (!session && !userType) return <OnboardingScreen onSelect={setUserType} />;
-    if (!session) return <AuthScreen onAuth={(s) => setSession(s)} />;
+    if (!session) return <AuthScreen userType={userType} onAuth={(s) => setSession(s)} />;
     return (
       <NavigationContainer>
         <StatusBar style="light" />
