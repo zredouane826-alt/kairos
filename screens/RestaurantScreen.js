@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Platform, StatusBar as RNStatusBar, Dimensions } from 'react-native';
 import {
+  Platform, StatusBar as RNStatusBar, Dimensions,
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   SafeAreaView, Image, ActivityIndicator, Animated,
 } from 'react-native';

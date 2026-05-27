@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, Text } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { supabase } from './supabase';
 import OnboardingScreen from './screens/OnboardingScreen';
 import HomeScreen from './screens/HomeScreen';
@@ -103,11 +104,15 @@ export default function App() {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      applyRoleFromSession(session);
-      setLoading(false);
-    });
+    supabase.auth.getSession()
+      .then(({ data }) => {
+        const s = data?.session ?? null;
+        setSession(s);
+        applyRoleFromSession(s);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) applyRoleFromSession(session);
@@ -116,30 +121,32 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (loading) {
+  function renderContent() {
+    if (loading) {
+      return (
+        <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: C.accent, fontSize: 28, fontWeight: '300', letterSpacing: 8 }}>MIDA</Text>
+        </View>
+      );
+    }
+    if (!session && !userType) return <OnboardingScreen onSelect={setUserType} />;
+    if (!session) return <AuthScreen onAuth={(s) => setSession(s)} />;
     return (
-      <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: C.accent, fontSize: 28, fontWeight: '300', letterSpacing: 8 }}>MIDA</Text>
-      </View>
+      <NavigationContainer>
+        <StatusBar style="light" />
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Main">{() => <TabNavigator userRole={userRole} />}</Stack.Screen>
+          <Stack.Screen name="Restaurant" component={RestaurantScreen} />
+          <Stack.Screen name="ReservationForm" component={ReservationFormScreen} />
+          <Stack.Screen name="ProInscription" component={ProInscriptionScreen} />
+          <Stack.Screen name="Profil" component={ProfilScreen} />
+          <Stack.Screen name="Notifications" component={NotificationsScreen} />
+          <Stack.Screen name="Search" component={SearchScreen} />
+          <Stack.Screen name="ProComptoir" component={ProComptoir} />
+        </Stack.Navigator>
+      </NavigationContainer>
     );
   }
 
-  if (!session && !userType) return <OnboardingScreen onSelect={setUserType} />;
-  if (!session) return <AuthScreen onAuth={(s) => setSession(s)} />;
-
-  return (
-    <NavigationContainer>
-      <StatusBar style="light" />
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Main">{() => <TabNavigator userRole={userRole} />}</Stack.Screen>
-        <Stack.Screen name="Restaurant" component={RestaurantScreen} />
-        <Stack.Screen name="ReservationForm" component={ReservationFormScreen} />
-        <Stack.Screen name="ProInscription" component={ProInscriptionScreen} />
-        <Stack.Screen name="Profil" component={ProfilScreen} />
-        <Stack.Screen name="Notifications" component={NotificationsScreen} />
-        <Stack.Screen name="Search" component={SearchScreen} />
-        <Stack.Screen name="ProComptoir" component={ProComptoir} />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
+  return <SafeAreaProvider>{renderContent()}</SafeAreaProvider>;
 }
