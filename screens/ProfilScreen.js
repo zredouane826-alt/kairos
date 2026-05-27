@@ -39,6 +39,7 @@ export default function ProfilScreen({ navigation }) {
   const [userId, setUserId]               = useState(null);
   const [reservations, setReservations]   = useState([]);
   const [resaLoading, setResaLoading]     = useState(false);
+  const [cancelling, setCancelling]       = useState(new Set());
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -95,6 +96,18 @@ export default function ProfilScreen({ navigation }) {
       setAvatarUri(publicUrl);
     } catch (e) { console.error('upload avatar', e); }
     finally { setUploading(false); }
+  };
+
+  const cancelReservation = async (id) => {
+    setCancelling(prev => new Set(prev).add(id));
+    const { error } = await supabase
+      .from('reservations')
+      .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+      .eq('id', id);
+    if (!error) {
+      setReservations(prev => prev.map(r => r.id === id ? { ...r, status: 'cancelled' } : r));
+    }
+    setCancelling(prev => { const s = new Set(prev); s.delete(id); return s; });
   };
 
   const toggleSit     = (i) => setActiveSits(p => p.includes(i) ? p.filter(x => x !== i) : [...p, i]);
@@ -215,23 +228,37 @@ export default function ProfilScreen({ navigation }) {
               const color = STATUS_COLOR[r.status] || C.dimmer;
               return (
                 <View key={r.id} style={s.resaCard}>
-                  <View style={s.resaLeft}>
-                    <Text style={s.resaEmoji}>{CUISINE_EMOJI[resto.cuisine_type] || '🍽️'}</Text>
-                  </View>
-                  <View style={s.resaBody}>
-                    <Text style={s.resaResto} numberOfLines={1}>{resto.name || '—'}</Text>
-                    <Text style={s.resaQuartier}>{resto.quartier || ''}</Text>
-                    <View style={s.resaMeta}>
-                      <Text style={s.resaDate}>📅 {fmtDate(r.date)}</Text>
-                      <Text style={s.resaSep}>·</Text>
-                      <Text style={s.resaTime}>🕐 {fmtTime(r.time_slot)}</Text>
-                      <Text style={s.resaSep}>·</Text>
-                      <Text style={s.resaGuests}>👤 {r.nb_adults + (r.nb_children || 0)}</Text>
+                  <View style={s.resaRow}>
+                    <View style={s.resaLeft}>
+                      <Text style={s.resaEmoji}>{CUISINE_EMOJI[resto.cuisine_type] || '🍽️'}</Text>
+                    </View>
+                    <View style={s.resaBody}>
+                      <Text style={s.resaResto} numberOfLines={1}>{resto.name || '—'}</Text>
+                      <Text style={s.resaQuartier}>{resto.quartier || ''}</Text>
+                      <View style={s.resaMeta}>
+                        <Text style={s.resaDate}>📅 {fmtDate(r.date)}</Text>
+                        <Text style={s.resaSep}>·</Text>
+                        <Text style={s.resaTime}>🕐 {fmtTime(r.time_slot)}</Text>
+                        <Text style={s.resaSep}>·</Text>
+                        <Text style={s.resaGuests}>👤 {r.nb_adults + (r.nb_children || 0)}</Text>
+                      </View>
+                    </View>
+                    <View style={[s.resaBadge, { borderColor: color }]}>
+                      <Text style={[s.resaBadgeTxt, { color }]}>{STATUS_LABEL[r.status] || r.status}</Text>
                     </View>
                   </View>
-                  <View style={[s.resaBadge, { borderColor: color }]}>
-                    <Text style={[s.resaBadgeTxt, { color }]}>{STATUS_LABEL[r.status] || r.status}</Text>
-                  </View>
+                  {r.status === 'pending' && (
+                    <TouchableOpacity
+                      style={s.cancelBtn}
+                      onPress={() => cancelReservation(r.id)}
+                      disabled={cancelling.has(r.id)}
+                    >
+                      {cancelling.has(r.id)
+                        ? <ActivityIndicator size={12} color={C.red} />
+                        : <Text style={s.cancelTxt}>Annuler la réservation</Text>
+                      }
+                    </TouchableOpacity>
+                  )}
                 </View>
               );
             })
@@ -289,7 +316,8 @@ const s = StyleSheet.create({
   empty:          { alignItems:'center', paddingVertical:60, gap:12 },
   emptyEmoji:     { fontSize:40 },
   emptyTxt:       { color:C.dimmer, fontSize:13 },
-  resaCard:       { flexDirection:'row', alignItems:'center', marginHorizontal:24, marginTop:12, backgroundColor:C.card, borderRadius:16, borderWidth:1, borderColor:C.border, padding:14, gap:12 },
+  resaCard:       { marginHorizontal:24, marginTop:12, backgroundColor:C.card, borderRadius:16, borderWidth:1, borderColor:C.border, overflow:'hidden' },
+  resaRow:        { flexDirection:'row', alignItems:'center', padding:14, gap:12 },
   resaLeft:       { width:44, height:44, borderRadius:12, backgroundColor:C.bg2, alignItems:'center', justifyContent:'center' },
   resaEmoji:      { fontSize:22 },
   resaBody:       { flex:1, gap:3 },
@@ -302,4 +330,6 @@ const s = StyleSheet.create({
   resaGuests:     { color:C.dim, fontSize:11 },
   resaBadge:      { paddingHorizontal:8, paddingVertical:4, borderRadius:8, borderWidth:1 },
   resaBadgeTxt:   { fontSize:10, fontWeight:'500' },
+  cancelBtn:      { borderTopWidth:1, borderTopColor:C.border, paddingVertical:11, alignItems:'center' },
+  cancelTxt:      { color:C.red, fontSize:12, fontWeight:'400' },
 });
