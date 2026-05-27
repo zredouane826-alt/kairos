@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Platform, StatusBar as RNStatusBar, Dimensions } from 'react-native';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Image } from 'react-native';
+import { supabase } from '../supabase';
 
 const SW = Dimensions.get('window').width;
 
@@ -44,7 +45,40 @@ export default function RestaurantScreen({ route, navigation }) {
 
   const [activeTab, setActiveTab] = useState('menu');
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [isFav, setIsFav]           = useState(false);
+  const [favId, setFavId]           = useState(null);
+  const [favLoading, setFavLoading] = useState(false);
+  const [userId, setUserId]         = useState(null);
   const photos = restaurant.photos && restaurant.photos.length > 0 ? restaurant.photos : null;
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      const u = data?.user;
+      if (!u) return;
+      supabase.from('users').select('id').eq('auth_id', u.id).single()
+        .then(({ data: row }) => {
+          if (!row) return;
+          setUserId(row.id);
+          supabase.from('favorites')
+            .select('id').eq('user_id', row.id).eq('restaurant_id', restaurant.id).maybeSingle()
+            .then(({ data: fav }) => { if (fav) { setIsFav(true); setFavId(fav.id); } });
+        });
+    });
+  }, []);
+
+  const toggleFav = async () => {
+    if (!userId || favLoading) return;
+    setFavLoading(true);
+    if (isFav) {
+      await supabase.from('favorites').delete().eq('id', favId);
+      setIsFav(false); setFavId(null);
+    } else {
+      const { data } = await supabase.from('favorites')
+        .insert({ user_id: userId, restaurant_id: restaurant.id }).select('id').single();
+      if (data) { setIsFav(true); setFavId(data.id); }
+    }
+    setFavLoading(false);
+  };
 
   const avis = [
     { nom:'Karim B.', note:5, date:'12 mai', txt:'Excellent! La chorba etait parfaite, service impeccable.' },
@@ -76,6 +110,9 @@ export default function RestaurantScreen({ route, navigation }) {
         )}
         <TouchableOpacity style={s.backBtn} onPress={() => navigation?.goBack()}>
           <Text style={s.backBtnTxt}>←</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.favBtn} onPress={toggleFav} disabled={favLoading}>
+          <Text style={s.favBtnTxt}>{isFav ? '❤️' : '🤍'}</Text>
         </TouchableOpacity>
         {photos && photos.length > 1 && (
           <View style={s.dots}>
@@ -229,6 +266,8 @@ const s = StyleSheet.create({
   dotOn:          { backgroundColor: '#fff', width: 16 },
   backBtn:        { position: 'absolute', top: Platform.OS === 'android' ? (RNStatusBar.currentHeight || 0) + 10 : 16, left: 16, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(10,15,26,0.8)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.border },
   backBtnTxt:     { color: C.text, fontSize: 18 },
+  favBtn:         { position: 'absolute', top: Platform.OS === 'android' ? (RNStatusBar.currentHeight || 0) + 10 : 16, right: 16, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(10,15,26,0.8)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.border },
+  favBtnTxt:      { fontSize: 18 },
   heroBadge:      { position: 'absolute', bottom: 14, right: 14, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(10,15,26,0.85)', borderRadius: 100, paddingHorizontal: 12, paddingVertical: 5, borderWidth: 1, borderColor: 'rgba(61,153,112,0.3)' },
   heroDot:        { width: 6, height: 6, borderRadius: 3, backgroundColor: C.green },
   heroBadgeTxt:   { color: C.green, fontSize: 11 },
