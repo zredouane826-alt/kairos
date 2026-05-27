@@ -8,6 +8,7 @@ import { supabase } from './supabase';
 import OnboardingScreen from './screens/OnboardingScreen';
 import HomeScreen from './screens/HomeScreen';
 import MapScreen from './screens/MapScreen';
+import ExplorerScreen from './screens/ExplorerScreen';
 import FavorisScreen from './screens/FavorisScreen';
 import ReservationScreen from './screens/ReservationScreen';
 import ProDashboard from './screens/ProDashboard';
@@ -28,7 +29,7 @@ const C = {
 
 const TAB_ICON = {
   Recherche: { off: '🔍', on: '🔍' },
-  Map:       { off: '🗺️',  on: '🗺️'  },
+  Explorer:  { off: '🗺️',  on: '🗺️'  },
   Favoris:   { off: '🤍', on: '❤️'  },
   Resa:      { off: '📅', on: '📅'  },
   Manager:   { off: '🍽️', on: '🍽️'  },
@@ -67,9 +68,9 @@ function TabNavigator({ userRole }) {
         options={{ tabBarIcon: ({ focused }) => <TabIcon name="Recherche" focused={focused} /> }}
       />
       <Tab.Screen
-        name="Map"
-        component={MapScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="Map" focused={focused} /> }}
+        name="Explorer"
+        component={ExplorerScreen}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="Explorer" focused={focused} /> }}
       />
       <Tab.Screen
         name="Favoris"
