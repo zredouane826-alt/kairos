@@ -191,15 +191,6 @@ export default function AuthScreen({ onAuth }) {
               </TouchableOpacity>
             </Field>
 
-            {mode === 'signin' && (
-              <TouchableOpacity onPress={sendReset} disabled={resetLoading} style={s.forgotBtn}>
-                {resetSent
-                  ? <Text style={s.forgotSent}>✓ Email de réinitialisation envoyé</Text>
-                  : <Text style={s.forgotTxt}>{resetLoading ? '...' : 'Mot de passe oublié ?'}</Text>
-                }
-              </TouchableOpacity>
-            )}
-
             {mode === 'signup' && (
               <Field icon="✅" label="CONFIRMER LE MOT DE PASSE">
                 <TextInput
