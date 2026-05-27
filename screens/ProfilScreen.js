@@ -121,6 +121,7 @@ export default function ProfilScreen({ navigation }) {
   const [firstName,    setFirstName]    = useState('');
   const [lastName,     setLastName]     = useState('');
   const [city,         setCity]         = useState('');
+  const [phone,        setPhone]        = useState('');
   const [memberSince,  setMemberSince]  = useState('');
   const [avatarUri,    setAvatarUri]    = useState(null);
   const [uploading,    setUploading]    = useState(false);
@@ -145,7 +146,7 @@ export default function ProfilScreen({ navigation }) {
         new Date(u.created_at).toLocaleDateString('fr-FR', { month:'long', year:'numeric' })
       );
       supabase.from('users')
-        .select('id, avatar_url, first_name, last_name, city')
+        .select('id, avatar_url, first_name, last_name, city, phone')
         .eq('auth_id', u.id).single()
         .then(({ data: row }) => {
           if (!row) return;
@@ -154,6 +155,7 @@ export default function ProfilScreen({ navigation }) {
           setFirstName(row.first_name ?? '');
           setLastName(row.last_name  ?? '');
           setCity(row.city ?? '');
+          setPhone(row.phone ?? '');
         });
     });
   }, []);
@@ -197,7 +199,7 @@ export default function ProfilScreen({ navigation }) {
   const saveName = async () => {
     setSavingName(true);
     await supabase.from('users')
-      .update({ first_name: firstName.trim(), last_name: lastName.trim() })
+      .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone: phone.trim() })
       .eq('id', userId);
     setSavingName(false);
     setEditingName(false);
@@ -272,6 +274,14 @@ export default function ProfilScreen({ navigation }) {
                 <TextInput style={s.editInput} value={firstName} onChangeText={setFirstName} placeholder="Prénom" placeholderTextColor={C.dimmer} />
                 <TextInput style={s.editInput} value={lastName}  onChangeText={setLastName}  placeholder="Nom"    placeholderTextColor={C.dimmer} />
               </View>
+              <TextInput
+                style={[s.editInput, { width: '100%' }]}
+                value={phone}
+                onChangeText={setPhone}
+                placeholder="+213 6XX XXX XXX"
+                placeholderTextColor={C.dimmer}
+                keyboardType="phone-pad"
+              />
               <TouchableOpacity style={s.saveBtn} onPress={saveName} disabled={savingName}>
                 {savingName
                   ? <ActivityIndicator size={14} color={C.bg} />
@@ -284,6 +294,7 @@ export default function ProfilScreen({ navigation }) {
               <Text style={s.heroName}>{displayName}</Text>
               <Text style={s.heroEmail}>{userEmail}</Text>
               {!!city        && <Text style={s.heroCity}>📍 {city}</Text>}
+              {!!phone       && <Text style={s.heroCity}>📞 {phone}</Text>}
               {!!memberSince && <Text style={s.heroMember}>Membre depuis {memberSince}</Text>}
             </View>
           )}
