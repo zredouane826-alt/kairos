@@ -588,10 +588,10 @@ const s = StyleSheet.create({
 
   chipRow:     { paddingHorizontal:14, paddingVertical:8, gap:8 },
 
-  cityChip:    { flexDirection:'row', alignItems:'center', gap:5, paddingHorizontal:14, paddingVertical:7, borderRadius:100, backgroundColor:C.bg3, borderWidth:1, borderColor:C.border },
+  cityChip:    { flexDirection:'row', alignItems:'center', gap:5, paddingHorizontal:14, paddingVertical:7, borderRadius:100, backgroundColor:C.bg3, borderWidth:1, borderColor:'rgba(255,255,255,0.18)' },
   cityChipOn:  { backgroundColor:C.accent, borderColor:C.accent },
   cityEmoji:   { fontSize:13 },
-  cityTxt:     { color:C.dim, fontSize:12 },
+  cityTxt:     { color:C.text, fontSize:12 },
   cityTxtOn:   { color:C.bg, fontWeight:'600' },
 
   /* Search row */

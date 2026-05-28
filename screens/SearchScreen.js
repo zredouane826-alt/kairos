@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  SafeAreaView, TextInput, Image, ActivityIndicator, Keyboard,
+  SafeAreaView, TextInput, Image, ActivityIndicator, Keyboard, ScrollView,
 } from 'react-native';
 import { supabase } from '../supabase';
 
@@ -19,6 +19,11 @@ const CITIES = [
   { id: 'alger',       label: 'Alger' },
   { id: 'oran',        label: 'Oran' },
   { id: 'constantine', label: 'Constantine' },
+  { id: 'tizi_ouzou',  label: 'Tizi Ouzou' },
+  { id: 'bejaia',      label: 'Béjaïa' },
+  { id: 'setif',       label: 'Sétif' },
+  { id: 'annaba',      label: 'Annaba' },
+  { id: 'tlemcen',     label: 'Tlemcen' },
 ];
 
 const SUGGESTIONS = [
@@ -147,7 +152,7 @@ export default function SearchScreen({ navigation }) {
       </View>
 
       {/* ── Filtres ville ── */}
-      <View style={s.cityRow}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.cityRow}>
         {CITIES.map((c) => (
           <TouchableOpacity
             key={c.id}
@@ -157,7 +162,7 @@ export default function SearchScreen({ navigation }) {
             <Text style={[s.cityTxt, city === c.id && s.cityTxtOn]}>{c.label}</Text>
           </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
 
       {/* ── Contenu ── */}
       {!query.trim() ? (
@@ -221,9 +226,9 @@ const s = StyleSheet.create({
 
   /* Ville chips */
   cityRow:       { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 10 },
-  cityChip:      { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 100, backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border },
+  cityChip:      { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 100, backgroundColor: C.bg2, borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' },
   cityChipOn:    { backgroundColor: C.accent, borderColor: C.accent },
-  cityTxt:       { color: C.dim, fontSize: 12 },
+  cityTxt:       { color: C.text, fontSize: 12 },
   cityTxtOn:     { color: C.bg, fontWeight: '600' },
 
   /* Suggestions */

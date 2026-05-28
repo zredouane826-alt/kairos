@@ -23,7 +23,12 @@ const C = {
 const CITIES = [
   { id: 'alger',       label: 'Alger',        emoji: '🏛️', count: '20+' },
   { id: 'oran',        label: 'Oran',          emoji: '🌊', count: '10+' },
-  { id: 'constantine', label: 'Constantine',   emoji: '🌉', count: '5+'  },
+  { id: 'constantine', label: 'Constantine',   emoji: '🌉', count: '10+' },
+  { id: 'tizi_ouzou',  label: 'Tizi Ouzou',    emoji: '⛰️', count: '5+'  },
+  { id: 'bejaia',      label: 'Béjaïa',        emoji: '🌅', count: '5+'  },
+  { id: 'setif',       label: 'Sétif',         emoji: '🌾', count: '5+'  },
+  { id: 'annaba',      label: 'Annaba',        emoji: '🌺', count: '5+'  },
+  { id: 'tlemcen',     label: 'Tlemcen',       emoji: '🕌', count: '5+'  },
   { id: 'nearby',      label: 'Autour de moi', emoji: '📍', count: ''    },
 ];
 
@@ -536,10 +541,10 @@ const s = StyleSheet.create({
   /* Cities */
   cityRow:        { maxHeight: 50 },
   cityContent:    { paddingHorizontal: 20, paddingVertical: 5, flexDirection: 'row', gap: 8, alignItems: 'center' },
-  cityChip:       { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 13, paddingVertical: 7, borderRadius: 100, backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border },
+  cityChip:       { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 13, paddingVertical: 7, borderRadius: 100, backgroundColor: C.bg2, borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' },
   cityChipOn:     { backgroundColor: C.accent, borderColor: C.accent },
   cityEmoji:      { fontSize: 12 },
-  cityTxt:        { color: C.dim, fontSize: 12 },
+  cityTxt:        { color: C.text, fontSize: 12 },
   cityTxtOn:      { color: '#070e1a', fontWeight: '600' },
   cityCount:      { backgroundColor: C.bg3, borderRadius: 100, paddingHorizontal: 5, paddingVertical: 1, minWidth: 22, alignItems: 'center' },
   cityCountOn:    { backgroundColor: 'rgba(7,14,26,0.25)' },
