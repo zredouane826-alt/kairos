@@ -216,32 +216,6 @@ export default function ExplorerScreen({ navigation }) {
     }
   };
 
-  const cuisineTypes = [...new Set(restaurants.map(r => r.cuisine_type).filter(Boolean))];
-
-  const budgetData = BUDGET_OPTIONS.find(o => o.id === budget);
-
-  const filtered = restaurants
-    .filter(r => {
-      if (cuisine && r.cuisine_type !== cuisine) return false;
-      if (budget !== 'all') {
-        const t = r.avg_ticket || 0;
-        if (budgetData.min != null && t < budgetData.min) return false;
-        if (budgetData.max != null && t > budgetData.max) return false;
-      }
-      if (!search) return true;
-      const q = search.toLowerCase();
-      return (r.name || '').toLowerCase().includes(q)
-        || (r.quartier || '').toLowerCase().includes(q)
-        || (r.cuisine_type || '').toLowerCase().includes(q);
-    })
-    .sort((a, b) => {
-      if (sort === 'rating')     return (b.avg_rating || 0) - (a.avg_rating || 0);
-      if (sort === 'price_asc')  return (a.avg_ticket || 0) - (b.avg_ticket || 0);
-      if (sort === 'price_desc') return (b.avg_ticket || 0) - (a.avg_ticket || 0);
-      return 0;
-    });
-
-  const hasActiveFilters = sort !== 'rating' || budget !== 'all' || !!cuisine;
 
   return (
     <View style={s.root}>
@@ -257,7 +231,7 @@ export default function ExplorerScreen({ navigation }) {
             showsCompass={false}
             toolbarEnabled={false}
           >
-            {filtered.map(r => (
+            {restaurants.map(r => (
               <Marker
                 key={String(r.id)}
                 coordinate={getCoord(r, cityDefault)}
