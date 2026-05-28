@@ -21,6 +21,11 @@ const CITIES = [
   { id:'alger',       label:'Alger',       emoji:'🏛️' },
   { id:'oran',        label:'Oran',        emoji:'🌊' },
   { id:'constantine', label:'Constantine', emoji:'🌉' },
+  { id:'tizi_ouzou',  label:'Tizi Ouzou',  emoji:'⛰️' },
+  { id:'bejaia',      label:'Béjaïa',      emoji:'🌅' },
+  { id:'setif',       label:'Sétif',       emoji:'🌾' },
+  { id:'annaba',      label:'Annaba',      emoji:'🌺' },
+  { id:'tlemcen',     label:'Tlemcen',     emoji:'🕌' },
 ];
 
 const CUISINE_EMOJI = {

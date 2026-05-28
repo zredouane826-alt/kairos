@@ -25,6 +25,11 @@ const CITIES = [
   { id:'alger',       label:'Alger',       emoji:'🏛️', region:{ latitude:36.7538, longitude:3.0588,  latitudeDelta:0.13, longitudeDelta:0.13 } },
   { id:'oran',        label:'Oran',        emoji:'🌊', region:{ latitude:35.6969, longitude:-0.6331, latitudeDelta:0.13, longitudeDelta:0.13 } },
   { id:'constantine', label:'Constantine', emoji:'🌉', region:{ latitude:36.3650, longitude:6.6147,  latitudeDelta:0.13, longitudeDelta:0.13 } },
+  { id:'tizi_ouzou',  label:'Tizi Ouzou',  emoji:'⛰️', region:{ latitude:36.7117, longitude:4.0450,  latitudeDelta:0.13, longitudeDelta:0.13 } },
+  { id:'bejaia',      label:'Béjaïa',      emoji:'🌅', region:{ latitude:36.7509, longitude:5.0564,  latitudeDelta:0.13, longitudeDelta:0.13 } },
+  { id:'setif',       label:'Sétif',       emoji:'🌾', region:{ latitude:36.1898, longitude:5.4108,  latitudeDelta:0.13, longitudeDelta:0.13 } },
+  { id:'annaba',      label:'Annaba',      emoji:'🌺', region:{ latitude:36.9000, longitude:7.7667,  latitudeDelta:0.13, longitudeDelta:0.13 } },
+  { id:'tlemcen',     label:'Tlemcen',     emoji:'🕌', region:{ latitude:34.8828, longitude:-1.3167, latitudeDelta:0.13, longitudeDelta:0.13 } },
 ];
 
 const CUISINE_EMOJI = {
