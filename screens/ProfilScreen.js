@@ -175,18 +175,21 @@ export default function ProfilScreen({ navigation }) {
     setResaLoading(true);
     setFavLoading(true);
     (async () => {
-      const [{ data: resas }, { data: favs }] = await Promise.all([
-        supabase.from('reservations')
-          .select('*, restaurants(id, name, cuisine_type, quartier)')
-          .eq('user_id', userId).order('date', { ascending: false }).limit(30),
-        supabase.from('favorites')
-          .select('id, restaurant_id, restaurants(id, name, cuisine_type, quartier, avg_rating, avg_ticket, photos, photo_url)')
-          .eq('user_id', userId).order('created_at', { ascending: false }),
-      ]);
-      setReservations(resas ?? []);
-      setResaLoading(false);
-      setFavorites(favs ?? []);
-      setFavLoading(false);
+      try {
+        const [{ data: resas }, { data: favs }] = await Promise.all([
+          supabase.from('reservations')
+            .select('*, restaurants(id, name, cuisine_type, quartier)')
+            .eq('user_id', userId).order('date', { ascending: false }).limit(30),
+          supabase.from('favorites')
+            .select('id, restaurant_id, restaurants(id, name, cuisine_type, quartier, avg_rating, avg_ticket, photos, photo_url)')
+            .eq('user_id', userId).order('created_at', { ascending: false }),
+        ]);
+        setReservations(resas ?? []);
+        setFavorites(favs ?? []);
+      } finally {
+        setResaLoading(false);
+        setFavLoading(false);
+      }
     })();
   }, [userId]));
 
@@ -254,8 +257,14 @@ export default function ProfilScreen({ navigation }) {
     () => [firstName, lastName].filter(Boolean).join(' ') || userEmail.split('@')[0] || 'Mon profil',
     [firstName, lastName, userEmail],
   );
-  const initial = displayName[0]?.toUpperCase() || '?';
-  const today   = todayStr();
+  const initial = useMemo(() => displayName[0]?.toUpperCase() || '?', [displayName]);
+  const today   = useMemo(() => todayStr(), []);
+
+  const goBack           = useCallback(() => navigation.goBack(), [navigation]);
+  const toggleEditing    = useCallback(() => setEditingName(v => !v), []);
+  const goProInscription = useCallback(() => navigation.navigate('ProInscription'), [navigation]);
+  const signOut          = useCallback(() => supabase.auth.signOut(), []);
+  const goExplorer       = useCallback(() => navigation.navigate('Explorer'), [navigation]);
 
   const upcoming = useMemo(
     () => reservations.filter(r => r.date >= today && ['confirmed', 'pending'].includes(r.status)),
@@ -276,11 +285,11 @@ export default function ProfilScreen({ navigation }) {
 
         {/* ── Header ── */}
         <View style={s.header}>
-          <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+          <TouchableOpacity style={s.backBtn} onPress={goBack}>
             <Text style={s.backBtnTxt}>←</Text>
           </TouchableOpacity>
           <Text style={s.headerTitle}>Mon profil</Text>
-          <TouchableOpacity style={s.editBtn} onPress={() => setEditingName(v => !v)}>
+          <TouchableOpacity style={s.editBtn} onPress={toggleEditing}>
             <Text style={s.editBtnTxt}>{editingName ? '✕  Fermer' : '✏️  Modifier'}</Text>
           </TouchableOpacity>
         </View>
@@ -393,7 +402,7 @@ export default function ProfilScreen({ navigation }) {
               ))}
             </View>
 
-            <TouchableOpacity style={s.proCard} onPress={() => navigation.navigate('ProInscription')}>
+            <TouchableOpacity style={s.proCard} onPress={goProInscription}>
               <View style={s.proCardIcon}><Text style={{ fontSize:22 }}>🍽️</Text></View>
               <View style={{ flex:1 }}>
                 <Text style={s.proCardTitle}>Je suis restaurateur</Text>
@@ -419,7 +428,7 @@ export default function ProfilScreen({ navigation }) {
               ))}
             </View>
 
-            <TouchableOpacity style={s.signOutBtn} onPress={() => supabase.auth.signOut()}>
+            <TouchableOpacity style={s.signOutBtn} onPress={signOut}>
               <Text style={s.signOutTxt}>Se déconnecter</Text>
             </TouchableOpacity>
             <View style={{ height:32 }} />
@@ -436,7 +445,7 @@ export default function ProfilScreen({ navigation }) {
                 <Text style={s.emptyEmoji}>📅</Text>
                 <Text style={s.emptyTitle}>Aucune réservation</Text>
                 <Text style={s.emptySub}>Vos réservations apparaîtront ici</Text>
-                <TouchableOpacity style={s.emptyBtn} onPress={() => navigation.navigate('Explorer')}>
+                <TouchableOpacity style={s.emptyBtn} onPress={goExplorer}>
                   <Text style={s.emptyBtnTxt}>Explorer les restaurants →</Text>
                 </TouchableOpacity>
               </View>
@@ -477,7 +486,7 @@ export default function ProfilScreen({ navigation }) {
                 <Text style={s.emptyEmoji}>🤍</Text>
                 <Text style={s.emptyTitle}>Aucun favori</Text>
                 <Text style={s.emptySub}>Appuyez sur ❤️ sur la page{'\n'}d'un restaurant pour l'ajouter</Text>
-                <TouchableOpacity style={s.emptyBtn} onPress={() => navigation.navigate('Explorer')}>
+                <TouchableOpacity style={s.emptyBtn} onPress={goExplorer}>
                   <Text style={s.emptyBtnTxt}>Explorer les restaurants →</Text>
                 </TouchableOpacity>
               </View>
