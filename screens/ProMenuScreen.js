@@ -472,6 +472,15 @@ export default function ProMenuScreen({ navigation }) {
   const filtered    = useMemo(() => activeCat ? dishes.filter(d => d.category === activeCat) : dishes, [dishes, activeCat]);
   const activeCount = useMemo(() => dishes.filter(d => d.is_available).length, [dishes]);
 
+  const goBack       = useCallback(() => navigation.goBack(), [navigation]);
+  const openAddForm  = useCallback(() => { setEditingDish(null); setView('add'); }, []);
+  const cancelForm   = useCallback(() => { setView('list'); setEditingDish(null); }, []);
+  const goCategories = useCallback(() => setView('categories'), []);
+  const goList       = useCallback(() => setView('list'), []);
+  const onRefresh    = useCallback(() => load(true), [load]);
+  const addCat       = useCallback(cat => setCategories(prev => [...prev, cat]), []);
+  const deleteCat    = useCallback(cat => setCategories(prev => prev.filter(c => c !== cat)), []);
+
   /* ── sub-view: add / edit ── */
   if (view === 'add' || view === 'edit') {
     const initial = view === 'edit' && editingDish
@@ -493,7 +502,7 @@ export default function ProMenuScreen({ navigation }) {
           categories={categories}
           isEdit={view === 'edit'}
           onSave={saveDish}
-          onCancel={() => { setView('list'); setEditingDish(null); }}
+          onCancel={cancelForm}
           onDelete={deleteDish}
         />
       </SafeAreaView>
@@ -507,9 +516,9 @@ export default function ProMenuScreen({ navigation }) {
         <CategoriesView
           categories={categories}
           dishes={dishes}
-          onAdd={cat  => setCategories(prev => [...prev, cat])}
-          onDelete={cat => setCategories(prev => prev.filter(c => c !== cat))}
-          onBack={() => setView('list')}
+          onAdd={addCat}
+          onDelete={deleteCat}
+          onBack={goList}
         />
       </SafeAreaView>
     );
@@ -520,7 +529,7 @@ export default function ProMenuScreen({ navigation }) {
     <SafeAreaView style={s.root}>
 
       <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={s.backBtn} onPress={goBack}>
           <Text style={s.backBtnTxt}>←</Text>
         </TouchableOpacity>
         <View style={s.headerCenter}>
@@ -529,7 +538,7 @@ export default function ProMenuScreen({ navigation }) {
         </View>
         <TouchableOpacity
           style={s.addBtn}
-          onPress={() => { setEditingDish(null); setView('add'); }}
+          onPress={openAddForm}
           activeOpacity={0.75}
         >
           <Text style={s.addBtnTxt}>+ Ajouter</Text>
@@ -565,7 +574,7 @@ export default function ProMenuScreen({ navigation }) {
                   </TouchableOpacity>
                 );
               })}
-              <TouchableOpacity style={s.catChip} onPress={() => setView('categories')} activeOpacity={0.7}>
+              <TouchableOpacity style={s.catChip} onPress={goCategories} activeOpacity={0.7}>
                 <Text style={s.catChipMuted}>⚙️ Catégories</Text>
               </TouchableOpacity>
             </ScrollView>
@@ -573,7 +582,7 @@ export default function ProMenuScreen({ navigation }) {
 
           <ScrollView
             showsVerticalScrollIndicator={false}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={colors.accent} />}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
           >
             <View style={{ paddingHorizontal: spacing.xxl, paddingTop: spacing.lg, paddingBottom: 80 }}>
               {filtered.length === 0 ? (
@@ -600,7 +609,7 @@ export default function ProMenuScreen({ navigation }) {
 
               <TouchableOpacity
                 style={s.addDashed}
-                onPress={() => { setEditingDish(null); setView('add'); }}
+                onPress={openAddForm}
                 activeOpacity={0.7}
               >
                 <Text style={s.addDashedPlus}>+</Text>
