@@ -26,7 +26,7 @@ const f = StyleSheet.create({
 });
 
 export default function AuthScreen({ onAuth, userType, onSwitchType }) {
-  const isPro = userType === 'pro';
+  const isPro = useMemo(() => userType === 'pro', [userType]);
   const [mode,     setMode]     = useState('signin');
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
@@ -115,10 +115,16 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
     } catch {
       setError('Erreur réseau. Vérifiez votre connexion.');
       shake();
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }, [email, password, confirm, mode, shake, switchMode, onAuth]);
+
+  const switchToSignin = useCallback(() => switchMode('signin'), [switchMode]);
+  const switchToSignup = useCallback(() => switchMode('signup'), [switchMode]);
+  const toggleShowPwd  = useCallback(() => setShowPwd(v => !v), []);
+  const clearSuccess   = useCallback(() => { setSuccess(''); switchMode('signin'); }, [switchMode]);
+  const switchType     = useCallback(() => onSwitchType && onSwitchType(isPro ? 'client' : 'pro'), [onSwitchType, isPro]);
 
   return (
     <SafeAreaView style={s.root}>
@@ -151,14 +157,14 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
           <View style={s.tabRow}>
             <TouchableOpacity
               style={[s.tabBtn, mode === 'signin' && s.tabBtnOn]}
-              onPress={() => switchMode('signin')}
+              onPress={switchToSignin}
               activeOpacity={0.8}
             >
               <Text style={[s.tabTxt, mode === 'signin' && s.tabTxtOn]}>Connexion</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[s.tabBtn, mode === 'signup' && s.tabBtnOn]}
-              onPress={() => switchMode('signup')}
+              onPress={switchToSignup}
               activeOpacity={0.8}
             >
               <Text style={[s.tabTxt, mode === 'signup' && s.tabTxtOn]}>Inscription</Text>
@@ -202,7 +208,7 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
                 value={password}
                 onChangeText={setPassword}
               />
-              <TouchableOpacity onPress={() => setShowPwd(v => !v)} style={s.eyeBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <TouchableOpacity onPress={toggleShowPwd} style={s.eyeBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <Text style={s.eyeTxt}>{showPwd ? 'Masquer' : 'Afficher'}</Text>
               </TouchableOpacity>
             </Field>
@@ -244,7 +250,7 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
                 {isPro && (
                   <Text style={s.proHint}>Une fois connecté → Profil → "Devenir restaurateur" pour soumettre ton dossier.</Text>
                 )}
-                <TouchableOpacity onPress={() => { setSuccess(''); switchMode('signin'); }} style={s.successLink}>
+                <TouchableOpacity onPress={clearSuccess} style={s.successLink}>
                   <Text style={s.successLinkTxt}>→ Se connecter</Text>
                 </TouchableOpacity>
               </View>
@@ -270,7 +276,7 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
           </Text>
 
           {onSwitchType && (
-            <TouchableOpacity style={s.switchTypeBtn} onPress={() => onSwitchType(isPro ? 'client' : 'pro')}>
+            <TouchableOpacity style={s.switchTypeBtn} onPress={switchType}>
               <Text style={s.switchTypeTxt}>
                 {isPro ? '← Retour espace client' : '🧑‍🍳 Espace Pro / Restaurateur →'}
               </Text>
