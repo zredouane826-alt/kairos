@@ -289,18 +289,23 @@ export default function ProPromosScreen({ navigation }) {
     })();
   }, []));
 
+  const goBack   = useCallback(() => navigation.goBack(), [navigation]);
+  const goList   = useCallback(() => setView('list'),   []);
+  const goCreate = useCallback(() => setView('create'), []);
+  const goActive = useCallback(() => setView('active'), []);
+
   return (
     <SafeAreaView style={s.root}>
       {/* Header */}
       <View style={s.header}>
         <View style={s.headerLeft}>
           {(view !== 'list') && (
-            <TouchableOpacity style={s.backBtn} onPress={() => setView('list')}>
+            <TouchableOpacity style={s.backBtn} onPress={goList}>
               <Text style={s.backBtnTxt}>←</Text>
             </TouchableOpacity>
           )}
           {view === 'list' && (
-            <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+            <TouchableOpacity style={s.backBtn} onPress={goBack}>
               <Text style={s.backBtnTxt}>←</Text>
             </TouchableOpacity>
           )}
@@ -314,16 +319,16 @@ export default function ProPromosScreen({ navigation }) {
           </View>
         </View>
         {view === 'list' && (
-          <TouchableOpacity style={s.createBtn} onPress={() => setView('create')}>
+          <TouchableOpacity style={s.createBtn} onPress={goCreate}>
             <Text style={s.createBtnTxt}>+ Créer</Text>
           </TouchableOpacity>
         )}
       </View>
 
       {loading ? <Skeleton /> : (
-        view === 'list'   ? <ListScreen   restaurant={restaurant} onCreate={() => setView('create')} /> :
-        view === 'create' ? <CreateScreen onActivate={() => setView('active')} onBack={() => setView('list')} /> :
-                            <ActiveScreen onViewAll={() => setView('list')} onCreate={() => setView('create')} />
+        view === 'list'   ? <ListScreen   restaurant={restaurant} onCreate={goCreate} /> :
+        view === 'create' ? <CreateScreen onActivate={goActive} onBack={goList} /> :
+                            <ActiveScreen onViewAll={goList} onCreate={goCreate} />
       )}
     </SafeAreaView>
   );

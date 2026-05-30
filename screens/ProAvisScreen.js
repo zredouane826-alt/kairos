@@ -277,6 +277,9 @@ export default function ProAvisScreen({ navigation }) {
     setReviews(prev => prev.map(r => r.id === id ? { ...r, pro_response: text } : r));
   }, []);
 
+  const goBack    = useCallback(() => navigation.goBack(), [navigation]);
+  const onRefresh = useCallback(() => load(true), [load]);
+
   const noReply = useMemo(() => reviews.filter(r => !r.pro_response).length, [reviews]);
 
   const ratingCounts = useMemo(() => ({
@@ -300,7 +303,7 @@ export default function ProAvisScreen({ navigation }) {
     <SafeAreaView style={s.root}>
       {/* Header */}
       <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={s.backBtn} onPress={goBack}>
           <Text style={s.backBtnTxt}>←</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
@@ -318,7 +321,7 @@ export default function ProAvisScreen({ navigation }) {
         {loading ? <Skeleton /> : (
           <ScrollView
             showsVerticalScrollIndicator={false}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={colors.accent} />}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
           >
             {/* Stats */}
             <View style={{ marginTop: spacing.xl }}>

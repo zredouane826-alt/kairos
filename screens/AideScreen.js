@@ -19,12 +19,13 @@ export default function AideScreen({ navigation }) {
 
   const openSupport = useCallback(() => Linking.openURL('mailto:support@mida.dz'), []);
   const toggleFaq   = useCallback((i) => setExpanded(prev => prev === i ? null : i), []);
+  const goBack      = useCallback(() => navigation.goBack(), [navigation]);
 
   return (
     <SafeAreaView style={s.root}>
       {/* Header */}
       <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={s.backBtn} onPress={goBack}>
           <Text style={s.backBtnTxt}>←</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }}>

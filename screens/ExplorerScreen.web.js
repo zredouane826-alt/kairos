@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   SafeAreaView, ActivityIndicator, Dimensions, Image, FlatList,
@@ -102,15 +102,30 @@ export default function ExplorerScreen({ navigation }) {
   const [loading,     setLoading]     = useState(false);
 
   useEffect(() => {
-    setLoading(true);
-    supabase
-      .from('restaurants')
-      .select('id, name, cuisine_type, address, quartier, city, photos, avg_rating, avg_ticket, review_count, capacity')
-      .eq('city', city)
-      .eq('status', 'active')
-      .order('avg_rating', { ascending: false })
-      .then(({ data }) => { setRestaurants(data ?? []); setLoading(false); });
+    (async () => {
+      setLoading(true);
+      try {
+        const { data } = await supabase
+          .from('restaurants')
+          .select('id, name, cuisine_type, address, quartier, city, photos, avg_rating, avg_ticket, review_count, capacity')
+          .eq('city', city)
+          .eq('status', 'active')
+          .order('avg_rating', { ascending: false });
+        setRestaurants(data ?? []);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [city]);
+
+  const renderItem = useCallback(({ item: r, index }) => (
+    <RestoCard
+      r={r}
+      rank={index}
+      onPress={() => navigation.navigate('Restaurant', { restaurant: r })}
+      onReserve={() => navigation.navigate('ReservationForm', { restaurant: r })}
+    />
+  ), [navigation]);
 
   return (
     <SafeAreaView style={s.root}>
@@ -154,14 +169,7 @@ export default function ExplorerScreen({ navigation }) {
           columnWrapperStyle={s.gridRow}
           contentContainerStyle={s.gridContent}
           showsVerticalScrollIndicator={false}
-          renderItem={({ item: r, index }) => (
-            <RestoCard
-              r={r}
-              rank={index}
-              onPress={() => navigation.navigate('Restaurant', { restaurant: r })}
-              onReserve={() => navigation.navigate('ReservationForm', { restaurant: r })}
-            />
-          )}
+          renderItem={renderItem}
           ListFooterComponent={<View style={{ height: 60 }} />}
         />
       )}

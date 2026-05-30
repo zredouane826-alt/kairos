@@ -85,15 +85,17 @@ export default function SettingsScreen({ navigation }) {
     return map;
   });
 
-  const toggle = useCallback((key) => {
+  const toggle  = useCallback((key) => {
     setToggles(prev => ({ ...prev, [key]: !prev[key] }));
   }, []);
+  const goBack  = useCallback(() => navigation.goBack(), [navigation]);
+  const goAide  = useCallback(() => navigation.navigate('Aide'), [navigation]);
 
   return (
     <SafeAreaView style={s.root}>
       {/* Header */}
       <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={s.backBtn} onPress={goBack}>
           <Text style={s.backBtnTxt}>←</Text>
         </TouchableOpacity>
         <Text style={s.title}>Paramètres</Text>
@@ -147,7 +149,7 @@ export default function SettingsScreen({ navigation }) {
           <View style={{ paddingHorizontal: spacing.xl }}>
             <Text style={s.sectionLabel}>❓ Aide</Text>
             <View style={s.card}>
-              <TouchableOpacity style={[r.row, r.border]} onPress={() => navigation.navigate('Aide')}>
+              <TouchableOpacity style={[r.row, r.border]} onPress={goAide}>
                 <Text style={r.label}>Centre d'aide & FAQ</Text>
                 <Text style={r.arrow}>›</Text>
               </TouchableOpacity>
