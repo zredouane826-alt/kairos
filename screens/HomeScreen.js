@@ -298,21 +298,25 @@ export default function HomeScreen({ navigation }) {
   }, []));
 
   useEffect(() => {
-    setLoading(true);
-    fadeAnim.setValue(0);
-    slideAnim.setValue(20);
-    let q = supabase.from('restaurants')
-      .select('id,name,cuisine_type,quartier,avg_rating,avg_ticket,photos,review_count,city')
-      .eq('status', 'active').limit(20).order('avg_rating', { ascending: false });
-    if (city !== 'nearby') q = q.eq('city', city);
-    q.then(({ data }) => {
-      setRestaurants(data ?? []);
-      setLoading(false);
-      Animated.parallel([
-        Animated.timing(fadeAnim,  { toValue: 1, duration: 420, useNativeDriver: true }),
-        Animated.timing(slideAnim, { toValue: 0, duration: 380, useNativeDriver: true }),
-      ]).start();
-    });
+    (async () => {
+      setLoading(true);
+      fadeAnim.setValue(0);
+      slideAnim.setValue(20);
+      let q = supabase.from('restaurants')
+        .select('id,name,cuisine_type,quartier,avg_rating,avg_ticket,photos,review_count,city')
+        .eq('status', 'active').limit(20).order('avg_rating', { ascending: false });
+      if (city !== 'nearby') q = q.eq('city', city);
+      try {
+        const { data } = await q;
+        setRestaurants(data ?? []);
+        Animated.parallel([
+          Animated.timing(fadeAnim,  { toValue: 1, duration: 420, useNativeDriver: true }),
+          Animated.timing(slideAnim, { toValue: 0, duration: 380, useNativeDriver: true }),
+        ]).start();
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [city]);
 
   const featured = useMemo(
@@ -333,8 +337,14 @@ export default function HomeScreen({ navigation }) {
     [restaurants],
   );
 
-  const slots   = eveningSlots();
-  const cityObj = CITIES.find(c => c.id === city) || CITIES[0];
+  const slots   = useMemo(() => eveningSlots(), []);
+  const cityObj = useMemo(() => CITIES.find(c => c.id === city) || CITIES[0], [city]);
+
+  const goNotifications = useCallback(() => navigation.navigate('Notifications'), [navigation]);
+  const goProfil        = useCallback(() => navigation.navigate('Profil'), [navigation]);
+  const goSearch        = useCallback(() => navigation.navigate('Search'), [navigation]);
+  const goExplorer      = useCallback(() => navigation.navigate('Explorer'), [navigation]);
+  const clearCategory   = useCallback(() => setCategory('all'), []);
 
   return (
     <SafeAreaView style={s.root}>
@@ -351,7 +361,7 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
         <View style={s.headerRight}>
-          <TouchableOpacity style={s.iconBtn} onPress={() => navigation.navigate('Notifications')}>
+          <TouchableOpacity style={s.iconBtn} onPress={goNotifications}>
             <Text style={s.iconBtnTxt}>🔔</Text>
             {unreadNotifs > 0 && (
               <View style={s.notifBadge}>
@@ -359,7 +369,7 @@ export default function HomeScreen({ navigation }) {
               </View>
             )}
           </TouchableOpacity>
-          <TouchableOpacity style={s.avatar} onPress={() => navigation.navigate('Profil')}>
+          <TouchableOpacity style={s.avatar} onPress={goProfil}>
             {avatarUrl
               ? <Image source={{ uri: avatarUrl }} style={s.avatarPhoto} />
               : <Text style={s.avatarTxt}>{userInitial}</Text>
@@ -369,7 +379,7 @@ export default function HomeScreen({ navigation }) {
       </View>
 
       {/* ── Search bar ── */}
-      <TouchableOpacity style={s.searchBar} onPress={() => navigation.navigate('Search')} activeOpacity={0.8}>
+      <TouchableOpacity style={s.searchBar} onPress={goSearch} activeOpacity={0.8}>
         <Text style={s.searchIcon}>🔍</Text>
         <Text style={s.searchPlaceholder}>Restaurant, cuisine, quartier…</Text>
         <View style={s.searchCta}><Text style={s.searchCtaTxt}>Chercher</Text></View>
@@ -426,11 +436,11 @@ export default function HomeScreen({ navigation }) {
               <Text style={s.tonightTitle}>Trouvez votre table</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.slotRow}>
                 {slots.map(slot => (
-                  <TouchableOpacity key={slot} style={s.slotChip} onPress={() => navigation.navigate('Explorer')}>
+                  <TouchableOpacity key={slot} style={s.slotChip} onPress={goExplorer}>
                     <Text style={s.slotTxt}>{slot}</Text>
                   </TouchableOpacity>
                 ))}
-                <TouchableOpacity style={[s.slotChip, s.slotAll]} onPress={() => navigation.navigate('Explorer')}>
+                <TouchableOpacity style={[s.slotChip, s.slotAll]} onPress={goExplorer}>
                   <Text style={s.slotAllTxt}>Voir tout →</Text>
                 </TouchableOpacity>
               </ScrollView>
@@ -445,7 +455,7 @@ export default function HomeScreen({ navigation }) {
         {/* À la une */}
         {!loading && featured.length > 0 && (
           <>
-            <SectionHead label="À LA UNE" right="Voir tout →" rightAction={() => navigation.navigate('Explorer')} />
+            <SectionHead label="À LA UNE" right="Voir tout →" rightAction={goExplorer} />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.featRow}>
               {featured.map(r => (
                 <FeaturedCard
@@ -462,7 +472,7 @@ export default function HomeScreen({ navigation }) {
         <SectionHead
           label="CUISINES"
           right={category !== 'all' ? '✕ Effacer' : null}
-          rightAction={() => setCategory('all')}
+          rightAction={clearCategory}
         />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.pillRow}>
           {CATEGORIES.map(cat => (
@@ -502,7 +512,7 @@ export default function HomeScreen({ navigation }) {
             <Text style={s.emptyEmoji}>🍽️</Text>
             <Text style={s.emptyTitle}>Aucun restaurant</Text>
             <Text style={s.emptySub}>Essayez une autre catégorie</Text>
-            <TouchableOpacity onPress={() => setCategory('all')} style={s.emptyBtn}>
+            <TouchableOpacity onPress={clearCategory} style={s.emptyBtn}>
               <Text style={s.emptyBtnTxt}>Voir tout</Text>
             </TouchableOpacity>
           </View>
