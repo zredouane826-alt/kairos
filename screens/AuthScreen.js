@@ -1,35 +1,28 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   SafeAreaView, KeyboardAvoidingView, Platform, ScrollView,
-  ActivityIndicator, Animated,
+  Animated,
 } from 'react-native';
 import { supabase } from '../supabase';
-
-const C = {
-  bg: '#080d18', bg2: '#0f1828', bg3: '#162035',
-  accent: '#c8975a', accent2: '#4a7fa5',
-  text: '#f0ece4', dim: '#8a9ab0', dimmer: '#3a4a5e',
-  green: '#3d9970', red: '#e05a5a',
-  border: 'rgba(255,255,255,0.07)',
-};
+import { colors, typography, spacing, radius } from '../src/theme';
 
 function Field({ icon, label, children }) {
   return (
     <View style={f.wrap}>
-      <Text style={f.label}>{label}</Text>
+      {label ? <Text style={f.label}>{label}</Text> : null}
       <View style={f.inner}>
-        <Text style={f.icon}>{icon}</Text>
+        {icon ? <Text style={f.icon}>{icon}</Text> : null}
         {children}
       </View>
     </View>
   );
 }
 const f = StyleSheet.create({
-  wrap:  { marginBottom: 14 },
-  label: { color: C.dimmer, fontSize: 9, letterSpacing: 3, fontWeight: '500', marginBottom: 7 },
-  inner: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.bg2, borderRadius: 14, borderWidth: 1.5, borderColor: C.border, paddingHorizontal: 14, minHeight: 52 },
-  icon:  { fontSize: 15, marginRight: 10, opacity: 0.6 },
+  wrap:  { marginBottom: spacing.xl },
+  label: { color: colors.textMuted, fontSize: typography.size.xs, letterSpacing: 2, fontWeight: typography.weight.semibold, marginBottom: spacing.sm, textTransform: 'uppercase' },
+  inner: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1.5, borderColor: colors.cardBorder, paddingHorizontal: spacing.xl, minHeight: 52 },
+  icon:  { fontSize: typography.size.subheading, marginRight: spacing.md, opacity: 0.7 },
 });
 
 export default function AuthScreen({ onAuth, userType, onSwitchType }) {
@@ -58,7 +51,12 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
     ).start();
   }, []);
 
-  function shake() {
+  const shakeX = useMemo(
+    () => shakeAnim.interpolate({ inputRange: [-1, 1], outputRange: [-10, 10] }),
+    [],
+  );
+
+  const shake = useCallback(() => {
     shakeAnim.setValue(0);
     Animated.sequence([
       Animated.timing(shakeAnim, { toValue: 1,  duration: 55, useNativeDriver: true }),
@@ -66,24 +64,27 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
       Animated.timing(shakeAnim, { toValue: 1,  duration: 55, useNativeDriver: true }),
       Animated.timing(shakeAnim, { toValue: 0,  duration: 55, useNativeDriver: true }),
     ]).start();
-  }
+  }, []);
 
-  function switchMode(m) {
+  const switchMode = useCallback((m) => {
     Animated.timing(fadeAnim, { toValue: 0, duration: 140, useNativeDriver: true }).start(() => {
       setMode(m); setError(''); setSuccess(''); setResetSent(false);
       Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
     });
-  }
+  }, []);
 
-  async function sendReset() {
-    if (!email.trim()) { setError('Entrez votre email d\'abord.'); shake(); return; }
+  const sendReset = useCallback(async () => {
+    if (!email.trim()) { setError("Entrez votre email d'abord."); shake(); return; }
     setResetLoading(true);
-    await supabase.auth.resetPasswordForEmail(email.trim());
-    setResetSent(true);
-    setResetLoading(false);
-  }
+    try {
+      await supabase.auth.resetPasswordForEmail(email.trim());
+      setResetSent(true);
+    } finally {
+      setResetLoading(false);
+    }
+  }, [email, shake]);
 
-  async function submit() {
+  const submit = useCallback(async () => {
     if (!email.trim() || !password) { setError('Remplissez tous les champs.'); shake(); return; }
     if (mode === 'signup' && password !== confirm) { setError('Les mots de passe ne correspondent pas.'); shake(); return; }
     if (password.length < 6) { setError('Mot de passe : 6 caractères minimum.'); shake(); return; }
@@ -103,23 +104,21 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
             setError('Cet email est déjà utilisé. Connectez-vous avec votre mot de passe.');
             switchMode('signin');
           } else { setError(err.message); shake(); }
-        }
-        else if (data?.session) { onAuth(data.session); }
-        else {
+        } else if (data?.session) {
+          onAuth(data.session);
+        } else {
           const { data: d2 } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
           if (d2?.session) { onAuth(d2.session); }
           else { setSuccess('Compte créé ! Connectez-vous avec vos identifiants.'); switchMode('signin'); }
         }
       }
-    } catch (e) {
+    } catch {
       setError('Erreur réseau. Vérifiez votre connexion.');
       shake();
     }
 
     setLoading(false);
-  }
-
-  const shakeX = shakeAnim.interpolate({ inputRange: [-1, 1], outputRange: [-10, 10] });
+  }, [email, password, confirm, mode, shake, switchMode, onAuth]);
 
   return (
     <SafeAreaView style={s.root}>
@@ -137,18 +136,18 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
                 <Text style={s.heroStar}>✦</Text>
               </View>
             </Animated.View>
-            <Text style={s.logo}>MIDA</Text>
+            <Text style={s.logo}>mida</Text>
             <Text style={s.tagline}>La bonne table, au bon moment.</Text>
           </View>
 
-          {/* Badge rôle */}
+          {/* Badge rôle pro */}
           {isPro && (
             <View style={s.roleBadge}>
               <Text style={s.roleBadgeTxt}>📊  Espace Restaurateur</Text>
             </View>
           )}
 
-          {/* ── Onglets Connexion / Inscription ── */}
+          {/* ── Onglets ── */}
           <View style={s.tabRow}>
             <TouchableOpacity
               style={[s.tabBtn, mode === 'signin' && s.tabBtnOn]}
@@ -166,26 +165,26 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
             </TouchableOpacity>
           </View>
 
-          {/* ── Card ── */}
+          {/* ── Card formulaire ── */}
           <Animated.View style={[s.card, { opacity: fadeAnim, transform: [{ translateX: shakeX }] }]}>
             <View style={s.cardHead}>
               <Text style={s.cardTitle}>
-                {mode === 'signin' ? 'Ravi de vous revoir 👋' : isPro ? 'Créer un compte Pro' : 'Créer un compte'}
+                {mode === 'signin' ? 'Bon retour 👋' : isPro ? 'Créer un compte Pro' : 'Créer un compte'}
               </Text>
               <Text style={s.cardSub}>
                 {mode === 'signin'
-                  ? 'Connectez-vous pour accéder à votre espace.'
+                  ? 'Connecte-toi à ton compte Mida.'
                   : isPro
-                    ? 'Créez votre compte, puis complétez votre dossier restaurateur.'
-                    : 'Rejoignez MIDA en quelques secondes.'}
+                    ? 'Crée ton compte, puis complète ton dossier restaurateur.'
+                    : 'Rejoins Mida en quelques secondes.'}
               </Text>
             </View>
 
-            <Field icon="✉️" label="ADRESSE EMAIL">
+            <Field icon="✉️" label="Adresse email">
               <TextInput
                 style={s.input}
-                placeholder="votre@email.com"
-                placeholderTextColor={C.dimmer}
+                placeholder="ton@email.com"
+                placeholderTextColor={colors.textDim}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -194,11 +193,11 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
               />
             </Field>
 
-            <Field icon="🔒" label="MOT DE PASSE">
+            <Field icon="🔒" label="Mot de passe">
               <TextInput
                 style={[s.input, { flex: 1 }]}
                 placeholder="••••••••"
-                placeholderTextColor={C.dimmer}
+                placeholderTextColor={colors.textDim}
                 secureTextEntry={!showPwd}
                 value={password}
                 onChangeText={setPassword}
@@ -209,16 +208,24 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
             </Field>
 
             {mode === 'signup' && (
-              <Field icon="✅" label="CONFIRMER LE MOT DE PASSE">
+              <Field icon="✅" label="Confirmer le mot de passe">
                 <TextInput
                   style={s.input}
                   placeholder="••••••••"
-                  placeholderTextColor={C.dimmer}
+                  placeholderTextColor={colors.textDim}
                   secureTextEntry={!showPwd}
                   value={confirm}
                   onChangeText={setConfirm}
                 />
               </Field>
+            )}
+
+            {mode === 'signin' && (
+              <TouchableOpacity style={s.forgotBtn} onPress={sendReset} disabled={resetLoading}>
+                <Text style={resetSent ? s.forgotSent : s.forgotTxt}>
+                  {resetSent ? '✅ Email envoyé — vérifie ta boîte' : resetLoading ? 'Envoi…' : 'Mot de passe oublié ?'}
+                </Text>
+              </TouchableOpacity>
             )}
 
             {!!error && (
@@ -235,7 +242,7 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
                   <Text style={s.successTxt}>{success}</Text>
                 </View>
                 {isPro && (
-                  <Text style={s.proHint}>Une fois connecté → Profil → "Devenir restaurateur" pour soumettre votre dossier.</Text>
+                  <Text style={s.proHint}>Une fois connecté → Profil → "Devenir restaurateur" pour soumettre ton dossier.</Text>
                 )}
                 <TouchableOpacity onPress={() => { setSuccess(''); switchMode('signin'); }} style={s.successLink}>
                   <Text style={s.successLinkTxt}>→ Se connecter</Text>
@@ -249,12 +256,9 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
               disabled={loading}
               activeOpacity={0.85}
             >
-              {loading
-                ? <ActivityIndicator color={C.bg} size="small" />
-                : <Text style={s.submitTxt}>
-                    {mode === 'signin' ? 'SE CONNECTER  →' : 'CRÉER MON COMPTE  →'}
-                  </Text>
-              }
+              <Text style={s.submitTxt}>
+                {loading ? '···' : mode === 'signin' ? 'Se connecter  →' : 'Créer mon compte  →'}
+              </Text>
             </TouchableOpacity>
           </Animated.View>
 
@@ -280,67 +284,67 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
 }
 
 const s = StyleSheet.create({
-  root:   { flex: 1, backgroundColor: C.bg },
-  scroll: { flexGrow: 1, paddingHorizontal: 20, paddingBottom: 36 },
+  root:   { flex: 1, backgroundColor: colors.bg },
+  scroll: { flexGrow: 1, paddingHorizontal: spacing.xl, paddingBottom: spacing.section + 4 },
 
   /* Hero */
-  hero:          { alignItems: 'center', paddingTop: 50, paddingBottom: 32 },
-  heroRingOuter: { width: 88, height: 88, borderRadius: 26, backgroundColor: 'rgba(200,151,90,0.08)', borderWidth: 1.5, borderColor: 'rgba(200,151,90,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
-  heroRingInner: { width: 60, height: 60, borderRadius: 17, backgroundColor: 'rgba(200,151,90,0.14)', borderWidth: 1, borderColor: 'rgba(200,151,90,0.3)', alignItems: 'center', justifyContent: 'center' },
-  heroStar:      { color: C.accent, fontSize: 28 },
-  logo:          { color: C.accent, fontSize: 30, fontWeight: '300', letterSpacing: 10, marginBottom: 6 },
-  tagline:       { color: C.dim, fontSize: 12, fontStyle: 'italic', letterSpacing: 0.5 },
+  hero:          { alignItems: 'center', paddingTop: 50, paddingBottom: spacing.section },
+  heroRingOuter: { width: 88, height: 88, borderRadius: radius.xxl, backgroundColor: colors.accentSoft, borderWidth: 1.5, borderColor: 'rgba(232,160,69,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xxl },
+  heroRingInner: { width: 60, height: 60, borderRadius: radius.xl, backgroundColor: colors.accentSoft, borderWidth: 1, borderColor: 'rgba(232,160,69,0.3)', alignItems: 'center', justifyContent: 'center' },
+  heroStar:      { color: colors.accent, fontSize: 28 },
+  logo:          { color: colors.accent, fontSize: typography.size.display, fontWeight: typography.weight.black, letterSpacing: -1, marginBottom: spacing.sm, fontFamily: 'Georgia' },
+  tagline:       { color: colors.textMuted, fontSize: typography.size.body, fontStyle: 'italic', letterSpacing: 0.5 },
 
   /* Tabs */
-  tabRow:    { flexDirection: 'row', backgroundColor: C.bg2, borderRadius: 16, borderWidth: 1, borderColor: C.border, padding: 4, marginBottom: 14 },
-  tabBtn:    { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 12 },
-  tabBtnOn:  { backgroundColor: C.bg3, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
-  tabTxt:    { color: C.dimmer, fontSize: 14 },
-  tabTxtOn:  { color: C.text, fontWeight: '500' },
+  tabRow:    { flexDirection: 'row', backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, padding: 4, marginBottom: spacing.xl },
+  tabBtn:    { flex: 1, paddingVertical: spacing.lg, alignItems: 'center', borderRadius: radius.xl },
+  tabBtnOn:  { backgroundColor: colors.cardHover, borderWidth: 1, borderColor: colors.cardBorder },
+  tabTxt:    { color: colors.textDim, fontSize: typography.size.subheading },
+  tabTxtOn:  { color: colors.text, fontWeight: typography.weight.medium },
 
   /* Card */
-  card:      { backgroundColor: C.bg2, borderRadius: 22, borderWidth: 1, borderColor: C.border, padding: 22, marginBottom: 14 },
-  cardHead:  { marginBottom: 22 },
-  cardTitle: { color: C.text, fontSize: 22, fontWeight: '300', letterSpacing: 0.3, marginBottom: 5 },
-  cardSub:   { color: C.dim, fontSize: 13, lineHeight: 19 },
+  card:      { backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, padding: spacing.xxl, marginBottom: spacing.xl },
+  cardHead:  { marginBottom: spacing.xxl },
+  cardTitle: { color: colors.text, fontSize: typography.size.title, fontWeight: typography.weight.regular, letterSpacing: 0.3, marginBottom: spacing.xs },
+  cardSub:   { color: colors.textMuted, fontSize: typography.size.bodyLg, lineHeight: 19 },
 
   /* Input */
-  input:   { flex: 1, color: C.text, fontSize: 15, fontWeight: '300', paddingVertical: 0 },
-  eyeBtn:  { marginLeft: 8 },
-  eyeTxt:  { color: C.accent2, fontSize: 12 },
-
-  /* Feedback */
-  errorBox:   { flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: 'rgba(224,90,90,0.08)', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: 'rgba(224,90,90,0.25)', marginBottom: 14 },
-  errorIcon:  { fontSize: 13 },
-  errorTxt:   { color: C.red, fontSize: 12, lineHeight: 18, flex: 1 },
-  successBox:     { gap: 10, backgroundColor: 'rgba(61,153,112,0.08)', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: 'rgba(61,153,112,0.25)', marginBottom: 14 },
-  successRow:     { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  successIcon:    { fontSize: 13 },
-  successTxt:     { color: C.green, fontSize: 12, lineHeight: 18, flex: 1 },
-  successLink:    { alignSelf: 'flex-start' },
-  successLinkTxt: { color: C.accent2, fontSize: 13, fontWeight: '500' },
-
-  /* Submit */
-  submitBtn: { backgroundColor: C.accent, borderRadius: 15, paddingVertical: 16, alignItems: 'center', marginTop: 4 },
-  submitTxt: { color: C.bg, fontSize: 13, fontWeight: '600', letterSpacing: 1.2 },
+  input:   { flex: 1, color: colors.text, fontSize: typography.size.heading3, fontWeight: typography.weight.regular, paddingVertical: 0 },
+  eyeBtn:  { marginLeft: spacing.md },
+  eyeTxt:  { color: colors.blue, fontSize: typography.size.body },
 
   /* Forgot */
-  forgotBtn:  { alignSelf: 'flex-end', marginTop: -6, marginBottom: 10 },
-  forgotTxt:  { color: C.accent2, fontSize: 12 },
-  forgotSent: { color: C.green, fontSize: 12 },
+  forgotBtn:  { alignSelf: 'flex-end', marginTop: -spacing.md, marginBottom: spacing.lg },
+  forgotTxt:  { color: colors.blue, fontSize: typography.size.body },
+  forgotSent: { color: colors.green, fontSize: typography.size.body },
 
-  /* Role badge */
-  roleBadge:    { alignSelf: 'center', flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(74,127,165,0.12)', borderRadius: 20, borderWidth: 1, borderColor: 'rgba(74,127,165,0.3)', paddingHorizontal: 16, paddingVertical: 8, marginBottom: 14 },
-  roleBadgeTxt: { color: C.accent2, fontSize: 12, fontWeight: '500', letterSpacing: 0.5 },
+  /* Feedback */
+  errorBox:       { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md, backgroundColor: colors.redSoft, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: 'rgba(224,90,90,0.25)', marginBottom: spacing.xl },
+  errorIcon:      { fontSize: typography.size.bodyLg },
+  errorTxt:       { color: colors.red, fontSize: typography.size.body, lineHeight: 18, flex: 1 },
+  successBox:     { gap: spacing.md, backgroundColor: colors.greenSoft, borderRadius: radius.lg, padding: spacing.xl, borderWidth: 1, borderColor: 'rgba(76,175,130,0.25)', marginBottom: spacing.xl },
+  successRow:     { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
+  successIcon:    { fontSize: typography.size.bodyLg },
+  successTxt:     { color: colors.green, fontSize: typography.size.body, lineHeight: 18, flex: 1 },
+  successLink:    { alignSelf: 'flex-start' },
+  successLinkTxt: { color: colors.blue, fontSize: typography.size.bodyLg, fontWeight: typography.weight.medium },
+
+  /* Submit */
+  submitBtn: { backgroundColor: colors.accent, borderRadius: radius.xl, paddingVertical: spacing.xl - 2, alignItems: 'center', marginTop: spacing.xs },
+  submitTxt: { color: colors.bg, fontSize: typography.size.bodyLg, fontWeight: typography.weight.bold, letterSpacing: 0.5 },
+
+  /* Pro badge */
+  roleBadge:    { alignSelf: 'center', flexDirection: 'row', alignItems: 'center', backgroundColor: colors.blueSoft, borderRadius: radius.pill, borderWidth: 1, borderColor: 'rgba(90,155,224,0.3)', paddingHorizontal: spacing.xl, paddingVertical: spacing.md, marginBottom: spacing.xl },
+  roleBadgeTxt: { color: colors.blue, fontSize: typography.size.body, fontWeight: typography.weight.medium, letterSpacing: 0.5 },
 
   /* Pro hint */
-  proHint: { color: C.dim, fontSize: 11, lineHeight: 17, fontStyle: 'italic' },
+  proHint: { color: colors.textMuted, fontSize: typography.size.caption, lineHeight: 17, fontStyle: 'italic' },
 
   /* Legal */
-  legal:     { color: C.dimmer, fontSize: 10, textAlign: 'center', lineHeight: 16 },
-  legalLink: { color: C.dim },
+  legal:     { color: colors.textDim, fontSize: typography.size.sm, textAlign: 'center', lineHeight: 16 },
+  legalLink: { color: colors.textMuted },
 
   /* Switch type */
-  switchTypeBtn: { alignSelf: 'center', marginTop: 20, paddingVertical: 10, paddingHorizontal: 18, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(74,127,165,0.3)', backgroundColor: 'rgba(74,127,165,0.07)' },
-  switchTypeTxt: { color: C.accent2, fontSize: 12, fontWeight: '500', letterSpacing: 0.3 },
+  switchTypeBtn: { alignSelf: 'center', marginTop: spacing.xxl, paddingVertical: spacing.md, paddingHorizontal: spacing.xxl - 2, borderRadius: radius.lg, borderWidth: 1, borderColor: 'rgba(90,155,224,0.3)', backgroundColor: colors.blueSoft },
+  switchTypeTxt: { color: colors.blue, fontSize: typography.size.body, fontWeight: typography.weight.medium, letterSpacing: 0.3 },
 });

@@ -1,23 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Image, SafeAreaView, ActivityIndicator, TextInput,
+  Image, SafeAreaView, TextInput,
   RefreshControl, Alert, Dimensions,
 } from 'react-native';
 import { supabase } from '../supabase';
+import { colors, typography, spacing, radius } from '../src/theme';
+import MLoader from '../src/components/MLoader';
 
 const SW = Dimensions.get('window').width;
-const CARD_W = (SW - 20 * 2 - 10) / 2;
-
-const C = {
-  bg:'#0d1628', bg2:'#111827', bg3:'#1a2332',
-  accent:'#c8975a', accent2:'#4a7fa5',
-  text:'#f0ece4', dim:'#8a9ab0', dimmer:'#4a5568',
-  green:'#3d9970', red:'#e05a5a', card:'#141e2e',
-  border:'rgba(255,255,255,0.07)',
-  borderAccent:'rgba(200,151,90,0.3)',
-};
+const CARD_W = (SW - spacing.xxl * 2 - spacing.lg) / 2;
 
 const CUISINE_EMOJI = {
   algerien:'🥘', mediterraneen:'🐟', fast_casual:'☕',
@@ -38,6 +31,19 @@ function timeAdded(iso) {
   return `Ajouté le ${new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}`;
 }
 
+function SkeletonGrid() {
+  return (
+    <View style={{ paddingHorizontal: spacing.xxl, paddingTop: spacing.xl, gap: spacing.lg }}>
+      {[1,2,3].map(i => (
+        <View key={i} style={{ flexDirection: 'row', gap: spacing.lg }}>
+          <MLoader width={CARD_W} height={200} borderRadius={radius.xxl} />
+          <MLoader width={CARD_W} height={200} borderRadius={radius.xxl} />
+        </View>
+      ))}
+    </View>
+  );
+}
+
 /* ─── Card favori ─── */
 function FavCard({ fav, index, onPress, onReserve, onRemove, removing }) {
   const r     = fav.restaurants || {};
@@ -45,7 +51,6 @@ function FavCard({ fav, index, onPress, onReserve, onRemove, removing }) {
 
   return (
     <TouchableOpacity style={fc.card} onPress={onPress} activeOpacity={0.88}>
-      {/* Photo */}
       <View style={fc.photoWrap}>
         {photo
           ? <Image source={{ uri: photo }} style={StyleSheet.absoluteFill} resizeMode="cover" />
@@ -55,27 +60,17 @@ function FavCard({ fav, index, onPress, onReserve, onRemove, removing }) {
             </View>
           )
         }
-
-        {/* Gradient overlay */}
         <View style={fc.grad} />
-
-        {/* Rating badge */}
         {r.avg_rating > 0 && (
           <View style={fc.ratingBadge}>
             <Text style={fc.ratingTxt}>★ {Number(r.avg_rating).toFixed(1)}</Text>
           </View>
         )}
-
-        {/* Heart remove */}
         <TouchableOpacity style={fc.heartBtn} onPress={onRemove} disabled={removing}>
-          {removing
-            ? <ActivityIndicator size={12} color={C.accent} />
-            : <Text style={{ fontSize: 14 }}>❤️</Text>
-          }
+          <Text style={{ fontSize: removing ? 11 : 14, color: colors.textDim }}>{removing ? '···' : '❤️'}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Info */}
       <View style={fc.info}>
         <Text style={fc.cuisine} numberOfLines={1}>
           {(r.cuisine_type || '').replace(/_/g,' ')}
@@ -96,19 +91,19 @@ function FavCard({ fav, index, onPress, onReserve, onRemove, removing }) {
 }
 
 const fc = StyleSheet.create({
-  card:        { width: CARD_W, backgroundColor: C.card, borderRadius: 16, borderWidth: 1, borderColor: C.border, overflow: 'hidden' },
-  photoWrap:   { height: 130, backgroundColor: C.bg3 },
-  grad:        { position: 'absolute', bottom: 0, left: 0, right: 0, height: 50, backgroundColor: 'rgba(20,30,46,0.5)' },
-  ratingBadge: { position: 'absolute', bottom: 8, left: 8, backgroundColor: 'rgba(13,22,40,0.82)', borderRadius: 7, paddingHorizontal: 6, paddingVertical: 3, borderWidth: 1, borderColor: 'rgba(200,151,90,0.3)' },
-  ratingTxt:   { color: C.accent, fontSize: 10, fontWeight: '600' },
-  heartBtn:    { position: 'absolute', top: 8, right: 8, width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(13,22,40,0.75)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  info:        { padding: 10 },
-  cuisine:     { color: C.accent, fontSize: 8, letterSpacing: 1.5, marginBottom: 2, textTransform: 'uppercase' },
-  name:        { color: C.text, fontSize: 13, fontWeight: '300', letterSpacing: 0.2, marginBottom: 8 },
+  card:        { width: CARD_W, backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden' },
+  photoWrap:   { height: 130, backgroundColor: colors.cardHover },
+  grad:        { position: 'absolute', bottom: 0, left: 0, right: 0, height: 50, backgroundColor: 'rgba(15,13,11,0.5)' },
+  ratingBadge: { position: 'absolute', bottom: spacing.md, left: spacing.md, backgroundColor: 'rgba(15,13,11,0.82)', borderRadius: radius.sm, paddingHorizontal: spacing.sm, paddingVertical: spacing.xxs+1, borderWidth: 1, borderColor: 'rgba(232,160,69,0.3)' },
+  ratingTxt:   { color: colors.accent, fontSize: typography.size.sm, fontWeight: typography.weight.semibold },
+  heartBtn:    { position: 'absolute', top: spacing.md, right: spacing.md, width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(15,13,11,0.75)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.cardBorder },
+  info:        { padding: spacing.lg },
+  cuisine:     { color: colors.accent, fontSize: typography.size.xs, letterSpacing: 1.5, marginBottom: 2, textTransform: 'uppercase' },
+  name:        { color: colors.text, fontSize: typography.size.bodyLg, fontWeight: typography.weight.regular, letterSpacing: 0.2, marginBottom: spacing.md },
   bottom:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  price:       { color: C.dim, fontSize: 10 },
-  reserveBtn:  { backgroundColor: 'rgba(200,151,90,0.15)', borderRadius: 7, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: C.borderAccent },
-  reserveTxt:  { color: C.accent, fontSize: 9, fontWeight: '500' },
+  price:       { color: colors.textMuted, fontSize: typography.size.sm },
+  reserveBtn:  { backgroundColor: colors.accentSoft, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderWidth: 1, borderColor: 'rgba(232,160,69,0.3)' },
+  reserveTxt:  { color: colors.accent, fontSize: typography.size.xs, fontWeight: typography.weight.medium },
 });
 
 /* ─── Écran principal ─── */
@@ -122,30 +117,34 @@ export default function FavorisScreen({ navigation }) {
   const [sort,       setSort]       = useState('recent');
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    (async () => {
+      const { data } = await supabase.auth.getUser();
       const u = data?.user;
       if (!u) return;
-      supabase.from('users').select('id').eq('auth_id', u.id).single()
-        .then(({ data: row }) => { if (row) setUserId(row.id); });
-    });
+      const { data: row } = await supabase.from('users').select('id').eq('auth_id', u.id).single();
+      if (row) setUserId(row.id);
+    })();
   }, []);
 
   const load = useCallback(async (refresh = false) => {
     if (!userId) return;
     if (refresh) setRefreshing(true); else setLoading(true);
-    const { data } = await supabase
-      .from('favorites')
-      .select('id, created_at, restaurant_id, restaurants(id, name, cuisine_type, quartier, city, avg_rating, avg_ticket, photo_url, photos, review_count)')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-    setFavorites(data ?? []);
-    setLoading(false);
-    setRefreshing(false);
+    try {
+      const { data } = await supabase
+        .from('favorites')
+        .select('id, created_at, restaurant_id, restaurants(id, name, cuisine_type, quartier, city, avg_rating, avg_ticket, photo_url, photos, review_count)')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      setFavorites(data ?? []);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, [userId]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  const removeFavorite = (fav) => {
+  const removeFavorite = useCallback((fav) => {
     Alert.alert(
       'Retirer des favoris',
       `Retirer ${fav.restaurants?.name || 'ce restaurant'} de vos favoris ?`,
@@ -155,17 +154,19 @@ export default function FavorisScreen({ navigation }) {
           text: 'Retirer', style: 'destructive',
           onPress: async () => {
             setRemoving(prev => new Set(prev).add(fav.id));
-            await supabase.from('favorites').delete().eq('id', fav.id);
-            setFavorites(prev => prev.filter(f => f.id !== fav.id));
-            setRemoving(prev => { const s = new Set(prev); s.delete(fav.id); return s; });
+            try {
+              await supabase.from('favorites').delete().eq('id', fav.id);
+              setFavorites(prev => prev.filter(f => f.id !== fav.id));
+            } finally {
+              setRemoving(prev => { const next = new Set(prev); next.delete(fav.id); return next; });
+            }
           },
         },
       ]
     );
-  };
+  }, []);
 
-  /* Filtrage + tri */
-  const filtered = favorites
+  const filtered = useMemo(() => favorites
     .filter(f => {
       if (!search) return true;
       const q = search.toLowerCase();
@@ -177,19 +178,32 @@ export default function FavorisScreen({ navigation }) {
     .sort((a, b) => {
       if (sort === 'rating') return (b.restaurants?.avg_rating || 0) - (a.restaurants?.avg_rating || 0);
       if (sort === 'alpha')  return (a.restaurants?.name || '').localeCompare(b.restaurants?.name || '');
-      return 0; // recent: déjà trié par created_at DESC
-    });
+      return 0;
+    }), [favorites, search, sort]);
 
-  /* Paires pour grille 2 colonnes */
-  const rows = [];
-  for (let i = 0; i < filtered.length; i += 2) {
-    rows.push([filtered[i], filtered[i + 1] || null]);
-  }
+  const rows = useMemo(() => {
+    const out = [];
+    for (let i = 0; i < filtered.length; i += 2) {
+      out.push([filtered[i], filtered[i + 1] || null]);
+    }
+    return out;
+  }, [filtered]);
+
+  const avgRating = useMemo(
+    () => favorites.length > 0
+      ? (favorites.reduce((acc, f) => acc + (f.restaurants?.avg_rating || 0), 0) / favorites.length).toFixed(1)
+      : '—',
+    [favorites],
+  );
+
+  const cuisineCount = useMemo(
+    () => [...new Set(favorites.map(f => f.restaurants?.cuisine_type).filter(Boolean))].length,
+    [favorites],
+  );
 
   return (
     <SafeAreaView style={s.root}>
 
-      {/* Header */}
       <View style={s.header}>
         <View>
           <Text style={s.headerSub}>MES PRÉFÉRÉS</Text>
@@ -202,7 +216,6 @@ export default function FavorisScreen({ navigation }) {
         )}
       </View>
 
-      {/* Search + Sort */}
       {!loading && favorites.length > 0 && (
         <View style={s.controls}>
           <View style={s.searchBar}>
@@ -210,20 +223,20 @@ export default function FavorisScreen({ navigation }) {
             <TextInput
               style={s.searchInput}
               placeholder="Chercher dans mes favoris…"
-              placeholderTextColor={C.dimmer}
+              placeholderTextColor={colors.textDim}
               value={search}
               onChangeText={setSearch}
             />
             {search.length > 0 && (
               <TouchableOpacity onPress={() => setSearch('')}>
-                <Text style={{ color: C.dimmer, fontSize: 13 }}>✕</Text>
+                <Text style={{ color: colors.textDim, fontSize: typography.size.bodyLg }}>✕</Text>
               </TouchableOpacity>
             )}
           </View>
           <TouchableOpacity
             style={s.sortBtn}
-            onPress={() => setSort(s => {
-              const idx = SORT_OPTIONS.findIndex(o => o.id === s);
+            onPress={() => setSort(cur => {
+              const idx = SORT_OPTIONS.findIndex(o => o.id === cur);
               return SORT_OPTIONS[(idx + 1) % SORT_OPTIONS.length].id;
             })}
           >
@@ -232,9 +245,8 @@ export default function FavorisScreen({ navigation }) {
         </View>
       )}
 
-      {/* Contenu */}
       {loading ? (
-        <View style={s.center}><ActivityIndicator color={C.accent} size="large" /></View>
+        <SkeletonGrid />
       ) : favorites.length === 0 ? (
         <View style={s.center}>
           <Text style={s.emptyEmoji}>🤍</Text>
@@ -249,16 +261,15 @@ export default function FavorisScreen({ navigation }) {
           <Text style={{ fontSize: 36 }}>🔍</Text>
           <Text style={s.emptyTitle}>Aucun résultat</Text>
           <TouchableOpacity onPress={() => setSearch('')}>
-            <Text style={{ color: C.accent2, fontSize: 13 }}>Effacer la recherche</Text>
+            <Text style={{ color: colors.blue, fontSize: typography.size.bodyLg }}>Effacer la recherche</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={s.grid}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={C.accent} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={colors.accent} />}
         >
-          {/* Stat strip */}
           <View style={s.statStrip}>
             <View style={s.statItem}>
               <Text style={s.statVal}>{favorites.length}</Text>
@@ -266,23 +277,16 @@ export default function FavorisScreen({ navigation }) {
             </View>
             <View style={s.statDiv} />
             <View style={s.statItem}>
-              <Text style={s.statVal}>
-                {favorites.length > 0
-                  ? (favorites.reduce((acc, f) => acc + (f.restaurants?.avg_rating || 0), 0) / favorites.length).toFixed(1)
-                  : '—'}
-              </Text>
+              <Text style={s.statVal}>{avgRating}</Text>
               <Text style={s.statLbl}>Note moy.</Text>
             </View>
             <View style={s.statDiv} />
             <View style={s.statItem}>
-              <Text style={s.statVal}>
-                {[...new Set(favorites.map(f => f.restaurants?.cuisine_type).filter(Boolean))].length}
-              </Text>
+              <Text style={s.statVal}>{cuisineCount}</Text>
               <Text style={s.statLbl}>Cuisines</Text>
             </View>
           </View>
 
-          {/* Grille 2 colonnes */}
           {rows.map((row, ri) => (
             <View key={ri} style={s.row}>
               {row.map((fav, ci) => fav ? (
@@ -301,7 +305,6 @@ export default function FavorisScreen({ navigation }) {
             </View>
           ))}
 
-          {/* Derniers ajoutés */}
           <View style={s.recentSection}>
             <Text style={s.recentLabel}>HISTORIQUE DES AJOUTS</Text>
             {[...favorites].slice(0, 5).map(fav => (
@@ -326,48 +329,42 @@ export default function FavorisScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  root:        { flex: 1, backgroundColor: C.bg },
+  root: { flex: 1, backgroundColor: colors.bg },
 
-  /* Header */
-  header:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingTop: 56, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: C.border },
-  headerSub:   { color: C.accent, fontSize: 9, letterSpacing: 3, marginBottom: 2 },
-  headerTitle: { color: C.text, fontSize: 28, fontWeight: '300', letterSpacing: 1 },
-  countBadge:  { backgroundColor: 'rgba(200,151,90,0.1)', borderRadius: 100, paddingHorizontal: 14, paddingVertical: 6, borderWidth: 1, borderColor: C.borderAccent },
-  countTxt:    { color: C.accent, fontSize: 13, fontWeight: '400' },
+  header:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.xxxl, paddingTop: 56, paddingBottom: spacing.xl, borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  headerSub:   { color: colors.accent, fontSize: typography.size.xs, letterSpacing: 3, marginBottom: 2 },
+  headerTitle: { color: colors.text, fontSize: typography.size.hero, fontWeight: typography.weight.regular, letterSpacing: 1 },
+  countBadge:  { backgroundColor: colors.accentSoft, borderRadius: radius.full, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderWidth: 1, borderColor: 'rgba(232,160,69,0.3)' },
+  countTxt:    { color: colors.accent, fontSize: typography.size.bodyLg },
 
-  /* Controls */
-  controls:    { flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.border },
-  searchBar:   { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.bg2, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9, borderWidth: 1, borderColor: C.border },
+  controls:    { flexDirection: 'row', gap: spacing.md, paddingHorizontal: spacing.xxl, paddingVertical: spacing.lg, borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  searchBar:   { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.card, borderRadius: radius.lg, paddingHorizontal: spacing.lg, paddingVertical: spacing.md+1, borderWidth: 1, borderColor: colors.cardBorder },
   searchIcon:  { fontSize: 13 },
-  searchInput: { flex: 1, color: C.text, fontSize: 13 },
-  sortBtn:     { backgroundColor: C.bg2, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 9, borderWidth: 1, borderColor: C.border, justifyContent: 'center' },
-  sortTxt:     { color: C.accent, fontSize: 10, fontWeight: '500' },
+  searchInput: { flex: 1, color: colors.text, fontSize: typography.size.bodyLg },
+  sortBtn:     { backgroundColor: colors.card, borderRadius: radius.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.md+1, borderWidth: 1, borderColor: colors.cardBorder, justifyContent: 'center' },
+  sortTxt:     { color: colors.accent, fontSize: typography.size.sm, fontWeight: typography.weight.medium },
 
-  /* Stat strip */
-  statStrip:   { flexDirection: 'row', backgroundColor: C.bg2, borderRadius: 14, borderWidth: 1, borderColor: C.border, marginHorizontal: 20, marginBottom: 16 },
-  statItem:    { flex: 1, alignItems: 'center', paddingVertical: 12, gap: 2 },
-  statVal:     { color: C.text, fontSize: 18, fontWeight: '300' },
-  statLbl:     { color: C.dimmer, fontSize: 9, letterSpacing: 1 },
-  statDiv:     { width: 1, backgroundColor: C.border, marginVertical: 8 },
+  statStrip:   { flexDirection: 'row', backgroundColor: colors.card, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.cardBorder, marginHorizontal: spacing.xxl, marginBottom: spacing.xl },
+  statItem:    { flex: 1, alignItems: 'center', paddingVertical: spacing.lg, gap: spacing.xxs },
+  statVal:     { color: colors.text, fontSize: typography.size.heading1, fontWeight: typography.weight.regular },
+  statLbl:     { color: colors.textDim, fontSize: typography.size.xs, letterSpacing: 1 },
+  statDiv:     { width: 1, backgroundColor: colors.cardBorder, marginVertical: spacing.md },
 
-  /* Grid */
-  grid:        { paddingHorizontal: 20, paddingTop: 16 },
-  row:         { flexDirection: 'row', gap: 10, marginBottom: 10 },
+  grid:        { paddingHorizontal: spacing.xxl, paddingTop: spacing.xl },
+  row:         { flexDirection: 'row', gap: spacing.lg, marginBottom: spacing.lg },
 
-  /* Recent */
-  recentSection:{ marginTop: 8 },
-  recentLabel:  { color: C.dimmer, fontSize: 9, letterSpacing: 4, marginBottom: 12 },
-  recentRow:    { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.border },
-  recentEmoji:  { fontSize: 22, width: 32, textAlign: 'center' },
-  recentName:   { color: C.text, fontSize: 14, fontWeight: '300', marginBottom: 2 },
-  recentTime:   { color: C.dimmer, fontSize: 11 },
-  recentArrow:  { color: C.dimmer, fontSize: 22, fontWeight: '300' },
+  recentSection: { marginTop: spacing.md },
+  recentLabel:   { color: colors.textDim, fontSize: typography.size.xs, letterSpacing: 4, marginBottom: spacing.lg },
+  recentRow:     { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, paddingVertical: spacing.lg, borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  recentEmoji:   { fontSize: 22, width: 32, textAlign: 'center' },
+  recentName:    { color: colors.text, fontSize: typography.size.subheading, fontWeight: typography.weight.regular, marginBottom: 2 },
+  recentTime:    { color: colors.textDim, fontSize: typography.size.caption },
+  recentArrow:   { color: colors.textDim, fontSize: 22, fontWeight: typography.weight.regular },
 
-  /* Empty */
-  center:      { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, paddingHorizontal: 40 },
-  emptyEmoji:  { fontSize: 56 },
-  emptyTitle:  { color: C.text, fontSize: 20, fontWeight: '300', letterSpacing: 0.5 },
-  emptySub:    { color: C.dim, fontSize: 13, textAlign: 'center', lineHeight: 20 },
-  exploreBtn:  { backgroundColor: C.accent, borderRadius: 14, paddingVertical: 13, paddingHorizontal: 24, marginTop: 8 },
-  exploreBtnTxt:{ color: C.bg, fontSize: 12, fontWeight: '500', letterSpacing: 2 },
+  center:       { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg, paddingHorizontal: 40 },
+  emptyEmoji:   { fontSize: 56 },
+  emptyTitle:   { color: colors.text, fontSize: typography.size.title, fontWeight: typography.weight.regular, letterSpacing: 0.5 },
+  emptySub:     { color: colors.textMuted, fontSize: typography.size.bodyLg, textAlign: 'center', lineHeight: 20 },
+  exploreBtn:   { backgroundColor: colors.accent, borderRadius: radius.xl, paddingVertical: 13, paddingHorizontal: spacing.xxxl, marginTop: spacing.md },
+  exploreBtnTxt:{ color: colors.bg, fontSize: typography.size.body, fontWeight: typography.weight.medium, letterSpacing: 2 },
 });

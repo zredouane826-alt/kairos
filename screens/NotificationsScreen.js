@@ -1,25 +1,19 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  SafeAreaView, ActivityIndicator, RefreshControl, Alert,
+  SafeAreaView, RefreshControl, Alert,
 } from 'react-native';
 import { supabase } from '../supabase';
-
-const C = {
-  bg: '#0d1628', bg2: '#111827', bg3: '#1a2332',
-  accent: '#c8975a', accent2: '#4a7fa5',
-  text: '#f0ece4', dim: '#8a9ab0', dimmer: '#4a5568',
-  green: '#3d9970', red: '#e05a5a', card: '#141e2e',
-  border: 'rgba(255,255,255,0.07)',
-};
+import { colors, typography, spacing, radius } from '../src/theme';
+import MLoader from '../src/components/MLoader';
 
 const TYPE_CFG = {
-  confirm:      { icon: '✅', color: '#3d9970', label: 'Confirmation',  group: 'resa' },
-  cancellation: { icon: '❌', color: '#e05a5a', label: 'Annulation',    group: 'resa' },
-  new_resa:     { icon: '📅', color: '#4a7fa5', label: 'Réservation',   group: 'resa' },
-  reminder:     { icon: '⏰', color: '#c8975a', label: 'Rappel',        group: 'rappel' },
-  review_ask:   { icon: '⭐', color: '#f0c040', label: 'Avis',          group: 'rappel' },
+  confirm:      { icon: '✅', color: colors.green,  label: 'Confirmation', group: 'resa' },
+  cancellation: { icon: '❌', color: colors.red,    label: 'Annulation',   group: 'resa' },
+  new_resa:     { icon: '📅', color: colors.blue,   label: 'Réservation',  group: 'resa' },
+  reminder:     { icon: '⏰', color: colors.accent, label: 'Rappel',       group: 'rappel' },
+  review_ask:   { icon: '⭐', color: colors.accent,  label: 'Avis',         group: 'rappel' },
 };
 
 const TABS = [
@@ -51,11 +45,28 @@ function grouped(notifs) {
   ];
   notifs.forEach(n => {
     const d = new Date(n.sent_at);
-    if (d >= today)       out[0].items.push(n);
+    if (d >= today)        out[0].items.push(n);
     else if (d >= weekAgo) out[1].items.push(n);
-    else                  out[2].items.push(n);
+    else                   out[2].items.push(n);
   });
   return out.filter(g => g.items.length > 0);
+}
+
+function SkeletonList() {
+  return (
+    <View>
+      {[1,2,3,4,5].map(i => (
+        <View key={i} style={{ flexDirection: 'row', gap: spacing.lg, paddingHorizontal: spacing.xxl, paddingVertical: spacing.lg }}>
+          <MLoader width={46} height={46} borderRadius={radius.lg} />
+          <View style={{ flex: 1, gap: spacing.sm }}>
+            <MLoader width="40%" height={10} borderRadius={radius.sm} />
+            <MLoader width="80%" height={14} borderRadius={radius.sm} />
+            <MLoader width="55%" height={10} borderRadius={radius.sm} />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
 }
 
 export default function NotificationsScreen({ navigation }) {
@@ -66,37 +77,41 @@ export default function NotificationsScreen({ navigation }) {
   const [tab,        setTab]        = useState('all');
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    (async () => {
+      const { data } = await supabase.auth.getUser();
       const u = data?.user;
       if (!u) return;
-      supabase.from('users').select('id').eq('auth_id', u.id).single()
-        .then(({ data: row }) => { if (row) setUserId(row.id); });
-    });
+      const { data: row } = await supabase.from('users').select('id').eq('auth_id', u.id).single();
+      if (row) setUserId(row.id);
+    })();
   }, []);
 
   const load = useCallback(async (refresh = false) => {
     if (!userId) return;
     if (refresh) setRefreshing(true); else setLoading(true);
-    const { data } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('recipient_id', userId)
-      .eq('recipient_type', 'user')
-      .order('sent_at', { ascending: false });
-    setNotifs(data ?? []);
-    setLoading(false);
-    setRefreshing(false);
+    try {
+      const { data } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('recipient_id', userId)
+        .eq('recipient_type', 'user')
+        .order('sent_at', { ascending: false });
+      setNotifs(data ?? []);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, [userId]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  const markRead = async (n) => {
+  const markRead = useCallback(async (n) => {
     if (n.is_read) return;
     await supabase.from('notifications').update({ is_read: true }).eq('id', n.id);
     setNotifs(prev => prev.map(x => x.id === n.id ? { ...x, is_read: true } : x));
-  };
+  }, []);
 
-  const markAllRead = async () => {
+  const markAllRead = useCallback(async () => {
     if (!userId) return;
     await supabase.from('notifications')
       .update({ is_read: true })
@@ -104,9 +119,9 @@ export default function NotificationsScreen({ navigation }) {
       .eq('recipient_type', 'user')
       .eq('is_read', false);
     setNotifs(prev => prev.map(n => ({ ...n, is_read: true })));
-  };
+  }, [userId]);
 
-  const deleteNotif = (n) => {
+  const deleteNotif = useCallback((n) => {
     Alert.alert('Supprimer', 'Supprimer cette notification ?', [
       { text: 'Annuler', style: 'cancel' },
       {
@@ -117,17 +132,25 @@ export default function NotificationsScreen({ navigation }) {
         },
       },
     ]);
-  };
+  }, []);
 
-  const filtered = notifs.filter(n => {
-    if (tab === 'all') return true;
-    return (TYPE_CFG[n.type]?.group || 'autre') === tab;
-  });
+  const filtered = useMemo(() => notifs.filter(n =>
+    tab === 'all' || (TYPE_CFG[n.type]?.group || 'autre') === tab
+  ), [notifs, tab]);
 
-  const unread      = notifs.filter(n => !n.is_read).length;
-  const unreadResa  = notifs.filter(n => !n.is_read && TYPE_CFG[n.type]?.group === 'resa').length;
-  const unreadRappel= notifs.filter(n => !n.is_read && TYPE_CFG[n.type]?.group === 'rappel').length;
-  const groups      = grouped(filtered);
+  const { unread, unreadResa, unreadRappel } = useMemo(() => {
+    let unread = 0, unreadResa = 0, unreadRappel = 0;
+    for (const n of notifs) {
+      if (n.is_read) continue;
+      unread++;
+      const group = TYPE_CFG[n.type]?.group;
+      if (group === 'resa')   unreadResa++;
+      if (group === 'rappel') unreadRappel++;
+    }
+    return { unread, unreadResa, unreadRappel };
+  }, [notifs]);
+
+  const groups = useMemo(() => grouped(filtered), [filtered]);
 
   const badgeFor = (id) => {
     if (id === 'all')    return unread;
@@ -139,7 +162,6 @@ export default function NotificationsScreen({ navigation }) {
   return (
     <SafeAreaView style={s.root}>
 
-      {/* Header */}
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
           <Text style={s.backBtnTxt}>←</Text>
@@ -153,18 +175,14 @@ export default function NotificationsScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Barre résumé */}
       {unread > 0 && !loading && (
         <View style={s.summaryBar}>
           <View style={s.summaryDot} />
-          <Text style={s.summaryTxt}>
-            {unread} non lue{unread > 1 ? 's' : ''}
-          </Text>
+          <Text style={s.summaryTxt}>{unread} non lue{unread > 1 ? 's' : ''}</Text>
           <Text style={s.summaryHint}>  ·  Appuyez pour marquer comme lue</Text>
         </View>
       )}
 
-      {/* Tabs filtre */}
       <View style={s.tabBar}>
         {TABS.map(t => {
           const badge = badgeFor(t.id);
@@ -180,9 +198,8 @@ export default function NotificationsScreen({ navigation }) {
         })}
       </View>
 
-      {/* Contenu */}
       {loading ? (
-        <View style={s.center}><ActivityIndicator color={C.accent} size="large" /></View>
+        <SkeletonList />
       ) : filtered.length === 0 ? (
         <View style={s.center}>
           <Text style={s.emptyEmoji}>
@@ -196,13 +213,13 @@ export default function NotificationsScreen({ navigation }) {
       ) : (
         <ScrollView
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={C.accent} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={colors.accent} />}
         >
           {groups.map(({ label, items }) => (
             <View key={label}>
               <Text style={s.groupLabel}>{label.toUpperCase()}</Text>
               {items.map(n => {
-                const cfg = TYPE_CFG[n.type] || { icon: '🔔', color: C.dim, group: 'autre' };
+                const cfg = TYPE_CFG[n.type] || { icon: '🔔', color: colors.textMuted, group: 'autre' };
                 const isResa = cfg.group === 'resa';
                 return (
                   <TouchableOpacity
@@ -212,12 +229,10 @@ export default function NotificationsScreen({ navigation }) {
                     onLongPress={() => deleteNotif(n)}
                     activeOpacity={0.75}
                   >
-                    {/* Icône */}
                     <View style={[s.iconWrap, { backgroundColor: cfg.color + '18', borderColor: cfg.color + '35' }]}>
                       <Text style={s.icon}>{cfg.icon}</Text>
                     </View>
 
-                    {/* Contenu */}
                     <View style={s.cardContent}>
                       <View style={s.cardTopRow}>
                         <View style={[s.typeBadge, { backgroundColor: cfg.color + '15', borderColor: cfg.color + '30' }]}>
@@ -227,8 +242,6 @@ export default function NotificationsScreen({ navigation }) {
                       </View>
                       <Text style={[s.cardTitle, !n.is_read && s.cardTitleBold]}>{n.title}</Text>
                       <Text style={s.cardBody}>{n.body}</Text>
-
-                      {/* Action contextuelle */}
                       {isResa && (
                         <TouchableOpacity
                           style={s.actionBtn}
@@ -239,7 +252,6 @@ export default function NotificationsScreen({ navigation }) {
                       )}
                     </View>
 
-                    {/* Dot non lue */}
                     {!n.is_read && <View style={[s.unreadDot, { backgroundColor: cfg.color }]} />}
                   </TouchableOpacity>
                 );
@@ -254,60 +266,53 @@ export default function NotificationsScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  root:           { flex: 1, backgroundColor: C.bg },
+  root: { flex: 1, backgroundColor: colors.bg },
 
-  /* Header */
-  header:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: C.border },
-  backBtn:        { width: 36, height: 36, borderRadius: 18, backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' },
-  backBtnTxt:     { color: C.text, fontSize: 16 },
-  headerCenter:   { flex: 1, alignItems: 'center' },
-  headerSub:      { color: C.accent, fontSize: 9, letterSpacing: 3, marginBottom: 2 },
-  headerTitle:    { color: C.text, fontSize: 22, fontWeight: '300', letterSpacing: 1 },
-  markAllBtn:     { width: 60, alignItems: 'flex-end' },
-  markAllTxt:     { color: C.accent2, fontSize: 12 },
-  markAllDim:     { color: C.dimmer },
+  header:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.xxl, paddingTop: spacing.xl, paddingBottom: spacing.xl, borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  backBtn:      { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.cardBorder, alignItems: 'center', justifyContent: 'center' },
+  backBtnTxt:   { color: colors.text, fontSize: typography.size.heading2 },
+  headerCenter: { flex: 1, alignItems: 'center' },
+  headerSub:    { color: colors.accent, fontSize: typography.size.xs, letterSpacing: 3, marginBottom: 2 },
+  headerTitle:  { color: colors.text, fontSize: typography.size.title, fontWeight: typography.weight.regular, letterSpacing: 1 },
+  markAllBtn:   { width: 60, alignItems: 'flex-end' },
+  markAllTxt:   { color: colors.blue, fontSize: typography.size.body },
+  markAllDim:   { color: colors.textDim },
 
-  /* Summary bar */
-  summaryBar:     { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, paddingVertical: 9, backgroundColor: 'rgba(200,151,90,0.06)', borderBottomWidth: 1, borderBottomColor: C.border },
-  summaryDot:     { width: 7, height: 7, borderRadius: 4, backgroundColor: C.accent },
-  summaryTxt:     { color: C.accent, fontSize: 12, fontWeight: '400' },
-  summaryHint:    { color: C.dimmer, fontSize: 11 },
+  summaryBar:   { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.xxl, paddingVertical: spacing.md+1, backgroundColor: 'rgba(232,160,69,0.06)', borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  summaryDot:   { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.accent },
+  summaryTxt:   { color: colors.accent, fontSize: typography.size.body },
+  summaryHint:  { color: colors.textDim, fontSize: typography.size.caption },
 
-  /* Tabs */
-  tabBar:         { flexDirection: 'row', backgroundColor: C.bg2, borderBottomWidth: 1, borderBottomColor: C.border },
-  tabBtn:         { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, gap: 5, position: 'relative' },
-  tabBtnOn:       {},
-  tabTxt:         { color: C.dim, fontSize: 12, fontWeight: '300' },
-  tabTxtOn:       { color: C.text, fontWeight: '400' },
-  tabBadge:       { backgroundColor: C.accent, borderRadius: 8, minWidth: 16, height: 16, paddingHorizontal: 3, alignItems: 'center', justifyContent: 'center' },
-  tabBadgeTxt:    { color: C.bg, fontSize: 9, fontWeight: '700' },
-  tabLine:        { position: 'absolute', bottom: 0, left: '15%', right: '15%', height: 2, backgroundColor: C.accent, borderRadius: 1 },
+  tabBar:       { flexDirection: 'row', backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  tabBtn:       { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.lg, gap: spacing.sm, position: 'relative' },
+  tabBtnOn:     {},
+  tabTxt:       { color: colors.textMuted, fontSize: typography.size.body, fontWeight: typography.weight.regular },
+  tabTxtOn:     { color: colors.text },
+  tabBadge:     { backgroundColor: colors.accent, borderRadius: radius.md, minWidth: 16, height: 16, paddingHorizontal: spacing.xxs+1, alignItems: 'center', justifyContent: 'center' },
+  tabBadgeTxt:  { color: colors.bg, fontSize: typography.size.xs, fontWeight: typography.weight.bold },
+  tabLine:      { position: 'absolute', bottom: 0, left: '15%', right: '15%', height: 2, backgroundColor: colors.accent, borderRadius: 1 },
 
-  /* Group label */
-  groupLabel:     { color: C.dimmer, fontSize: 9, letterSpacing: 4, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 8 },
+  groupLabel:   { color: colors.textDim, fontSize: typography.size.xs, letterSpacing: 4, paddingHorizontal: spacing.xxl, paddingTop: spacing.xxl, paddingBottom: spacing.md },
 
-  /* Card */
-  card:           { flexDirection: 'row', alignItems: 'flex-start', gap: 14, paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: C.border, borderLeftWidth: 3, borderLeftColor: 'transparent' },
-  cardUnread:     { backgroundColor: 'rgba(255,255,255,0.02)' },
-  iconWrap:       { width: 46, height: 46, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 },
-  icon:           { fontSize: 20 },
-  cardContent:    { flex: 1, gap: 4 },
-  cardTopRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 },
-  typeBadge:      { borderRadius: 6, borderWidth: 1, paddingHorizontal: 7, paddingVertical: 2 },
-  typeBadgeTxt:   { fontSize: 9, fontWeight: '500', letterSpacing: 0.5 },
-  cardTime:       { color: C.dimmer, fontSize: 10 },
-  cardTitle:      { color: C.text, fontSize: 14, fontWeight: '300', lineHeight: 20 },
-  cardTitleBold:  { fontWeight: '500' },
-  cardBody:       { color: C.dim, fontSize: 12, lineHeight: 18 },
-  unreadDot:      { width: 8, height: 8, borderRadius: 4, flexShrink: 0, marginTop: 6 },
+  card:         { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.lg, paddingHorizontal: spacing.xxl, paddingVertical: spacing.lg, borderBottomWidth: 1, borderBottomColor: colors.cardBorder, borderLeftWidth: 3, borderLeftColor: 'transparent' },
+  cardUnread:   { backgroundColor: 'rgba(255,255,255,0.02)' },
+  iconWrap:     { width: 46, height: 46, borderRadius: radius.xl, borderWidth: 1, alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 },
+  icon:         { fontSize: 20 },
+  cardContent:  { flex: 1, gap: spacing.xs },
+  cardTopRow:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 },
+  typeBadge:    { borderRadius: radius.sm, borderWidth: 1, paddingHorizontal: spacing.sm+1, paddingVertical: spacing.xxs },
+  typeBadgeTxt: { fontSize: typography.size.xs, fontWeight: typography.weight.medium, letterSpacing: 0.5 },
+  cardTime:     { color: colors.textDim, fontSize: typography.size.sm },
+  cardTitle:    { color: colors.text, fontSize: typography.size.subheading, fontWeight: typography.weight.regular, lineHeight: 20 },
+  cardTitleBold:{ fontWeight: typography.weight.medium },
+  cardBody:     { color: colors.textMuted, fontSize: typography.size.body, lineHeight: 18 },
+  unreadDot:    { width: 8, height: 8, borderRadius: 4, flexShrink: 0, marginTop: spacing.sm },
 
-  /* Action button */
-  actionBtn:      { alignSelf: 'flex-start', marginTop: 6, paddingVertical: 5, paddingHorizontal: 10, backgroundColor: 'rgba(74,127,165,0.12)', borderRadius: 8, borderWidth: 1, borderColor: 'rgba(74,127,165,0.25)' },
-  actionBtnTxt:   { color: C.accent2, fontSize: 11, fontWeight: '400' },
+  actionBtn:    { alignSelf: 'flex-start', marginTop: spacing.sm, paddingVertical: spacing.sm, paddingHorizontal: spacing.lg, backgroundColor: colors.blueSoft, borderRadius: radius.md, borderWidth: 1, borderColor: 'rgba(90,155,224,0.25)' },
+  actionBtnTxt: { color: colors.blue, fontSize: typography.size.caption },
 
-  /* Empty */
-  center:         { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  emptyEmoji:     { fontSize: 52 },
-  emptyTitle:     { color: C.text, fontSize: 18, fontWeight: '300', textAlign: 'center', lineHeight: 26 },
-  emptySub:       { color: C.dim, fontSize: 13, textAlign: 'center', lineHeight: 20 },
+  center:       { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg },
+  emptyEmoji:   { fontSize: 52 },
+  emptyTitle:   { color: colors.text, fontSize: typography.size.heading1, fontWeight: typography.weight.regular, textAlign: 'center', lineHeight: 26 },
+  emptySub:     { color: colors.textMuted, fontSize: typography.size.bodyLg, textAlign: 'center', lineHeight: 20 },
 });

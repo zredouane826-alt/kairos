@@ -1,23 +1,16 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Platform, StatusBar as RNStatusBar, Dimensions,
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  SafeAreaView, Image, ActivityIndicator, Animated,
+  SafeAreaView, Image, Animated,
 } from 'react-native';
 import { supabase } from '../supabase';
+import { colors, typography, spacing, radius } from '../src/theme';
+import MLoader from '../src/components/MLoader';
 
 const SW   = Dimensions.get('window').width;
 const HERO = 310;
 const TOP  = Platform.OS === 'android' ? (RNStatusBar.currentHeight || 0) + 10 : 16;
-
-const C = {
-  bg:'#0d1628', bg2:'#111827', bg3:'#1a2332',
-  accent:'#c8975a', accent2:'#4a7fa5',
-  text:'#f0ece4', dim:'#8a9ab0', dimmer:'#4a5568',
-  green:'#3d9970', red:'#e05a5a', card:'#141e2e',
-  border:'rgba(255,255,255,0.07)',
-  borderAccent:'rgba(200,151,90,0.3)',
-};
 
 const CUISINE_EMOJI = {
   algerien:'🥘', mediterraneen:'🐟', fast_casual:'☕',
@@ -97,8 +90,8 @@ const MENUS = {
   ],
   default: [
     { cat:'Entrées', items:[
-      { nom:'Soupe du jour',   prix:380, desc:'Selon la saison et le marché' },
-      { nom:'Salade maison',   prix:420, desc:'Fraîche et colorée' },
+      { nom:'Soupe du jour', prix:380, desc:'Selon la saison et le marché' },
+      { nom:'Salade maison', prix:420, desc:'Fraîche et colorée' },
     ]},
     { cat:'Plats', items:[
       { nom:'Plat du chef',     prix:1800, desc:'Suggestion du chef, faite maison', popular:true },
@@ -121,7 +114,7 @@ const MOCK_AVIS = [
   { id:'m4', nom:'Nadia K.',   note:4, date:'28 avr 2026', txt:'Service attentionné, plats généreux. Le couscous était parfait.' },
 ];
 
-const AVATAR_COLORS = ['#c8975a','#4a7fa5','#3d9970','#9b6cc8','#e05a5a','#5ab4c8'];
+const AVATAR_COLORS = ['#E8A045','#5A9BE0','#4CAF82','#9b6cc8','#E05A5A','#5ab4c8'];
 function avatarColor(name) {
   let h = 0;
   for (let i = 0; i < (name||'').length; i++) h = (h * 31 + name.charCodeAt(i)) % AVATAR_COLORS.length;
@@ -132,7 +125,7 @@ function avatarColor(name) {
 function Stars({ value, size = 12 }) {
   const full = Math.round(value || 0);
   return (
-    <Text style={{ fontSize: size, color: '#f0c040', letterSpacing: 1 }}>
+    <Text style={{ fontSize: size, color: colors.accent, letterSpacing: 1 }}>
       {'★'.repeat(full)}{'☆'.repeat(5 - full)}
     </Text>
   );
@@ -143,11 +136,11 @@ function HeroGradient() {
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       <View style={{ flex: 1 }} />
-      <View style={{ height: HERO * 0.08, backgroundColor: 'rgba(13,22,40,0.1)' }} />
-      <View style={{ height: HERO * 0.1, backgroundColor: 'rgba(13,22,40,0.25)' }} />
-      <View style={{ height: HERO * 0.12, backgroundColor: 'rgba(13,22,40,0.45)' }} />
-      <View style={{ height: HERO * 0.14, backgroundColor: 'rgba(13,22,40,0.65)' }} />
-      <View style={{ height: HERO * 0.16, backgroundColor: 'rgba(13,22,40,0.80)' }} />
+      <View style={{ height: HERO * 0.08, backgroundColor: 'rgba(15,13,11,0.1)'  }} />
+      <View style={{ height: HERO * 0.10, backgroundColor: 'rgba(15,13,11,0.25)' }} />
+      <View style={{ height: HERO * 0.12, backgroundColor: 'rgba(15,13,11,0.45)' }} />
+      <View style={{ height: HERO * 0.14, backgroundColor: 'rgba(15,13,11,0.65)' }} />
+      <View style={{ height: HERO * 0.16, backgroundColor: 'rgba(15,13,11,0.85)' }} />
     </View>
   );
 }
@@ -196,24 +189,24 @@ function MenuTab({ menu }) {
 }
 
 const mt = StyleSheet.create({
-  pillRow:     { paddingHorizontal:20, paddingVertical:16, gap:8 },
-  pill:        { paddingHorizontal:18, paddingVertical:9, borderRadius:100, backgroundColor:C.bg2, borderWidth:1, borderColor:C.border, position:'relative' },
-  pillOn:      { backgroundColor:'rgba(200,151,90,0.12)', borderColor:C.accent },
-  pillTxt:     { color:C.dim, fontSize:13, fontWeight:'300' },
-  pillTxtOn:   { color:C.accent, fontWeight:'400' },
-  pillDot:     { position:'absolute', bottom:-1, left:'50%', width:4, height:4, borderRadius:2, backgroundColor:C.accent, marginLeft:-2 },
-  items:       { marginHorizontal:20, backgroundColor:C.bg2, borderRadius:18, borderWidth:1, borderColor:C.border, overflow:'hidden' },
-  row:         { flexDirection:'row', alignItems:'center', gap:14, paddingHorizontal:18, paddingVertical:16 },
-  rowBorder:   { borderBottomWidth:1, borderBottomColor:C.border },
-  rowLeft:     { flex:1, gap:5 },
-  nomRow:      { flexDirection:'row', alignItems:'center', flexWrap:'wrap', gap:7 },
-  nom:         { color:C.text, fontSize:14, fontWeight:'300' },
-  popularBadge:{ backgroundColor:'rgba(200,151,90,0.12)', borderRadius:6, paddingHorizontal:6, paddingVertical:2, borderWidth:1, borderColor:'rgba(200,151,90,0.25)' },
-  popularTxt:  { color:C.accent, fontSize:9, fontWeight:'500' },
-  desc:        { color:C.dim, fontSize:11, lineHeight:16 },
-  priceBox:    { alignItems:'flex-end', minWidth:55 },
-  price:       { color:C.accent, fontSize:15, fontWeight:'400' },
-  priceUnit:   { color:C.dimmer, fontSize:9, marginTop:1 },
+  pillRow:     { paddingHorizontal: spacing.xl, paddingVertical: spacing.xl, gap: spacing.md },
+  pill:        { paddingHorizontal: spacing.xl + 2, paddingVertical: spacing.md + 1, borderRadius: radius.full, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.cardBorder, position: 'relative' },
+  pillOn:      { backgroundColor: colors.accentSoft, borderColor: colors.accent },
+  pillTxt:     { color: colors.textMuted, fontSize: typography.size.bodyLg, fontWeight: typography.weight.regular },
+  pillTxtOn:   { color: colors.accent, fontWeight: typography.weight.regular },
+  pillDot:     { position: 'absolute', bottom: -1, left: '50%', width: 4, height: 4, borderRadius: 2, backgroundColor: colors.accent, marginLeft: -2 },
+  items:       { marginHorizontal: spacing.xl, backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden' },
+  row:         { flexDirection: 'row', alignItems: 'center', gap: spacing.xl - 2, paddingHorizontal: spacing.xl + 2, paddingVertical: spacing.xl },
+  rowBorder:   { borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  rowLeft:     { flex: 1, gap: spacing.xs + 1 },
+  nomRow:      { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: spacing.sm + 1 },
+  nom:         { color: colors.text, fontSize: typography.size.subheading, fontWeight: typography.weight.regular },
+  popularBadge:{ backgroundColor: colors.accentSoft, borderRadius: radius.sm, paddingHorizontal: spacing.md - 2, paddingVertical: spacing.xxs, borderWidth: 1, borderColor: 'rgba(232,160,69,0.25)' },
+  popularTxt:  { color: colors.accent, fontSize: typography.size.xs, fontWeight: typography.weight.medium },
+  desc:        { color: colors.textMuted, fontSize: typography.size.caption, lineHeight: 16 },
+  priceBox:    { alignItems: 'flex-end', minWidth: 55 },
+  price:       { color: colors.accent, fontSize: typography.size.heading3, fontWeight: typography.weight.regular },
+  priceUnit:   { color: colors.textDim, fontSize: typography.size.xs, marginTop: 1 },
 });
 
 /* ─── Avis tab ─── */
@@ -229,7 +222,11 @@ function AvisTab({ restaurant, reviews, loadingReviews }) {
   }));
 
   if (loadingReviews) return (
-    <View style={{ padding:40, alignItems:'center' }}><ActivityIndicator color={C.accent} /></View>
+    <View style={{ padding: spacing.xxl }}>
+      {[1, 2, 3].map(i => (
+        <MLoader key={i} width="100%" height={90} borderRadius={radius.xl} style={{ marginBottom: spacing.lg }} />
+      ))}
+    </View>
   );
 
   return (
@@ -270,15 +267,15 @@ function AvisTab({ restaurant, reviews, loadingReviews }) {
               <View style={[av.avatar, { backgroundColor: color + '22', borderColor: color + '44' }]}>
                 <Text style={[av.avatarTxt, { color }]}>{displayName[0].toUpperCase()}</Text>
               </View>
-              <View style={{ flex:1 }}>
+              <View style={{ flex: 1 }}>
                 <Text style={av.nom}>{displayName}</Text>
-                <View style={{ flexDirection:'row', alignItems:'center', gap:8, marginTop:2 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.xxs }}>
                   <Stars value={note} size={11} />
                   <Text style={av.date}>{a.date || (a.created_at || '').slice(0,10)}</Text>
                 </View>
               </View>
               <View style={[av.noteBadge, note >= 4 && av.noteBadgeGood]}>
-                <Text style={[av.noteBadgeTxt, note >= 4 && { color: C.green }]}>{note}/5</Text>
+                <Text style={[av.noteBadgeTxt, note >= 4 && { color: colors.green }]}>{note}/5</Text>
               </View>
             </View>
             {(a.txt || a.comment) && (
@@ -291,9 +288,9 @@ function AvisTab({ restaurant, reviews, loadingReviews }) {
       {/* CTA laisser un avis */}
       <View style={av.ctaWrap}>
         <View style={av.ctaDivider}>
-          <View style={{ flex:1, height:1, backgroundColor:C.border }} />
+          <View style={{ flex: 1, height: 1, backgroundColor: colors.cardBorder }} />
           <Text style={av.ctaDividerTxt}>Vous y étiez ?</Text>
-          <View style={{ flex:1, height:1, backgroundColor:C.border }} />
+          <View style={{ flex: 1, height: 1, backgroundColor: colors.cardBorder }} />
         </View>
         <TouchableOpacity style={av.ctaBtn}>
           <Text style={av.ctaIcon}>✏️</Text>
@@ -307,33 +304,33 @@ function AvisTab({ restaurant, reviews, loadingReviews }) {
 }
 
 const av = StyleSheet.create({
-  summary:     { flexDirection:'row', gap:18, margin:20, marginBottom:0, backgroundColor:C.bg2, borderRadius:18, borderWidth:1, borderColor:C.border, padding:18 },
-  summaryLeft: { alignItems:'center', gap:6, justifyContent:'center' },
-  bigRating:   { color:C.accent, fontSize:48, fontWeight:'200', lineHeight:54 },
-  reviewCount: { color:C.dim, fontSize:10, marginTop:2 },
-  summaryRight:{ flex:1, gap:7, justifyContent:'center' },
-  barRow:      { flexDirection:'row', alignItems:'center', gap:8 },
-  barLabel:    { color:C.dimmer, fontSize:11, width:10, textAlign:'right' },
-  barTrack:    { flex:1, height:5, backgroundColor:C.bg3, borderRadius:3, overflow:'hidden' },
-  barFill:     { height:'100%', backgroundColor:C.accent, borderRadius:3 },
-  barPct:      { color:C.dimmer, fontSize:10, width:28, textAlign:'right' },
-  divider:     { height:1, backgroundColor:C.border, marginHorizontal:20, marginVertical:16 },
-  card:        { marginHorizontal:20, marginBottom:10, backgroundColor:C.bg2, borderRadius:16, borderWidth:1, borderColor:C.border, padding:16 },
-  cardTop:     { flexDirection:'row', gap:12, marginBottom:10 },
-  avatar:      { width:38, height:38, borderRadius:19, alignItems:'center', justifyContent:'center', borderWidth:1 },
-  avatarTxt:   { fontSize:15, fontWeight:'400' },
-  nom:         { color:C.text, fontSize:13, fontWeight:'300' },
-  date:        { color:C.dimmer, fontSize:10 },
-  noteBadge:   { backgroundColor:C.bg3, borderRadius:8, paddingHorizontal:7, paddingVertical:3, borderWidth:1, borderColor:C.border, alignSelf:'flex-start' },
-  noteBadgeGood:{ backgroundColor:'rgba(61,153,112,0.1)', borderColor:'rgba(61,153,112,0.25)' },
-  noteBadgeTxt:{ color:C.dim, fontSize:10 },
-  txt:         { color:C.dim, fontSize:13, fontWeight:'300', lineHeight:20 },
-  ctaWrap:     { margin:20, gap:14 },
-  ctaDivider:  { flexDirection:'row', alignItems:'center', gap:12 },
-  ctaDividerTxt:{ color:C.dimmer, fontSize:11 },
-  ctaBtn:      { flexDirection:'row', alignItems:'center', justifyContent:'center', gap:8, backgroundColor:C.bg2, borderRadius:14, borderWidth:1, borderColor:C.border, paddingVertical:14 },
-  ctaIcon:     { fontSize:15 },
-  ctaTxt:      { color:C.text, fontSize:14, fontWeight:'300' },
+  summary:     { flexDirection: 'row', gap: spacing.xl + 2, margin: spacing.xl, marginBottom: 0, backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, padding: spacing.xl + 2 },
+  summaryLeft: { alignItems: 'center', gap: spacing.md - 2, justifyContent: 'center' },
+  bigRating:   { color: colors.accent, fontSize: 48, fontWeight: typography.weight.regular, lineHeight: 54 },
+  reviewCount: { color: colors.textMuted, fontSize: typography.size.sm, marginTop: spacing.xxs },
+  summaryRight:{ flex: 1, gap: spacing.sm + 1, justifyContent: 'center' },
+  barRow:      { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  barLabel:    { color: colors.textDim, fontSize: typography.size.caption, width: 10, textAlign: 'right' },
+  barTrack:    { flex: 1, height: 5, backgroundColor: colors.cardHover, borderRadius: 3, overflow: 'hidden' },
+  barFill:     { height: '100%', backgroundColor: colors.accent, borderRadius: 3 },
+  barPct:      { color: colors.textDim, fontSize: typography.size.sm, width: 28, textAlign: 'right' },
+  divider:     { height: 1, backgroundColor: colors.cardBorder, marginHorizontal: spacing.xl, marginVertical: spacing.xl },
+  card:        { marginHorizontal: spacing.xl, marginBottom: spacing.md + 2, backgroundColor: colors.card, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.cardBorder, padding: spacing.xl },
+  cardTop:     { flexDirection: 'row', gap: spacing.lg, marginBottom: spacing.md + 2 },
+  avatar:      { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
+  avatarTxt:   { fontSize: typography.size.heading3, fontWeight: typography.weight.regular },
+  nom:         { color: colors.text, fontSize: typography.size.bodyLg, fontWeight: typography.weight.regular },
+  date:        { color: colors.textDim, fontSize: typography.size.sm },
+  noteBadge:   { backgroundColor: colors.cardHover, borderRadius: radius.sm, paddingHorizontal: spacing.sm + 1, paddingVertical: spacing.xxs + 1, borderWidth: 1, borderColor: colors.cardBorder, alignSelf: 'flex-start' },
+  noteBadgeGood:{ backgroundColor: colors.greenSoft, borderColor: 'rgba(76,175,130,0.25)' },
+  noteBadgeTxt:{ color: colors.textMuted, fontSize: typography.size.sm },
+  txt:         { color: colors.textMuted, fontSize: typography.size.bodyLg, fontWeight: typography.weight.regular, lineHeight: 20 },
+  ctaWrap:     { margin: spacing.xl, gap: spacing.xl - 2 },
+  ctaDivider:  { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
+  ctaDividerTxt:{ color: colors.textDim, fontSize: typography.size.caption },
+  ctaBtn:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.md, backgroundColor: colors.card, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.cardBorder, paddingVertical: spacing.xl - 2 },
+  ctaIcon:     { fontSize: typography.size.heading3 },
+  ctaTxt:      { color: colors.text, fontSize: typography.size.subheading, fontWeight: typography.weight.regular },
 });
 
 /* ─── Infos tab ─── */
@@ -358,7 +355,7 @@ function InfosTab({ restaurant }) {
             <View style={inf.iconWrap}>
               <Text style={inf.icon}>{row.icon}</Text>
             </View>
-            <View style={{ flex:1 }}>
+            <View style={{ flex: 1 }}>
               <Text style={inf.label}>{row.label.toUpperCase()}</Text>
               <Text style={inf.val}>{row.val}</Text>
             </View>
@@ -366,7 +363,6 @@ function InfosTab({ restaurant }) {
         ))}
       </View>
 
-      {/* Note légale */}
       <Text style={inf.note}>
         Informations susceptibles de varier. Vérifiez directement auprès du restaurant pour confirmer les horaires et la disponibilité.
       </Text>
@@ -377,14 +373,14 @@ function InfosTab({ restaurant }) {
 }
 
 const inf = StyleSheet.create({
-  card:     { margin:20, backgroundColor:C.bg2, borderRadius:18, borderWidth:1, borderColor:C.border, overflow:'hidden' },
-  row:      { flexDirection:'row', alignItems:'center', gap:14, paddingHorizontal:18, paddingVertical:14 },
-  rowBorder:{ borderBottomWidth:1, borderBottomColor:C.border },
-  iconWrap: { width:32, height:32, borderRadius:10, backgroundColor:C.bg3, alignItems:'center', justifyContent:'center' },
-  icon:     { fontSize:16 },
-  label:    { color:C.dimmer, fontSize:9, letterSpacing:2, marginBottom:2 },
-  val:      { color:C.text, fontSize:13, fontWeight:'300' },
-  note:     { marginHorizontal:20, color:C.dimmer, fontSize:11, lineHeight:17, fontStyle:'italic' },
+  card:     { margin: spacing.xl, backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden' },
+  row:      { flexDirection: 'row', alignItems: 'center', gap: spacing.xl - 2, paddingHorizontal: spacing.xl + 2, paddingVertical: spacing.xl - 2 },
+  rowBorder:{ borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  iconWrap: { width: 32, height: 32, borderRadius: radius.md, backgroundColor: colors.cardHover, alignItems: 'center', justifyContent: 'center' },
+  icon:     { fontSize: typography.size.heading2 },
+  label:    { color: colors.textDim, fontSize: typography.size.xs, letterSpacing: 2, marginBottom: spacing.xxs },
+  val:      { color: colors.text, fontSize: typography.size.bodyLg, fontWeight: typography.weight.regular },
+  note:     { marginHorizontal: spacing.xl, color: colors.textDim, fontSize: typography.size.caption, lineHeight: 17, fontStyle: 'italic' },
 });
 
 /* ─── Écran principal ─── */
@@ -404,72 +400,83 @@ export default function RestaurantScreen({ route, navigation }) {
   const [loadingReviews, setLoadingReviews] = useState(false);
   const tabAnim = useRef(new Animated.Value(1)).current;
 
-  const photos = restaurant.photos?.length > 0 ? restaurant.photos
-    : restaurant.photo_url ? [restaurant.photo_url] : null;
-  const menu   = MENUS[restaurant.cuisine_type] || MENUS.default;
-  const rating = restaurant.avg_rating > 0 ? Number(restaurant.avg_rating).toFixed(1) : null;
+  const photos = useMemo(
+    () => restaurant.photos?.length > 0 ? restaurant.photos
+      : restaurant.photo_url ? [restaurant.photo_url] : null,
+    [restaurant.photos, restaurant.photo_url],
+  );
+  const menu   = useMemo(() => MENUS[restaurant.cuisine_type] || MENUS.default, [restaurant.cuisine_type]);
+  const rating = useMemo(
+    () => restaurant.avg_rating > 0 ? Number(restaurant.avg_rating).toFixed(1) : null,
+    [restaurant.avg_rating],
+  );
   const cuisineEmoji = CUISINE_EMOJI[restaurant.cuisine_type] || '🍽️';
   const desc = restaurant.description || CUISINE_DESC[restaurant.cuisine_type] || CUISINE_DESC.autre;
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    (async () => {
+      const { data } = await supabase.auth.getUser();
       const u = data?.user;
       if (!u) return;
-      supabase.from('users').select('id').eq('auth_id', u.id).single()
-        .then(({ data: row }) => {
-          if (!row) return;
-          setUserId(row.id);
-          if (restaurant.id) {
-            supabase.from('favorites')
-              .select('id').eq('user_id', row.id).eq('restaurant_id', restaurant.id).maybeSingle()
-              .then(({ data: fav }) => { if (fav) { setIsFav(true); setFavId(fav.id); } });
-          }
-        });
-    });
+      const { data: row } = await supabase.from('users').select('id').eq('auth_id', u.id).single();
+      if (!row) return;
+      setUserId(row.id);
+      if (!restaurant.id) return;
+      const { data: fav } = await supabase.from('favorites')
+        .select('id').eq('user_id', row.id).eq('restaurant_id', restaurant.id).maybeSingle();
+      if (fav) { setIsFav(true); setFavId(fav.id); }
+    })();
 
     if (restaurant.id) {
       setLoadingReviews(true);
-      supabase.from('reviews')
-        .select('id, rating, comment, created_at, users(first_name, last_name)')
-        .eq('restaurant_id', restaurant.id)
-        .order('created_at', { ascending: false })
-        .limit(20)
-        .then(({ data }) => {
+      (async () => {
+        try {
+          const { data } = await supabase.from('reviews')
+            .select('id, rating, comment, created_at, users(first_name, last_name)')
+            .eq('restaurant_id', restaurant.id)
+            .order('created_at', { ascending: false })
+            .limit(20);
           if (data?.length > 0) {
             setReviews(data.map(r => ({
-              id: r.id,
-              note: r.rating,
+              id:         r.id,
+              note:       r.rating,
               first_name: r.users?.first_name,
               last_name:  r.users?.last_name,
               comment:    r.comment,
               created_at: r.created_at,
             })));
           }
+        } finally {
           setLoadingReviews(false);
-        });
+        }
+      })();
     }
   }, []);
 
-  const toggleFav = async () => {
+  const toggleFav = useCallback(async () => {
     if (!userId || favLoading) return;
     setFavLoading(true);
-    if (isFav) {
-      await supabase.from('favorites').delete().eq('id', favId);
-      setIsFav(false); setFavId(null);
-    } else {
-      const { data } = await supabase.from('favorites')
-        .insert({ user_id: userId, restaurant_id: restaurant.id }).select('id').single();
-      if (data) { setIsFav(true); setFavId(data.id); }
+    try {
+      if (isFav) {
+        await supabase.from('favorites').delete().eq('id', favId);
+        setIsFav(false);
+        setFavId(null);
+      } else {
+        const { data } = await supabase.from('favorites')
+          .insert({ user_id: userId, restaurant_id: restaurant.id }).select('id').single();
+        if (data) { setIsFav(true); setFavId(data.id); }
+      }
+    } finally {
+      setFavLoading(false);
     }
-    setFavLoading(false);
-  };
+  }, [userId, favLoading, isFav, favId, restaurant.id]);
 
-  function switchTab(t) {
+  const switchTab = useCallback((t) => {
     Animated.timing(tabAnim, { toValue: 0, duration: 80, useNativeDriver: true }).start(() => {
       setTab(t);
       Animated.timing(tabAnim, { toValue: 1, duration: 160, useNativeDriver: true }).start();
     });
-  }
+  }, []);
 
   return (
     <SafeAreaView style={s.root}>
@@ -483,28 +490,27 @@ export default function RestaurantScreen({ route, navigation }) {
             onMomentumScrollEnd={e => setPhotoIndex(Math.round(e.nativeEvent.contentOffset.x / SW))}
           >
             {photos.map((uri, i) => (
-              <Image key={i} source={{ uri }} style={{ width:SW, height:HERO }} resizeMode="cover" />
+              <Image key={i} source={{ uri }} style={{ width: SW, height: HERO }} resizeMode="cover" />
             ))}
           </ScrollView>
         ) : (
-          <View style={[StyleSheet.absoluteFill, { backgroundColor:'#0f1e12', alignItems:'center', justifyContent:'center' }]}>
-            <Text style={{ fontSize:80, opacity:0.5 }}>{cuisineEmoji}</Text>
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.cardHover, alignItems: 'center', justifyContent: 'center' }]}>
+            <Text style={{ fontSize: 80, opacity: 0.5 }}>{cuisineEmoji}</Text>
           </View>
         )}
 
         <HeroGradient />
 
         {/* Bouton retour */}
-        <TouchableOpacity style={[s.heroBtn, { left:16 }]} onPress={() => navigation?.goBack()}>
+        <TouchableOpacity style={[s.heroBtn, { left: spacing.xl }]} onPress={() => navigation?.goBack()}>
           <Text style={s.heroBtnTxt}>←</Text>
         </TouchableOpacity>
 
         {/* Bouton favori */}
-        <TouchableOpacity style={[s.heroBtn, { right:16 }]} onPress={toggleFav} disabled={favLoading}>
-          {favLoading
-            ? <ActivityIndicator size={14} color={C.accent} />
-            : <Text style={{ fontSize:18 }}>{isFav ? '❤️' : '🤍'}</Text>
-          }
+        <TouchableOpacity style={[s.heroBtn, { right: spacing.xl }]} onPress={toggleFav} disabled={favLoading}>
+          <Text style={favLoading ? s.heroBtnActing : s.heroBtnIcon}>
+            {favLoading ? '···' : isFav ? '❤️' : '🤍'}
+          </Text>
         </TouchableOpacity>
 
         {/* Compteur photos */}
@@ -521,7 +527,6 @@ export default function RestaurantScreen({ route, navigation }) {
               <Text style={s.heroCuisineEmoji}>{cuisineEmoji}</Text>
               <Text style={s.heroCuisineTxt}>{(restaurant.cuisine_type || '').replace(/_/g,' ').toUpperCase()}</Text>
             </View>
-            {/* Badge "Ouvert" */}
             <View style={s.openBadge}>
               <View style={s.openDot} />
               <Text style={s.openTxt}>Ouvert</Text>
@@ -590,11 +595,11 @@ export default function RestaurantScreen({ route, navigation }) {
       </View>
 
       {/* ── CONTENU ── */}
-      <Animated.ScrollView showsVerticalScrollIndicator={false} style={{ flex:1, opacity:tabAnim }}>
+      <Animated.ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, opacity: tabAnim }}>
         {tab === 'Menu' && <MenuTab menu={menu} />}
         {tab === 'Avis' && <AvisTab restaurant={restaurant} reviews={reviews} loadingReviews={loadingReviews} />}
         {tab === 'Infos' && <InfosTab restaurant={restaurant} />}
-        <View style={{ height:100 }} />
+        <View style={{ height: 100 }} />
       </Animated.ScrollView>
 
       {/* ── FOOTER ── */}
@@ -607,7 +612,7 @@ export default function RestaurantScreen({ route, navigation }) {
             </View>
           )}
           <TouchableOpacity
-            style={[s.reserveBtn, !restaurant.avg_ticket && { flex:1 }]}
+            style={[s.reserveBtn, !restaurant.avg_ticket && { flex: 1 }]}
             onPress={() => navigation.navigate('ReservationForm', { restaurant })}
           >
             <Text style={s.reserveTxt}>RÉSERVER UNE TABLE</Text>
@@ -620,61 +625,63 @@ export default function RestaurantScreen({ route, navigation }) {
 }
 
 const s = StyleSheet.create({
-  root: { flex:1, backgroundColor:C.bg },
+  root: { flex: 1, backgroundColor: colors.bg },
 
   /* Hero */
-  hero:        { height:HERO, overflow:'hidden' },
-  heroBtn:     { position:'absolute', top:TOP, width:40, height:40, borderRadius:20, backgroundColor:'rgba(10,15,26,0.76)', alignItems:'center', justifyContent:'center', borderWidth:1, borderColor:'rgba(255,255,255,0.12)' },
-  heroBtnTxt:  { color:C.text, fontSize:18 },
+  hero:        { height: HERO, overflow: 'hidden' },
+  heroBtn:     { position: 'absolute', top: TOP, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(15,13,11,0.76)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(240,235,227,0.12)' },
+  heroBtnTxt:  { color: colors.text, fontSize: typography.size.heading1 },
+  heroBtnIcon: { fontSize: typography.size.heading1 },
+  heroBtnActing:{ color: colors.accent, fontSize: typography.size.bodyLg, fontWeight: typography.weight.bold },
 
   /* Photo counter */
-  photoCounter:    { position:'absolute', top:TOP+5, alignSelf:'center', backgroundColor:'rgba(10,15,26,0.7)', borderRadius:100, paddingHorizontal:10, paddingVertical:4 },
-  photoCounterTxt: { color:C.text, fontSize:11, fontWeight:'300' },
+  photoCounter:    { position: 'absolute', top: TOP + 5, alignSelf: 'center', backgroundColor: 'rgba(15,13,11,0.7)', borderRadius: radius.full, paddingHorizontal: spacing.md + 2, paddingVertical: spacing.xs },
+  photoCounterTxt: { color: colors.text, fontSize: typography.size.caption, fontWeight: typography.weight.regular },
 
   /* Open badge */
-  openBadge: { flexDirection:'row', alignItems:'center', gap:5, backgroundColor:'rgba(10,15,26,0.76)', borderRadius:100, paddingHorizontal:10, paddingVertical:4, borderWidth:1, borderColor:'rgba(61,153,112,0.3)' },
-  openDot:   { width:6, height:6, borderRadius:3, backgroundColor:C.green },
-  openTxt:   { color:C.green, fontSize:10 },
+  openBadge: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 1, backgroundColor: 'rgba(15,13,11,0.76)', borderRadius: radius.full, paddingHorizontal: spacing.md + 2, paddingVertical: spacing.xs, borderWidth: 1, borderColor: 'rgba(76,175,130,0.3)' },
+  openDot:   { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.green },
+  openTxt:   { color: colors.green, fontSize: typography.size.sm },
 
   /* Hero info overlay */
-  heroInfo:       { position:'absolute', bottom:0, left:0, right:0, padding:16, paddingBottom:18 },
-  heroTopRow:     { flexDirection:'row', alignItems:'center', justifyContent:'space-between', marginBottom:8 },
-  heroCuisineBadge:{ flexDirection:'row', alignItems:'center', gap:5, backgroundColor:'rgba(200,151,90,0.2)', borderRadius:8, borderWidth:1, borderColor:'rgba(200,151,90,0.4)', paddingHorizontal:9, paddingVertical:4 },
-  heroCuisineEmoji:{ fontSize:12 },
-  heroCuisineTxt: { color:C.accent, fontSize:9, letterSpacing:2.5 },
-  heroName:       { color:C.text, fontSize:24, fontWeight:'300', letterSpacing:0.3, marginBottom:7 },
-  heroMeta:       { flexDirection:'row', alignItems:'center', gap:7, flexWrap:'wrap' },
-  heroRatingTxt:  { color:'#f0c040', fontSize:13, fontWeight:'500' },
-  heroReviewCount:{ color:C.dim, fontSize:11 },
-  heroSep:        { color:C.dimmer },
-  heroAddr:       { color:C.dim, fontSize:12, flex:1 },
+  heroInfo:        { position: 'absolute', bottom: 0, left: 0, right: 0, padding: spacing.xl, paddingBottom: spacing.xl + 2 },
+  heroTopRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
+  heroCuisineBadge:{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 1, backgroundColor: colors.accentSoft, borderRadius: radius.sm, borderWidth: 1, borderColor: 'rgba(232,160,69,0.4)', paddingHorizontal: spacing.md + 1, paddingVertical: spacing.xs },
+  heroCuisineEmoji:{ fontSize: typography.size.body },
+  heroCuisineTxt:  { color: colors.accent, fontSize: typography.size.xs, letterSpacing: 2.5 },
+  heroName:        { color: colors.text, fontSize: typography.size.title + 4, fontWeight: typography.weight.regular, letterSpacing: 0.3, marginBottom: spacing.sm + 1 },
+  heroMeta:        { flexDirection: 'row', alignItems: 'center', gap: spacing.sm + 1, flexWrap: 'wrap' },
+  heroRatingTxt:   { color: colors.accent, fontSize: typography.size.bodyLg, fontWeight: typography.weight.medium },
+  heroReviewCount: { color: colors.textMuted, fontSize: typography.size.caption },
+  heroSep:         { color: colors.textDim },
+  heroAddr:        { color: colors.textMuted, fontSize: typography.size.body, flex: 1 },
 
   /* Stats strip */
-  strip:     { flexDirection:'row', backgroundColor:C.bg2, borderBottomWidth:1, borderBottomColor:C.border },
-  stripItem: { flex:1, alignItems:'center', paddingVertical:11, gap:2 },
-  stripIcon: { fontSize:13, marginBottom:2 },
-  stripVal:  { color:C.text, fontSize:13, fontWeight:'400' },
-  stripLbl:  { color:C.dimmer, fontSize:9, letterSpacing:0.3 },
-  stripDiv:  { width:1, backgroundColor:C.border, marginVertical:8 },
+  strip:     { flexDirection: 'row', backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  stripItem: { flex: 1, alignItems: 'center', paddingVertical: spacing.lg - 1, gap: spacing.xxs },
+  stripIcon: { fontSize: typography.size.bodyLg, marginBottom: spacing.xxs },
+  stripVal:  { color: colors.text, fontSize: typography.size.bodyLg, fontWeight: typography.weight.regular },
+  stripLbl:  { color: colors.textDim, fontSize: typography.size.xs, letterSpacing: 0.3 },
+  stripDiv:  { width: 1, backgroundColor: colors.cardBorder, marginVertical: spacing.md },
 
   /* Description */
-  descWrap:  { paddingHorizontal:20, paddingVertical:14, borderBottomWidth:1, borderBottomColor:C.border },
-  descTxt:   { color:C.dim, fontSize:13, lineHeight:20, fontWeight:'300' },
+  descWrap: { paddingHorizontal: spacing.xl, paddingVertical: spacing.xl - 2, borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  descTxt:  { color: colors.textMuted, fontSize: typography.size.bodyLg, lineHeight: 20, fontWeight: typography.weight.regular },
 
   /* Tab bar */
-  tabBar:    { flexDirection:'row', backgroundColor:C.bg2, borderBottomWidth:1, borderBottomColor:C.border },
-  tabBtn:    { flex:1, alignItems:'center', paddingVertical:13, position:'relative' },
-  tabBtnOn:  {},
-  tabTxt:    { color:C.dimmer, fontSize:13, fontWeight:'300' },
-  tabTxtOn:  { color:C.text, fontWeight:'400' },
-  tabLine:   { position:'absolute', bottom:0, left:'25%', right:'25%', height:2, backgroundColor:C.accent, borderRadius:1 },
+  tabBar:  { flexDirection: 'row', backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  tabBtn:  { flex: 1, alignItems: 'center', paddingVertical: spacing.lg + 1, position: 'relative' },
+  tabBtnOn:{},
+  tabTxt:  { color: colors.textDim, fontSize: typography.size.bodyLg, fontWeight: typography.weight.regular },
+  tabTxtOn:{ color: colors.text, fontWeight: typography.weight.medium },
+  tabLine: { position: 'absolute', bottom: 0, left: '25%', right: '25%', height: 2, backgroundColor: colors.accent, borderRadius: 1 },
 
   /* Footer */
-  footer:         { paddingHorizontal:20, paddingVertical:12, borderTopWidth:1, borderTopColor:C.border, backgroundColor:C.bg },
-  footerInner:    { flexDirection:'row', alignItems:'center', gap:14 },
-  footerPrice:    { gap:2 },
-  footerPriceLbl: { color:C.dimmer, fontSize:8, letterSpacing:1.5 },
-  footerPriceVal: { color:C.accent, fontSize:16, fontWeight:'400' },
-  reserveBtn:     { flex:1, backgroundColor:C.accent, borderRadius:14, paddingVertical:15, alignItems:'center' },
-  reserveTxt:     { color:C.bg, fontSize:13, fontWeight:'500', letterSpacing:1.5 },
+  footer:        { paddingHorizontal: spacing.xl, paddingVertical: spacing.lg, borderTopWidth: 1, borderTopColor: colors.cardBorder, backgroundColor: colors.bg },
+  footerInner:   { flexDirection: 'row', alignItems: 'center', gap: spacing.xl - 2 },
+  footerPrice:   { gap: spacing.xxs },
+  footerPriceLbl:{ color: colors.textDim, fontSize: typography.size.xs, letterSpacing: 1.5 },
+  footerPriceVal:{ color: colors.accent, fontSize: typography.size.heading2, fontWeight: typography.weight.regular },
+  reserveBtn:    { flex: 1, backgroundColor: colors.accent, borderRadius: radius.xl, paddingVertical: spacing.xl - 1, alignItems: 'center' },
+  reserveTxt:    { color: colors.bg, fontSize: typography.size.bodyLg, fontWeight: typography.weight.medium, letterSpacing: 1.5 },
 });

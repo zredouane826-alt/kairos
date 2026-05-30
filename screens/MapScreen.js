@@ -1,10 +1,16 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  SafeAreaView, ActivityIndicator,
+  SafeAreaView, ActivityIndicator, Platform,
 } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
 import { supabase } from '../supabase';
+
+let MapView, Marker;
+if (Platform.OS !== 'web') {
+  const maps = require('react-native-maps');
+  MapView = maps.default;
+  Marker  = maps.Marker;
+}
 
 // ─── Palette ─────────────────────────────────────────────────────────────────
 const C = {
@@ -64,22 +70,63 @@ export default function MapScreen({ navigation }) {
   const [loading, setLoading]         = useState(true);
 
   useEffect(() => {
-    supabase
-      .from('restaurants')
-      .select('id, name, cuisine_type, address, quartier, rating, price_range, latitude, longitude')
-      .then(({ data, error }) => {
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('restaurants')
+          .select('id, name, cuisine_type, quartier, avg_rating, avg_ticket, latitude, longitude');
         if (data) setRestaurants(data);
         if (error) console.warn('[MapScreen]', error.message);
+      } finally {
         setLoading(false);
-      });
+      }
+    })();
   }, []);
 
-  function handleMarkerPress(r) {
+  const handleMarkerPress = useCallback((r) => {
     setSelected(prev => (prev?.id === r.id ? null : r));
-    // Animate camera to the tapped marker
     mapRef.current?.animateToRegion(
       { ...getCoordinate(r), latitudeDelta: 0.04, longitudeDelta: 0.04 },
       350,
+    );
+  }, []);
+
+  /* Web fallback */
+  if (Platform.OS === 'web') {
+    return (
+      <View style={s.root}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32 }}>
+          <Text style={{ fontSize: 48 }}>🗺️</Text>
+          <Text style={{ color: C.accent, fontSize: 20, fontWeight: '600', letterSpacing: 4 }}>CARTE</Text>
+          <Text style={{ color: C.dim, fontSize: 13, textAlign: 'center', lineHeight: 20 }}>
+            La carte interactive est disponible sur l'application mobile.
+          </Text>
+          {loading ? (
+            <ActivityIndicator color={C.accent} />
+          ) : (
+            <View style={{ backgroundColor: 'rgba(200,151,90,0.1)', borderRadius: 12, borderWidth: 1, borderColor: C.borderAccent, padding: 14, width: '100%' }}>
+              <Text style={{ color: C.accent, fontSize: 11, letterSpacing: 2, marginBottom: 8 }}>RESTAURANTS DISPONIBLES</Text>
+              {restaurants.slice(0, 6).map(r => (
+                <TouchableOpacity
+                  key={r.id}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' }}
+                  onPress={() => navigation.navigate('Restaurant', { restaurant: r })}
+                >
+                  <Text style={{ fontSize: 18 }}>{CUISINE_EMOJI[r.cuisine_type] || '🍽️'}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: C.text, fontSize: 13 }}>{r.name}</Text>
+                    <Text style={{ color: C.dim, fontSize: 11 }}>{r.quartier || '—'}</Text>
+                  </View>
+                  {r.avg_rating > 0 && <Text style={{ color: C.accent, fontSize: 11 }}>★ {Number(r.avg_rating).toFixed(1)}</Text>}
+                </TouchableOpacity>
+              ))}
+              {restaurants.length > 6 && (
+                <Text style={{ color: C.dim, fontSize: 11, textAlign: 'center', marginTop: 8 }}>+{restaurants.length - 6} autres</Text>
+              )}
+            </View>
+          )}
+        </SafeAreaView>
+      </View>
     );
   }
 
@@ -155,10 +202,10 @@ export default function MapScreen({ navigation }) {
               </Text>
               <Text style={s.cardName} numberOfLines={1}>{selected.name}</Text>
               <Text style={s.cardAddr} numberOfLines={1}>
-                {'📍 ' + (selected.address || selected.quartier || 'Alger')}
+                {'📍 ' + (selected.quartier || 'Alger')}
               </Text>
-              {selected.rating ? (
-                <Text style={s.cardRating}>{'★ ' + selected.rating}</Text>
+              {selected.avg_rating > 0 ? (
+                <Text style={s.cardRating}>{'★ ' + Number(selected.avg_rating).toFixed(1)}</Text>
               ) : null}
             </View>
 

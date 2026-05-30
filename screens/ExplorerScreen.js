@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, SafeAreaView, ActivityIndicator, Dimensions,
@@ -184,28 +184,37 @@ export default function ExplorerScreen({ navigation }) {
   const [loading,     setLoading]     = useState(false);
   const [selected,    setSelected]    = useState(null);
 
-  const cityData    = CITIES.find(c => c.id === city) || CITIES[0];
-  const cityDefault = { latitude: cityData.region.latitude, longitude: cityData.region.longitude };
+  const cityData = useMemo(() => CITIES.find(c => c.id === city) || CITIES[0], [city]);
+  const cityDefault = useMemo(
+    () => ({ latitude: cityData.region.latitude, longitude: cityData.region.longitude }),
+    [cityData],
+  );
 
   useEffect(() => {
-    setLoading(true);
-    setSelected(null);
-    supabase
-      .from('restaurants')
-      .select('id, name, cuisine_type, address, quartier, city, photos, avg_rating, avg_ticket, review_count, capacity')
-      .eq('city', city)
-      .eq('status', 'active')
-      .order('avg_rating', { ascending: false })
-      .then(({ data }) => { setRestaurants(data ?? []); setLoading(false); });
+    (async () => {
+      setLoading(true);
+      setSelected(null);
+      try {
+        const { data } = await supabase
+          .from('restaurants')
+          .select('id, name, cuisine_type, address, quartier, city, photos, avg_rating, avg_ticket, review_count, capacity')
+          .eq('city', city)
+          .eq('status', 'active')
+          .order('avg_rating', { ascending: false });
+        setRestaurants(data ?? []);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [city]);
 
-  const changeCity = (c) => {
+  const changeCity = useCallback((c) => {
     setCity(c);
     const r = CITIES.find(x => x.id === c)?.region;
     if (r) mapRef.current?.animateToRegion(r, 400);
-  };
+  }, []);
 
-  const handleMarker = (r) => {
+  const handleMarker = useCallback((r) => {
     const same = selected?.id === r.id;
     setSelected(same ? null : r);
     if (!same) {
@@ -214,7 +223,16 @@ export default function ExplorerScreen({ navigation }) {
         350,
       );
     }
-  };
+  }, [selected, cityDefault]);
+
+  const renderItem = useCallback(({ item: r, index }) => (
+    <RestoCard
+      r={r}
+      rank={index}
+      onPress={() => navigation.navigate('Restaurant', { restaurant: r })}
+      onReserve={() => navigation.navigate('ReservationForm', { restaurant: r })}
+    />
+  ), [navigation]);
 
 
   return (
@@ -333,18 +351,11 @@ export default function ExplorerScreen({ navigation }) {
               columnWrapperStyle={s.gridRow}
               contentContainerStyle={s.gridContent}
               showsVerticalScrollIndicator={false}
-              renderItem={({ item: r, index }) => (
-                <RestoCard
-                  r={r}
-                  rank={index}
-                  onPress={() => navigation.navigate('Restaurant', { restaurant: r })}
-                  onReserve={() => navigation.navigate('ReservationForm', { restaurant: r })}
-                />
-              )}
+              renderItem={renderItem}
               ListFooterComponent={<View style={{ height: 60 }} />}
             />
           )
-        )}
+        }
       </View>
     </View>
   );

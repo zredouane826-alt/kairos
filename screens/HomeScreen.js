@@ -1,24 +1,17 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  SafeAreaView, Image, Dimensions, ActivityIndicator, Animated,
+  SafeAreaView, Image, Dimensions, Animated,
 } from 'react-native';
 import { supabase } from '../supabase';
+import { colors, typography, spacing, radius } from '../src/theme';
+import MLoader from '../src/components/MLoader';
 
 const SW     = Dimensions.get('window').width;
 const CARD_W = SW - 40;
 const FEAT_W = SW * 0.78;
 const FEAT_H = 260;
-
-const C = {
-  bg: '#070e1a', bg2: '#0f1828', bg3: '#162035', bg4: '#1d2a40',
-  accent: '#c8975a', accent2: '#4a7fa5', accentSoft: 'rgba(200,151,90,0.12)',
-  text: '#f0ece4', dim: '#8a9ab0', dimmer: '#4a5568',
-  green: '#3d9970', greenSoft: 'rgba(61,153,112,0.12)',
-  red: '#e05a5a', card: '#0f1828',
-  border: 'rgba(255,255,255,0.07)', borderAccent: 'rgba(200,151,90,0.3)',
-};
 
 const CITIES = [
   { id: 'alger',       label: 'Alger',        emoji: '🏛️', count: '20+' },
@@ -47,17 +40,10 @@ const QUICK_FILTERS = [
 ];
 
 const CUISINE_EMOJI = {
-  algerien:'🥘', mediterraneen:'🐟', fast_casual:'☕',
-  italien:'🍕', japonais:'🍣', turc:'🍢', libanais:'🌿', francais:'🍷',
+  algerien: '🥘', mediterraneen: '🐟', fast_casual: '☕',
+  italien: '🍕', japonais: '🍣', turc: '🍢', libanais: '🌿', francais: '🍷',
 };
-const CARD_BG = ['#0d1e0d','#0d1222','#1a1408','#14081a','#081418','#1a0808'];
-
-function formatDate() {
-  const d = new Date();
-  const DAYS   = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-  const MONTHS = ['jan','fév','mar','avr','mai','juin','juil','août','sep','oct','nov','déc'];
-  return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
-}
+const CARD_BG = ['#1A1006', '#0F1006', '#16100A', '#100616', '#060F16', '#160606'];
 
 function greeting(name) {
   const h = new Date().getHours();
@@ -66,9 +52,10 @@ function greeting(name) {
 }
 
 function eveningSlots() {
-  const h = new Date().getHours();
-  const m = new Date().getMinutes();
-  const all = ['19h00','19h30','20h00','20h30','21h00','21h30'];
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const all = ['19h00', '19h30', '20h00', '20h30', '21h00', '21h30'];
   if (h >= 22) return [];
   if (h < 17) return all;
   return all.filter(s => {
@@ -77,7 +64,7 @@ function eveningSlots() {
   });
 }
 
-/* ─── Section header ─── */
+/* ── Section header ── */
 function SectionHead({ label, right, rightAction }) {
   return (
     <View style={sh.row}>
@@ -94,16 +81,16 @@ function SectionHead({ label, right, rightAction }) {
   );
 }
 const sh = StyleSheet.create({
-  row:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginTop: 28, marginBottom: 16 },
-  left:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  bar:   { width: 3, height: 14, borderRadius: 2, backgroundColor: C.accent },
-  label: { color: C.dimmer, fontSize: 10, fontWeight: '600', letterSpacing: 3.5 },
-  right: { color: C.accent2, fontSize: 12 },
+  row:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.xl, marginTop: spacing.section - 4, marginBottom: spacing.xl },
+  left:  { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  bar:   { width: 3, height: 14, borderRadius: 2, backgroundColor: colors.accent },
+  label: { color: colors.textDim, fontSize: typography.size.xs, fontWeight: typography.weight.semibold, letterSpacing: 3.5 },
+  right: { color: colors.blue, fontSize: typography.size.body },
 });
 
-/* ─── Featured card ─── */
+/* ── Featured card ── */
 function FeaturedCard({ r, onPress, onReserve }) {
-  const photo = r.photos?.[0] || r.photo_url;
+  const photo = r.photos?.[0];
   return (
     <TouchableOpacity style={fc.card} onPress={onPress} activeOpacity={0.88}>
       {photo
@@ -146,30 +133,30 @@ function FeaturedCard({ r, onPress, onReserve }) {
   );
 }
 const fc = StyleSheet.create({
-  card:          { width: FEAT_W, height: FEAT_H, borderRadius: 24, overflow: 'hidden', marginRight: 14, backgroundColor: C.bg3 },
+  card:          { width: FEAT_W, height: FEAT_H, borderRadius: radius.xxl, overflow: 'hidden', marginRight: spacing.xl - 2, backgroundColor: colors.card },
   photo:         { ...StyleSheet.absoluteFillObject },
   overlay:       { ...StyleSheet.absoluteFillObject, backgroundColor: '#000' },
-  overlayBottom: { position: 'absolute', bottom: 0, left: 0, right: 0, height: FEAT_H * 0.62, backgroundColor: 'rgba(4,9,20,0.88)' },
-  content:       { flex: 1, justifyContent: 'space-between', padding: 16 },
+  overlayBottom: { position: 'absolute', bottom: 0, left: 0, right: 0, height: FEAT_H * 0.62, backgroundColor: 'rgba(15,13,11,0.88)' },
+  content:       { flex: 1, justifyContent: 'space-between', padding: spacing.xl },
   topRow:        { flexDirection: 'row', justifyContent: 'space-between' },
-  openPill:      { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(4,9,20,0.8)', borderRadius: 100, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: 'rgba(61,153,112,0.4)' },
-  openDot:       { width: 6, height: 6, borderRadius: 3, backgroundColor: C.green },
-  openTxt:       { color: C.green, fontSize: 10, fontWeight: '500' },
-  ratingPill:    { backgroundColor: 'rgba(4,9,20,0.8)', borderRadius: 100, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: 'rgba(200,151,90,0.4)' },
-  ratingTxt:     { color: C.accent, fontSize: 11, fontWeight: '600' },
+  openPill:      { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(15,13,11,0.8)', borderRadius: 100, paddingHorizontal: spacing.lg, paddingVertical: 5, borderWidth: 1, borderColor: 'rgba(76,175,130,0.4)' },
+  openDot:       { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.green },
+  openTxt:       { color: colors.green, fontSize: typography.size.sm, fontWeight: typography.weight.medium },
+  ratingPill:    { backgroundColor: 'rgba(15,13,11,0.8)', borderRadius: 100, paddingHorizontal: spacing.lg, paddingVertical: 5, borderWidth: 1, borderColor: 'rgba(232,160,69,0.4)' },
+  ratingTxt:     { color: colors.accent, fontSize: typography.size.caption, fontWeight: typography.weight.semibold },
   bottom:        { gap: 5 },
-  tag:           { color: 'rgba(200,151,90,0.8)', fontSize: 9, letterSpacing: 2.5, fontWeight: '500' },
-  name:          { color: '#fff', fontSize: 22, fontWeight: '300', letterSpacing: 0.3 },
-  footRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 },
-  price:         { color: 'rgba(240,236,228,0.55)', fontSize: 11 },
-  resaBtn:       { backgroundColor: C.accent, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 8 },
-  resaBtnTxt:    { color: '#070e1a', fontSize: 12, fontWeight: '700' },
+  tag:           { color: 'rgba(232,160,69,0.8)', fontSize: typography.size.xs, letterSpacing: 2.5, fontWeight: typography.weight.medium },
+  name:          { color: colors.text, fontSize: typography.size.title, fontWeight: typography.weight.regular, letterSpacing: 0.3 },
+  footRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.md },
+  price:         { color: colors.textMuted, fontSize: typography.size.caption },
+  resaBtn:       { backgroundColor: colors.accent, borderRadius: radius.lg, paddingHorizontal: spacing.xl, paddingVertical: spacing.md },
+  resaBtnTxt:    { color: colors.bg, fontSize: typography.size.body, fontWeight: typography.weight.bold },
 });
 
-/* ─── List card ─── */
+/* ── List card ── */
 function ListCard({ r, rank, onPress, onReserve }) {
   const [idx, setIdx] = useState(0);
-  const photos = r.photos?.length > 0 ? r.photos : r.photo_url ? [r.photo_url] : null;
+  const photos = r.photos?.length > 0 ? r.photos : null;
   return (
     <TouchableOpacity style={lc.card} onPress={onPress} activeOpacity={0.85}>
       <View style={[lc.hero, { backgroundColor: CARD_BG[rank % CARD_BG.length] }]}>
@@ -228,38 +215,52 @@ function ListCard({ r, rank, onPress, onReserve }) {
   );
 }
 const lc = StyleSheet.create({
-  card:        { marginHorizontal: 20, marginBottom: 16, backgroundColor: C.card, borderRadius: 22, borderWidth: 1, borderColor: C.border, overflow: 'hidden' },
+  card:        { marginHorizontal: spacing.xl, marginBottom: spacing.xl - 4, backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden' },
   hero:        { width: CARD_W, height: 200, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   heroEmoji:   { fontSize: 56 },
-  heroOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 80, backgroundColor: 'rgba(4,9,20,0.6)' },
-  dots:        { position: 'absolute', bottom: 12, flexDirection: 'row', gap: 4, alignSelf: 'center' },
+  heroOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 80, backgroundColor: 'rgba(15,13,11,0.6)' },
+  dots:        { position: 'absolute', bottom: spacing.lg, flexDirection: 'row', gap: 4, alignSelf: 'center' },
   dot:         { width: 5, height: 5, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.35)' },
-  dotOn:       { backgroundColor: '#fff', width: 16 },
-  rankBadge:   { position: 'absolute', top: 12, right: 12, backgroundColor: 'rgba(4,9,20,0.85)', borderRadius: 9, paddingHorizontal: 9, paddingVertical: 4, borderWidth: 1, borderColor: C.border },
-  rankTxt:     { color: C.dimmer, fontSize: 11, fontWeight: '700' },
-  topBadge:    { position: 'absolute', top: 12, left: 12, backgroundColor: 'rgba(200,151,90,0.15)', borderRadius: 9, paddingHorizontal: 9, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(200,151,90,0.35)' },
-  topBadgeTxt: { color: C.accent, fontSize: 10, fontWeight: '600' },
-  openBadge:   { position: 'absolute', bottom: 12, left: 12, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(4,9,20,0.85)', borderRadius: 100, paddingHorizontal: 9, paddingVertical: 4, gap: 5, borderWidth: 1, borderColor: 'rgba(61,153,112,0.3)' },
-  openDot:     { width: 6, height: 6, borderRadius: 3, backgroundColor: C.green },
-  openTxt:     { color: C.green, fontSize: 10, fontWeight: '500' },
-  body:        { padding: 16, gap: 14 },
-  bodyTop:     { gap: 4 },
-  tag:         { color: C.accent, fontSize: 8, letterSpacing: 2.5, fontWeight: '500' },
-  name:        { color: C.text, fontSize: 17, fontWeight: '400', letterSpacing: 0.2 },
-  meta:        { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  ratingVal:   { color: C.accent, fontSize: 12, fontWeight: '600' },
-  reviews:     { color: C.dimmer, fontSize: 11 },
-  dot2:        { width: 3, height: 3, borderRadius: 2, backgroundColor: C.dimmer },
-  price:       { color: C.dim, fontSize: 12 },
+  dotOn:       { backgroundColor: colors.text, width: 16 },
+  rankBadge:   { position: 'absolute', top: spacing.lg, right: spacing.lg, backgroundColor: 'rgba(15,13,11,0.85)', borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderWidth: 1, borderColor: colors.cardBorder },
+  rankTxt:     { color: colors.textDim, fontSize: typography.size.caption, fontWeight: typography.weight.bold },
+  topBadge:    { position: 'absolute', top: spacing.lg, left: spacing.lg, backgroundColor: colors.accentSoft, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderWidth: 1, borderColor: 'rgba(232,160,69,0.35)' },
+  topBadgeTxt: { color: colors.accent, fontSize: typography.size.sm, fontWeight: typography.weight.semibold },
+  openBadge:   { position: 'absolute', bottom: spacing.lg, left: spacing.lg, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(15,13,11,0.85)', borderRadius: 100, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, gap: 5, borderWidth: 1, borderColor: 'rgba(76,175,130,0.3)' },
+  openDot:     { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.green },
+  openTxt:     { color: colors.green, fontSize: typography.size.sm, fontWeight: typography.weight.medium },
+  body:        { padding: spacing.xl, gap: spacing.xl - 2 },
+  bodyTop:     { gap: spacing.xs },
+  tag:         { color: colors.accent, fontSize: typography.size.xs, letterSpacing: 2.5, fontWeight: typography.weight.medium },
+  name:        { color: colors.text, fontSize: typography.size.heading2, fontWeight: typography.weight.medium, letterSpacing: 0.2 },
+  meta:        { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  ratingVal:   { color: colors.accent, fontSize: typography.size.body, fontWeight: typography.weight.semibold },
+  reviews:     { color: colors.textDim, fontSize: typography.size.caption },
+  dot2:        { width: 3, height: 3, borderRadius: 2, backgroundColor: colors.textDim },
+  price:       { color: colors.textMuted, fontSize: typography.size.body },
   footer:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  chips:       { flexDirection: 'row', gap: 6 },
-  chip:        { backgroundColor: 'rgba(74,127,165,0.08)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(74,127,165,0.2)' },
-  chipTxt:     { color: C.accent2, fontSize: 10 },
-  resaBtn:     { backgroundColor: C.accent, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 9 },
-  resaBtnTxt:  { color: '#070e1a', fontSize: 12, fontWeight: '700' },
+  chips:       { flexDirection: 'row', gap: spacing.sm },
+  chip:        { backgroundColor: colors.blueSoft, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderWidth: 1, borderColor: 'rgba(90,155,224,0.2)' },
+  chipTxt:     { color: colors.blue, fontSize: typography.size.sm },
+  resaBtn:     { backgroundColor: colors.accent, borderRadius: radius.lg, paddingHorizontal: spacing.xl, paddingVertical: spacing.md },
+  resaBtnTxt:  { color: colors.bg, fontSize: typography.size.body, fontWeight: typography.weight.bold },
 });
 
-/* ─── Écran principal ─── */
+/* ── Skeleton list card ── */
+function SkeletonCard() {
+  return (
+    <View style={[lc.card, { overflow: 'hidden' }]}>
+      <MLoader width="100%" height={200} borderRadius={0} />
+      <View style={{ padding: spacing.xl, gap: spacing.lg }}>
+        <MLoader width="40%" height={9} borderRadius={4} />
+        <MLoader width="75%" height={16} borderRadius={4} />
+        <MLoader width="50%" height={10} borderRadius={4} />
+      </View>
+    </View>
+  );
+}
+
+/* ── Écran principal ── */
 export default function HomeScreen({ navigation }) {
   const [city,         setCity]         = useState('alger');
   const [category,     setCategory]     = useState('all');
@@ -275,23 +276,25 @@ export default function HomeScreen({ navigation }) {
   const slideAnim = useRef(new Animated.Value(20)).current;
 
   useFocusEffect(useCallback(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    (async () => {
+      const { data } = await supabase.auth.getUser();
       const u = data?.user;
       if (!u) return;
       if (u.email) setUserInitial(u.email[0].toUpperCase());
-      supabase.from('users')
+
+      const { data: row } = await supabase.from('users')
         .select('id, avatar_url, first_name')
-        .eq('auth_id', u.id).single()
-        .then(({ data: row }) => {
-          if (!row) return;
-          setAvatarUrl(row.avatar_url ?? null);
-          setUserName(row.first_name || u.email?.split('@')[0] || '');
-          supabase.from('notifications')
-            .select('id', { count: 'exact', head: true })
-            .eq('recipient_id', row.id).eq('recipient_type', 'user').eq('is_read', false)
-            .then(({ count }) => setUnreadNotifs(count ?? 0));
-        });
-    });
+        .eq('auth_id', u.id).single();
+      if (!row) return;
+
+      setAvatarUrl(row.avatar_url ?? null);
+      setUserName(row.first_name || u.email?.split('@')[0] || '');
+
+      const { count } = await supabase.from('notifications')
+        .select('id', { count: 'exact', head: true })
+        .eq('recipient_id', row.id).eq('recipient_type', 'user').eq('is_read', false);
+      setUnreadNotifs(count ?? 0);
+    })();
   }, []));
 
   useEffect(() => {
@@ -299,7 +302,7 @@ export default function HomeScreen({ navigation }) {
     fadeAnim.setValue(0);
     slideAnim.setValue(20);
     let q = supabase.from('restaurants')
-      .select('id,name,cuisine_type,quartier,avg_rating,avg_ticket,photos,photo_url,review_count,city')
+      .select('id,name,cuisine_type,quartier,avg_rating,avg_ticket,photos,review_count,city')
       .eq('status', 'active').limit(20).order('avg_rating', { ascending: false });
     if (city !== 'nearby') q = q.eq('city', city);
     q.then(({ data }) => {
@@ -312,16 +315,26 @@ export default function HomeScreen({ navigation }) {
     });
   }, [city]);
 
-  let filtered = category === 'all'
-    ? restaurants
-    : restaurants.filter(r => r.cuisine_type === CATEGORIES.find(c => c.id === category)?.cuisine);
-  if (quickFilter === 'rating') filtered = [...filtered].sort((a, b) => (b.avg_rating || 0) - (a.avg_rating || 0));
-  if (quickFilter === 'budget') filtered = [...filtered].sort((a, b) => (a.avg_ticket || 9999) - (b.avg_ticket || 9999));
+  const featured = useMemo(
+    () => [...restaurants].sort((a, b) => (b.avg_rating || 0) - (a.avg_rating || 0)).slice(0, 6),
+    [restaurants],
+  );
 
-  const featured = [...restaurants].sort((a, b) => (b.avg_rating || 0) - (a.avg_rating || 0)).slice(0, 6);
-  const slots    = eveningSlots();
-  const cityObj  = CITIES.find(c => c.id === city) || CITIES[0];
-  const topCount = restaurants.filter(r => (r.avg_rating || 0) >= 4).length;
+  const filtered = useMemo(() => {
+    const cuisine = CATEGORIES.find(c => c.id === category)?.cuisine;
+    let result = category === 'all' ? restaurants : restaurants.filter(r => r.cuisine_type === cuisine);
+    if (quickFilter === 'rating') result = [...result].sort((a, b) => (b.avg_rating || 0) - (a.avg_rating || 0));
+    if (quickFilter === 'budget') result = [...result].sort((a, b) => (a.avg_ticket || 9999) - (b.avg_ticket || 9999));
+    return result;
+  }, [restaurants, category, quickFilter]);
+
+  const topCount = useMemo(
+    () => restaurants.filter(r => (r.avg_rating || 0) >= 4).length,
+    [restaurants],
+  );
+
+  const slots   = eveningSlots();
+  const cityObj = CITIES.find(c => c.id === city) || CITIES[0];
 
   return (
     <SafeAreaView style={s.root}>
@@ -331,7 +344,7 @@ export default function HomeScreen({ navigation }) {
         <View>
           <Text style={s.greeting}>{greeting(userName)}</Text>
           <View style={s.logoRow}>
-            <Text style={s.logo}>MIDA</Text>
+            <Text style={s.logo}>mida</Text>
             <View style={s.locationPill}>
               <Text style={s.locationTxt}>{cityObj.emoji}  {cityObj.label}</Text>
             </View>
@@ -355,7 +368,7 @@ export default function HomeScreen({ navigation }) {
         </View>
       </View>
 
-      {/* ── Search ── */}
+      {/* ── Search bar ── */}
       <TouchableOpacity style={s.searchBar} onPress={() => navigation.navigate('Search')} activeOpacity={0.8}>
         <Text style={s.searchIcon}>🔍</Text>
         <Text style={s.searchPlaceholder}>Restaurant, cuisine, quartier…</Text>
@@ -481,7 +494,9 @@ export default function HomeScreen({ navigation }) {
         />
 
         {loading ? (
-          <View style={s.loadWrap}><ActivityIndicator color={C.accent} size="large" /></View>
+          <View>
+            {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
+          </View>
         ) : filtered.length === 0 ? (
           <View style={s.emptyWrap}>
             <Text style={s.emptyEmoji}>🍽️</Text>
@@ -510,94 +525,93 @@ export default function HomeScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  root:   { flex: 1, backgroundColor: C.bg },
+  root:   { flex: 1, backgroundColor: colors.bg },
   scroll: { flex: 1 },
 
   /* Header */
-  header:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10 },
-  greeting:      { color: C.dim, fontSize: 12, fontWeight: '300', marginBottom: 3 },
-  logoRow:       { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  logo:          { color: C.accent, fontSize: 24, fontWeight: '700', letterSpacing: 6 },
-  locationPill:  { backgroundColor: C.bg2, borderRadius: 100, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: C.borderAccent },
-  locationTxt:   { color: C.accent, fontSize: 10, fontWeight: '300' },
-  headerRight:   { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  iconBtn:       { width: 38, height: 38, borderRadius: 19, backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' },
+  header:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.md },
+  greeting:      { color: colors.textMuted, fontSize: typography.size.body, fontWeight: typography.weight.regular, marginBottom: 3 },
+  logoRow:       { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
+  logo:          { color: colors.accent, fontSize: typography.size.title + 4, fontWeight: typography.weight.black, letterSpacing: -1, fontFamily: 'Georgia' },
+  locationPill:  { backgroundColor: colors.card, borderRadius: 100, paddingHorizontal: spacing.lg, paddingVertical: spacing.xs, borderWidth: 1, borderColor: 'rgba(232,160,69,0.3)' },
+  locationTxt:   { color: colors.accent, fontSize: typography.size.sm, fontWeight: typography.weight.regular },
+  headerRight:   { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
+  iconBtn:       { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.cardBorder, alignItems: 'center', justifyContent: 'center' },
   iconBtnTxt:    { fontSize: 17 },
-  notifBadge:    { position: 'absolute', top: -4, right: -4, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: C.accent, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3, borderWidth: 1.5, borderColor: C.bg },
-  notifBadgeTxt: { color: C.bg, fontSize: 9, fontWeight: '700' },
-  avatar:        { width: 38, height: 38, borderRadius: 19, backgroundColor: C.bg3, borderWidth: 1.5, borderColor: C.accent, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  avatarTxt:     { color: C.accent, fontWeight: '600', fontSize: 14 },
+  notifBadge:    { position: 'absolute', top: -4, right: -4, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3, borderWidth: 1.5, borderColor: colors.bg },
+  notifBadgeTxt: { color: colors.bg, fontSize: typography.size.xs, fontWeight: typography.weight.bold },
+  avatar:        { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.card, borderWidth: 1.5, borderColor: colors.accent, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  avatarTxt:     { color: colors.accent, fontWeight: typography.weight.semibold, fontSize: typography.size.subheading },
   avatarPhoto:   { width: 38, height: 38, borderRadius: 19 },
 
   /* Search */
-  searchBar:         { flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 20, marginBottom: 10, marginTop: 4, backgroundColor: C.bg2, borderRadius: 16, borderWidth: 1, borderColor: C.border, paddingHorizontal: 14, height: 50 },
-  searchIcon:        { fontSize: 15 },
-  searchPlaceholder: { flex: 1, color: C.dimmer, fontSize: 14, fontWeight: '300' },
-  searchCta:         { backgroundColor: C.accent, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 6 },
-  searchCtaTxt:      { color: '#070e1a', fontSize: 11, fontWeight: '700' },
+  searchBar:         { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, marginHorizontal: spacing.xl, marginBottom: spacing.md, marginTop: spacing.xs, backgroundColor: colors.card, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.cardBorder, paddingHorizontal: spacing.xl, height: 50 },
+  searchIcon:        { fontSize: typography.size.subheading },
+  searchPlaceholder: { flex: 1, color: colors.textDim, fontSize: typography.size.subheading, fontWeight: typography.weight.regular },
+  searchCta:         { backgroundColor: colors.accent, borderRadius: radius.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
+  searchCtaTxt:      { color: colors.bg, fontSize: typography.size.caption, fontWeight: typography.weight.bold },
 
   /* Cities */
   cityRow:        { maxHeight: 50 },
-  cityContent:    { paddingHorizontal: 20, paddingVertical: 5, flexDirection: 'row', gap: 8, alignItems: 'center' },
-  cityChip:       { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 13, paddingVertical: 7, borderRadius: 100, backgroundColor: C.bg2, borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' },
-  cityChipOn:     { backgroundColor: C.accent, borderColor: C.accent },
-  cityEmoji:      { fontSize: 12 },
-  cityTxt:        { color: C.text, fontSize: 12 },
-  cityTxtOn:      { color: '#070e1a', fontWeight: '600' },
-  cityCount:      { backgroundColor: C.bg3, borderRadius: 100, paddingHorizontal: 5, paddingVertical: 1, minWidth: 22, alignItems: 'center' },
-  cityCountOn:    { backgroundColor: 'rgba(7,14,26,0.25)' },
-  cityCountTxt:   { color: C.dimmer, fontSize: 8, fontWeight: '600' },
-  cityCountTxtOn: { color: 'rgba(7,14,26,0.7)' },
+  cityContent:    { paddingHorizontal: spacing.xl, paddingVertical: 5, flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
+  cityChip:       { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: spacing.lg, paddingVertical: 7, borderRadius: 100, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.cardBorder },
+  cityChipOn:     { backgroundColor: colors.accent, borderColor: colors.accent },
+  cityEmoji:      { fontSize: typography.size.body },
+  cityTxt:        { color: colors.text, fontSize: typography.size.body },
+  cityTxtOn:      { color: colors.bg, fontWeight: typography.weight.semibold },
+  cityCount:      { backgroundColor: colors.cardBorder, borderRadius: 100, paddingHorizontal: 5, paddingVertical: 1, minWidth: 22, alignItems: 'center' },
+  cityCountOn:    { backgroundColor: 'rgba(15,13,11,0.25)' },
+  cityCountTxt:   { color: colors.textDim, fontSize: typography.size.xs, fontWeight: typography.weight.semibold },
+  cityCountTxtOn: { color: 'rgba(15,13,11,0.7)' },
 
   /* Stats bar */
-  statsBar:      { flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, marginTop: 8, marginBottom: 4, backgroundColor: C.bg2, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 16, borderWidth: 1, borderColor: C.border },
+  statsBar:      { flexDirection: 'row', alignItems: 'center', marginHorizontal: spacing.xl, marginTop: spacing.md, marginBottom: spacing.xs, backgroundColor: colors.card, borderRadius: radius.lg, paddingVertical: spacing.lg, paddingHorizontal: spacing.xl, borderWidth: 1, borderColor: colors.cardBorder },
   statItem:      { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-  statVal:       { color: C.text, fontSize: 13, fontWeight: '500' },
-  statLabel:     { color: C.dimmer, fontSize: 11 },
-  statGreen:     { color: C.green, fontSize: 11 },
-  statSep:       { width: 1, height: 18, backgroundColor: C.border },
-  openDotInline: { width: 7, height: 7, borderRadius: 4, backgroundColor: C.green },
+  statVal:       { color: colors.text, fontSize: typography.size.bodyLg, fontWeight: typography.weight.medium },
+  statLabel:     { color: colors.textDim, fontSize: typography.size.caption },
+  statGreen:     { color: colors.green, fontSize: typography.size.caption },
+  statSep:       { width: 1, height: 18, backgroundColor: colors.cardBorder },
+  openDotInline: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.green },
 
   /* Ce soir */
-  tonightCard:      { marginHorizontal: 20, marginTop: 24, borderRadius: 20, backgroundColor: C.bg2, borderWidth: 1, borderColor: 'rgba(200,151,90,0.2)', overflow: 'hidden', flexDirection: 'row', alignItems: 'center' },
-  tonightAccentBar: { width: 3, alignSelf: 'stretch', backgroundColor: C.accent },
-  tonightBody:      { flex: 1, padding: 16 },
-  tonightLabel:     { color: C.accent, fontSize: 9, letterSpacing: 3.5, marginBottom: 4, fontWeight: '600' },
-  tonightTitle:     { color: C.text, fontSize: 17, fontWeight: '300', marginBottom: 12 },
-  slotRow:          { gap: 8 },
-  slotChip:         { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 100, backgroundColor: 'rgba(200,151,90,0.1)', borderWidth: 1, borderColor: 'rgba(200,151,90,0.3)' },
-  slotTxt:          { color: C.accent, fontSize: 12, fontWeight: '500' },
-  slotAll:          { backgroundColor: C.bg3, borderColor: C.border },
-  slotAllTxt:       { color: C.dim, fontSize: 12 },
-  tonightRight:     { paddingRight: 16, alignItems: 'center', gap: 4 },
+  tonightCard:      { marginHorizontal: spacing.xl, marginTop: spacing.xxl, borderRadius: radius.xxl, backgroundColor: colors.card, borderWidth: 1, borderColor: 'rgba(232,160,69,0.2)', overflow: 'hidden', flexDirection: 'row', alignItems: 'center' },
+  tonightAccentBar: { width: 3, alignSelf: 'stretch', backgroundColor: colors.accent },
+  tonightBody:      { flex: 1, padding: spacing.xl },
+  tonightLabel:     { color: colors.accent, fontSize: typography.size.xs, letterSpacing: 3.5, marginBottom: spacing.xs, fontWeight: typography.weight.semibold },
+  tonightTitle:     { color: colors.text, fontSize: typography.size.heading2, fontWeight: typography.weight.regular, marginBottom: spacing.lg },
+  slotRow:          { gap: spacing.md },
+  slotChip:         { paddingHorizontal: spacing.lg, paddingVertical: 7, borderRadius: 100, backgroundColor: colors.accentSoft, borderWidth: 1, borderColor: 'rgba(232,160,69,0.3)' },
+  slotTxt:          { color: colors.accent, fontSize: typography.size.body, fontWeight: typography.weight.medium },
+  slotAll:          { backgroundColor: colors.cardBorder, borderColor: colors.cardBorder },
+  slotAllTxt:       { color: colors.textMuted, fontSize: typography.size.body },
+  tonightRight:     { paddingRight: spacing.xl, alignItems: 'center', gap: spacing.xs },
   tonightEmoji:     { fontSize: 40 },
-  tonightCount:     { color: C.dim, fontSize: 9 },
+  tonightCount:     { color: colors.textMuted, fontSize: typography.size.xs },
 
   /* Featured */
-  featRow: { paddingHorizontal: 20, paddingBottom: 4 },
+  featRow: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xs },
 
   /* Pills */
-  pillRow:   { paddingHorizontal: 20, gap: 8, paddingBottom: 4 },
-  pill:      { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 100, backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border },
-  pillOn:    { backgroundColor: C.accentSoft, borderColor: C.accent },
-  pillEmoji: { fontSize: 14 },
-  pillTxt:   { color: C.dim, fontSize: 12 },
-  pillTxtOn: { color: C.accent },
+  pillRow:   { paddingHorizontal: spacing.xl, gap: spacing.md, paddingBottom: spacing.xs },
+  pill:      { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.xl, paddingVertical: spacing.md, borderRadius: 100, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.cardBorder },
+  pillOn:    { backgroundColor: colors.accentSoft, borderColor: colors.accent },
+  pillEmoji: { fontSize: typography.size.subheading },
+  pillTxt:   { color: colors.textMuted, fontSize: typography.size.body },
+  pillTxtOn: { color: colors.accent },
 
   /* Quick filters */
-  quickRow:    { paddingHorizontal: 20, gap: 8, paddingTop: 10, paddingBottom: 4 },
-  quickChip:   { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 100, backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border },
-  quickChipOn: { backgroundColor: 'rgba(74,127,165,0.12)', borderColor: C.accent2 },
-  quickEmoji:  { fontSize: 12 },
-  quickTxt:    { color: C.dim, fontSize: 11 },
-  quickTxtOn:  { color: C.accent2 },
+  quickRow:    { paddingHorizontal: spacing.xl, gap: spacing.md, paddingTop: spacing.lg, paddingBottom: spacing.xs },
+  quickChip:   { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderRadius: 100, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.cardBorder },
+  quickChipOn: { backgroundColor: colors.blueSoft, borderColor: colors.blue },
+  quickEmoji:  { fontSize: typography.size.body },
+  quickTxt:    { color: colors.textMuted, fontSize: typography.size.caption },
+  quickTxtOn:  { color: colors.blue },
 
-  /* Loading / empty */
-  loadWrap:   { alignItems: 'center', paddingVertical: 52 },
-  emptyWrap:  { alignItems: 'center', paddingVertical: 52, gap: 12 },
+  /* Empty */
+  emptyWrap:  { alignItems: 'center', paddingVertical: spacing.section + spacing.xxl, gap: spacing.lg },
   emptyEmoji: { fontSize: 44 },
-  emptyTitle: { color: C.text, fontSize: 18, fontWeight: '300' },
-  emptySub:   { color: C.dim, fontSize: 13 },
-  emptyBtn:   { backgroundColor: C.bg2, borderRadius: 12, paddingHorizontal: 20, paddingVertical: 10, borderWidth: 1, borderColor: C.border, marginTop: 4 },
-  emptyBtnTxt:{ color: C.dim, fontSize: 13 },
+  emptyTitle: { color: colors.text, fontSize: typography.size.heading1, fontWeight: typography.weight.regular },
+  emptySub:   { color: colors.textMuted, fontSize: typography.size.bodyLg },
+  emptyBtn:   { backgroundColor: colors.card, borderRadius: radius.lg, paddingHorizontal: spacing.xxl, paddingVertical: spacing.lg, borderWidth: 1, borderColor: colors.cardBorder, marginTop: spacing.xs },
+  emptyBtnTxt:{ color: colors.textMuted, fontSize: typography.size.bodyLg },
 });

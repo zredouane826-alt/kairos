@@ -1,18 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  SafeAreaView, TextInput, Image, ActivityIndicator, Keyboard, ScrollView,
+  SafeAreaView, TextInput, Image, Keyboard, ScrollView,
 } from 'react-native';
 import { supabase } from '../supabase';
-
-const C = {
-  bg:'#0d1628', bg2:'#111827', bg3:'#1a2332',
-  accent:'#c8975a', accent2:'#4a7fa5',
-  text:'#f0ece4', dim:'#8a9ab0', dimmer:'#4a5568',
-  green:'#3d9970', card:'#141e2e',
-  border:'rgba(255,255,255,0.07)',
-  borderAccent:'rgba(200,151,90,0.25)',
-};
+import { colors, typography, spacing, radius } from '../src/theme';
+import MLoader from '../src/components/MLoader';
 
 const CITIES = [
   { id: 'all',         label: 'Toutes' },
@@ -27,18 +20,31 @@ const CITIES = [
 ];
 
 const SUGGESTIONS = [
-  { label: 'Couscous',      q: 'algerien',    emoji: '🥘' },
-  { label: 'Pizzeria',      q: 'italien',     emoji: '🍕' },
+  { label: 'Couscous',      q: 'algerien',      emoji: '🥘' },
+  { label: 'Pizzeria',      q: 'italien',       emoji: '🍕' },
   { label: 'Fruits de mer', q: 'mediterraneen', emoji: '🐟' },
-  { label: 'Japonais',      q: 'japonais',    emoji: '🍣' },
-  { label: 'Turc',          q: 'turc',        emoji: '🍢' },
-  { label: 'Libanais',      q: 'libanais',    emoji: '🌿' },
+  { label: 'Japonais',      q: 'japonais',      emoji: '🍣' },
+  { label: 'Turc',          q: 'turc',          emoji: '🍢' },
+  { label: 'Libanais',      q: 'libanais',      emoji: '🌿' },
 ];
 
 const CUISINE_EMOJI = {
   algerien:'🥘', mediterraneen:'🐟', fast_casual:'☕',
   italien:'🍕', japonais:'🍣', turc:'🍢', libanais:'🌿', francais:'🍷', autre:'🍽️',
 };
+
+function SkeletonResult() {
+  return (
+    <View style={s.card}>
+      <MLoader width={68} height={68} borderRadius={radius.lg} />
+      <View style={{ flex: 1, gap: spacing.xs }}>
+        <MLoader width="40%" height={10} borderRadius={radius.sm} />
+        <MLoader width="75%" height={14} borderRadius={radius.sm} />
+        <MLoader width="50%" height={10} borderRadius={radius.sm} />
+      </View>
+    </View>
+  );
+}
 
 export default function SearchScreen({ navigation }) {
   const inputRef = useRef(null);
@@ -62,36 +68,39 @@ export default function SearchScreen({ navigation }) {
     const timer = setTimeout(async () => {
       setLoading(true);
       setSearched(true);
-      let req = supabase
-        .from('restaurants')
-        .select('id, name, cuisine_type, quartier, city, avg_rating, avg_ticket, photos')
-        .eq('status', 'active')
-        .or(`name.ilike.%${q}%,cuisine_type.ilike.%${q}%,quartier.ilike.%${q}%`)
-        .limit(25);
+      try {
+        let req = supabase
+          .from('restaurants')
+          .select('id, name, cuisine_type, quartier, city, avg_rating, avg_ticket, photos')
+          .eq('status', 'active')
+          .or(`name.ilike.%${q}%,cuisine_type.ilike.%${q}%,quartier.ilike.%${q}%`)
+          .limit(25);
 
-      if (city !== 'all') req = req.eq('city', city);
+        if (city !== 'all') req = req.eq('city', city);
 
-      const { data } = await req;
-      setResults(data ?? []);
-      setLoading(false);
+        const { data } = await req;
+        setResults(data ?? []);
+      } finally {
+        setLoading(false);
+      }
     }, 300);
 
     return () => clearTimeout(timer);
   }, [query, city]);
 
-  const searchSuggestion = (q) => {
+  const searchSuggestion = useCallback((q) => {
     setQuery(q);
     Keyboard.dismiss();
-  };
+  }, []);
 
-  const clearQuery = () => {
+  const clearQuery = useCallback(() => {
     setQuery('');
     setResults([]);
     setSearched(false);
     inputRef.current?.focus();
-  };
+  }, []);
 
-  const renderCard = useCallback(({ item: r, index }) => {
+  const renderCard = useCallback(({ item: r }) => {
     const photo = r.photos?.[0];
     return (
       <TouchableOpacity
@@ -121,7 +130,7 @@ export default function SearchScreen({ navigation }) {
         <Text style={s.cardArrow}>›</Text>
       </TouchableOpacity>
     );
-  }, []);
+  }, [navigation]);
 
   return (
     <SafeAreaView style={s.root}>
@@ -137,7 +146,7 @@ export default function SearchScreen({ navigation }) {
             ref={inputRef}
             style={s.input}
             placeholder="Restaurant, cuisine, quartier…"
-            placeholderTextColor={C.dimmer}
+            placeholderTextColor={colors.textDim}
             value={query}
             onChangeText={setQuery}
             returnKeyType="search"
@@ -166,35 +175,32 @@ export default function SearchScreen({ navigation }) {
 
       {/* ── Contenu ── */}
       {!query.trim() ? (
-        /* État initial : suggestions */
         <View style={s.suggestionsWrap}>
           <Text style={s.suggestTitle}>EXPLORER PAR CUISINE</Text>
           <View style={s.suggestGrid}>
-            {SUGGESTIONS.map((s_) => (
+            {SUGGESTIONS.map((sg) => (
               <TouchableOpacity
-                key={s_.q}
+                key={sg.q}
                 style={s.suggestCard}
-                onPress={() => searchSuggestion(s_.q)}
+                onPress={() => searchSuggestion(sg.q)}
               >
-                <Text style={s.suggestEmoji}>{s_.emoji}</Text>
-                <Text style={s.suggestLabel}>{s_.label}</Text>
+                <Text style={s.suggestEmoji}>{sg.emoji}</Text>
+                <Text style={s.suggestLabel}>{sg.label}</Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
       ) : loading ? (
-        <View style={s.center}>
-          <ActivityIndicator color={C.accent} />
+        <View style={s.skeletonList}>
+          {[1,2,3,4,5].map((i) => <SkeletonResult key={i} />)}
         </View>
       ) : results.length === 0 && searched ? (
-        /* Aucun résultat */
         <View style={s.center}>
           <Text style={s.emptyEmoji}>🍽️</Text>
           <Text style={s.emptyTitle}>Aucun résultat</Text>
           <Text style={s.emptySub}>Essayez un autre nom, quartier{'\n'}ou type de cuisine</Text>
         </View>
       ) : (
-        /* Résultats */
         <FlatList
           data={results}
           keyExtractor={(r) => r.id}
@@ -212,52 +218,55 @@ export default function SearchScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  root:          { flex: 1, backgroundColor: C.bg },
+  root: { flex: 1, backgroundColor: colors.bg },
 
   /* Barre */
-  searchBar:     { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.border },
-  backBtn:       { width: 38, height: 38, borderRadius: 19, backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' },
-  backBtnTxt:    { color: C.text, fontSize: 16 },
-  inputWrap:     { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: C.bg2, borderRadius: 14, borderWidth: 1, borderColor: C.border, paddingHorizontal: 12, height: 44, gap: 8 },
-  searchIcon:    { fontSize: 15 },
-  input:         { flex: 1, color: C.text, fontSize: 15, fontWeight: '300' },
-  clearBtn:      { width: 24, height: 24, borderRadius: 12, backgroundColor: C.bg3, alignItems: 'center', justifyContent: 'center' },
-  clearBtnTxt:   { color: C.dimmer, fontSize: 11 },
+  searchBar:  { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  backBtn:    { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.cardBorder, alignItems: 'center', justifyContent: 'center' },
+  backBtnTxt: { color: colors.text, fontSize: typography.size.body },
+  inputWrap:  { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.cardBorder, paddingHorizontal: spacing.md, height: 44, gap: spacing.sm },
+  searchIcon: { fontSize: 15 },
+  input:      { flex: 1, color: colors.text, fontSize: typography.size.body, fontWeight: typography.weight.light },
+  clearBtn:   { width: 24, height: 24, borderRadius: 12, backgroundColor: colors.cardHover, alignItems: 'center', justifyContent: 'center' },
+  clearBtnTxt:{ color: colors.textDim, fontSize: typography.size.xs },
 
   /* Ville chips */
-  cityRow:       { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 10 },
-  cityChip:      { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 100, backgroundColor: C.bg2, borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' },
-  cityChipOn:    { backgroundColor: C.accent, borderColor: C.accent },
-  cityTxt:       { color: C.text, fontSize: 12 },
-  cityTxtOn:     { color: C.bg, fontWeight: '600' },
+  cityRow:    { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
+  cityChip:   { paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: radius.full, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.cardBorder },
+  cityChipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
+  cityTxt:    { color: colors.text, fontSize: typography.size.sm },
+  cityTxtOn:  { color: colors.bg, fontWeight: typography.weight.semibold },
 
   /* Suggestions */
-  suggestionsWrap: { flex: 1, paddingHorizontal: 16, paddingTop: 20 },
-  suggestTitle:  { color: C.dimmer, fontSize: 10, letterSpacing: 3, marginBottom: 16 },
-  suggestGrid:   { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  suggestCard:   { width: '30%', backgroundColor: C.bg2, borderRadius: 16, borderWidth: 1, borderColor: C.border, alignItems: 'center', paddingVertical: 18, gap: 8 },
-  suggestEmoji:  { fontSize: 28 },
-  suggestLabel:  { color: C.dim, fontSize: 11, textAlign: 'center' },
+  suggestionsWrap: { flex: 1, paddingHorizontal: spacing.lg, paddingTop: spacing.xl },
+  suggestTitle:    { color: colors.textDim, fontSize: typography.size.xxs, letterSpacing: 3, marginBottom: spacing.lg },
+  suggestGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  suggestCard:     { width: '30%', backgroundColor: colors.card, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.cardBorder, alignItems: 'center', paddingVertical: spacing.xl, gap: spacing.sm },
+  suggestEmoji:    { fontSize: 28 },
+  suggestLabel:    { color: colors.textMuted, fontSize: typography.size.xs, textAlign: 'center' },
+
+  /* Skeleton */
+  skeletonList: { flex: 1 },
 
   /* État centre */
-  center:        { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  emptyEmoji:    { fontSize: 48 },
-  emptyTitle:    { color: C.text, fontSize: 18, fontWeight: '300' },
-  emptySub:      { color: C.dim, fontSize: 13, textAlign: 'center', lineHeight: 20 },
+  center:     { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.md },
+  emptyEmoji: { fontSize: 48 },
+  emptyTitle: { color: colors.text, fontSize: typography.size.heading3, fontWeight: typography.weight.light },
+  emptySub:   { color: colors.textMuted, fontSize: typography.size.sm, textAlign: 'center', lineHeight: 20 },
 
   /* Résultats */
-  list:          { paddingBottom: 40 },
-  resultCount:   { color: C.dimmer, fontSize: 11, letterSpacing: 2, paddingHorizontal: 16, paddingVertical: 12 },
-  card:          { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.border },
-  cardThumb:     { width: 68, height: 68, borderRadius: 14, backgroundColor: C.bg3, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 },
-  cardPhoto:     { width: 68, height: 68 },
-  cardEmoji:     { fontSize: 28 },
-  cardInfo:      { flex: 1, gap: 4 },
-  cardCuisine:   { color: C.accent, fontSize: 9, letterSpacing: 2 },
-  cardName:      { color: C.text, fontSize: 15, fontWeight: '300' },
-  cardMeta:      { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  cardRating:    { color: C.accent, fontSize: 12 },
-  cardSep:       { color: C.dimmer, fontSize: 12 },
-  cardPrice:     { color: C.dim, fontSize: 12 },
-  cardArrow:     { color: C.dimmer, fontSize: 22, fontWeight: '300' },
+  list:        { paddingBottom: spacing.xxxl },
+  resultCount: { color: colors.textDim, fontSize: typography.size.xxs, letterSpacing: 2, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
+  card:        { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  cardThumb:   { width: 68, height: 68, borderRadius: radius.lg, backgroundColor: colors.cardHover, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 },
+  cardPhoto:   { width: 68, height: 68 },
+  cardEmoji:   { fontSize: 28 },
+  cardInfo:    { flex: 1, gap: spacing.xs },
+  cardCuisine: { color: colors.accent, fontSize: typography.size.xxs, letterSpacing: 2 },
+  cardName:    { color: colors.text, fontSize: typography.size.body, fontWeight: typography.weight.light },
+  cardMeta:    { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  cardRating:  { color: colors.accent, fontSize: typography.size.sm },
+  cardSep:     { color: colors.textDim, fontSize: typography.size.sm },
+  cardPrice:   { color: colors.textMuted, fontSize: typography.size.sm },
+  cardArrow:   { color: colors.textDim, fontSize: 22, fontWeight: typography.weight.light },
 });

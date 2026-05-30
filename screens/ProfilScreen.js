@@ -1,28 +1,21 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Image, ActivityIndicator, Alert, SafeAreaView, TextInput,
+  Image, Alert, SafeAreaView, TextInput,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../supabase';
-
-const C = {
-  bg:'#0d1628', bg2:'#111827', bg3:'#1a2332',
-  accent:'#c8975a', accent2:'#4a7fa5',
-  text:'#f0ece4', dim:'#8a9ab0', dimmer:'#4a5568',
-  green:'#3d9970', red:'#e05a5a', card:'#141e2e',
-  border:'rgba(255,255,255,0.07)',
-  borderAccent:'rgba(200,151,90,0.25)',
-};
+import { colors, typography, spacing, radius } from '../src/theme';
+import MLoader from '../src/components/MLoader';
 
 const STATUS = {
-  confirmed: { label:'Confirmée',  color:C.green   },
-  pending:   { label:'En attente', color:C.accent   },
-  cancelled: { label:'Annulée',    color:C.red      },
-  arrived:   { label:'Arrivé',     color:C.accent2  },
-  no_show:   { label:'No-show',    color:C.dimmer   },
-  completed: { label:'Terminée',   color:C.dimmer   },
+  confirmed: { label:'Confirmée',  color: colors.green   },
+  pending:   { label:'En attente', color: colors.accent  },
+  cancelled: { label:'Annulée',    color: colors.red     },
+  arrived:   { label:'Arrivé',     color: colors.blue    },
+  no_show:   { label:'No-show',    color: colors.textDim },
+  completed: { label:'Terminée',   color: colors.textDim },
 };
 
 const CUISINE_EMOJI = {
@@ -40,10 +33,31 @@ function fmtDate(d) {
 }
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 
+function SkeletonResaCard() {
+  return (
+    <View style={{ marginHorizontal: spacing.xxl, marginTop: spacing.lg }}>
+      <MLoader width="100%" height={90} borderRadius={radius.xl} />
+    </View>
+  );
+}
+
+function SkeletonFavRow() {
+  return (
+    <View style={{ flexDirection: 'row', gap: spacing.lg, marginHorizontal: spacing.xxl, marginTop: spacing.lg }}>
+      <MLoader width={70} height={90} borderRadius={radius.lg} />
+      <View style={{ flex: 1, gap: spacing.sm }}>
+        <MLoader width="40%" height={10} borderRadius={radius.sm} />
+        <MLoader width="75%" height={14} borderRadius={radius.sm} />
+        <MLoader width="55%" height={10} borderRadius={radius.sm} />
+      </View>
+    </View>
+  );
+}
+
 /* ─── Carte réservation ─── */
 function ResaCard({ r, cancelling, onCancel, onReserveAgain }) {
   const resto = r.restaurants || {};
-  const st = STATUS[r.status] || { label: r.status, color: C.dimmer };
+  const st = STATUS[r.status] || { label: r.status, color: colors.textDim };
   const isCancelling = cancelling.has(r.id);
   const isPast = r.date < todayStr() || ['cancelled','completed','no_show','arrived'].includes(r.status);
   return (
@@ -74,10 +88,7 @@ function ResaCard({ r, cancelling, onCancel, onReserveAgain }) {
         <View style={rc.foot}>
           {!isPast && (
             <TouchableOpacity style={rc.cancelBtn} onPress={() => onCancel(r.id, resto.name)} disabled={isCancelling}>
-              {isCancelling
-                ? <ActivityIndicator size={12} color={C.red} />
-                : <Text style={rc.cancelTxt}>Annuler la réservation</Text>
-              }
+              <Text style={rc.cancelTxt}>{isCancelling ? '···' : 'Annuler la réservation'}</Text>
             </TouchableOpacity>
           )}
           {isPast && onReserveAgain && (
@@ -92,120 +103,131 @@ function ResaCard({ r, cancelling, onCancel, onReserveAgain }) {
 }
 
 const rc = StyleSheet.create({
-  card:     { marginHorizontal:20, marginTop:10, backgroundColor:C.card, borderRadius:14, borderWidth:1, borderColor:C.border, borderLeftWidth:3, overflow:'hidden' },
-  top:      { flexDirection:'row', alignItems:'center', gap:12, padding:14 },
-  iconWrap: { width:44, height:44, borderRadius:12, backgroundColor:C.bg2, alignItems:'center', justifyContent:'center', flexShrink:0 },
-  icon:     { fontSize:20 },
-  name:     { color:C.text, fontSize:14, fontWeight:'400', marginBottom:2 },
-  quartier: { color:C.dimmer, fontSize:10, marginBottom:4 },
-  meta:     { flexDirection:'row', alignItems:'center', gap:5 },
-  metaTxt:  { color:C.dim, fontSize:11 },
-  sep:      { color:C.dimmer },
-  badge:    { paddingHorizontal:8, paddingVertical:4, borderRadius:8, borderWidth:1, flexShrink:0 },
-  badgeTxt: { fontSize:9, fontWeight:'600' },
-  note:     { backgroundColor:C.bg2, marginHorizontal:14, marginBottom:10, padding:10, borderRadius:10 },
-  noteTxt:  { color:C.dim, fontSize:12, lineHeight:18 },
-  foot:     { borderTopWidth:1, borderTopColor:C.border },
-  cancelBtn:{ paddingVertical:11, alignItems:'center' },
-  cancelTxt:{ color:C.red, fontSize:12 },
-  againBtn: { paddingVertical:11, alignItems:'center' },
-  againTxt: { color:C.accent2, fontSize:12 },
+  card:     { marginHorizontal: spacing.xxl, marginTop: spacing.lg, backgroundColor: colors.card, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.cardBorder, borderLeftWidth: 3, overflow: 'hidden' },
+  top:      { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, padding: spacing.lg },
+  iconWrap: { width: 44, height: 44, borderRadius: radius.lg, backgroundColor: colors.cardHover, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  icon:     { fontSize: 20 },
+  name:     { color: colors.text, fontSize: typography.size.subheading, marginBottom: 2 },
+  quartier: { color: colors.textDim, fontSize: typography.size.sm, marginBottom: spacing.xs },
+  meta:     { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  metaTxt:  { color: colors.textMuted, fontSize: typography.size.caption },
+  sep:      { color: colors.textDim },
+  badge:    { paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: radius.md, borderWidth: 1, flexShrink: 0 },
+  badgeTxt: { fontSize: typography.size.xs, fontWeight: typography.weight.semibold },
+  note:     { backgroundColor: colors.cardHover, marginHorizontal: spacing.lg, marginBottom: spacing.lg, padding: spacing.lg, borderRadius: radius.md },
+  noteTxt:  { color: colors.textMuted, fontSize: typography.size.body, lineHeight: 18 },
+  foot:     { borderTopWidth: 1, borderTopColor: colors.cardBorder },
+  cancelBtn:{ paddingVertical: 11, alignItems: 'center' },
+  cancelTxt:{ color: colors.red, fontSize: typography.size.body },
+  againBtn: { paddingVertical: 11, alignItems: 'center' },
+  againTxt: { color: colors.blue, fontSize: typography.size.body },
 });
 
 /* ─── Écran principal ─── */
 export default function ProfilScreen({ navigation }) {
-  const [tab,          setTab]          = useState('profil');
-  const [authId,       setAuthId]       = useState(null);
-  const [userId,       setUserId]       = useState(null);
-  const [userEmail,    setUserEmail]    = useState('');
-  const [firstName,    setFirstName]    = useState('');
-  const [lastName,     setLastName]     = useState('');
-  const [city,         setCity]         = useState('');
-  const [phone,        setPhone]        = useState('');
-  const [memberSince,  setMemberSince]  = useState('');
-  const [avatarUri,    setAvatarUri]    = useState(null);
-  const [uploading,    setUploading]    = useState(false);
-  const [editingName,  setEditingName]  = useState(false);
-  const [savingName,   setSavingName]   = useState(false);
-  const [reservations, setReservations] = useState([]);
-  const [resaLoading,  setResaLoading]  = useState(false);
-  const [favorites,    setFavorites]    = useState([]);
-  const [favLoading,   setFavLoading]   = useState(false);
-  const [cancelling,   setCancelling]   = useState(new Set());
-  const [activeSits,   setActiveSits]   = useState([]);
+  const [tab,            setTab]          = useState('profil');
+  const [authId,         setAuthId]       = useState(null);
+  const [userId,         setUserId]       = useState(null);
+  const [userEmail,      setUserEmail]    = useState('');
+  const [firstName,      setFirstName]    = useState('');
+  const [lastName,       setLastName]     = useState('');
+  const [city,           setCity]         = useState('');
+  const [phone,          setPhone]        = useState('');
+  const [memberSince,    setMemberSince]  = useState('');
+  const [avatarUri,      setAvatarUri]    = useState(null);
+  const [uploading,      setUploading]    = useState(false);
+  const [editingName,    setEditingName]  = useState(false);
+  const [savingName,     setSavingName]   = useState(false);
+  const [reservations,   setReservations] = useState([]);
+  const [resaLoading,    setResaLoading]  = useState(false);
+  const [favorites,      setFavorites]    = useState([]);
+  const [favLoading,     setFavLoading]   = useState(false);
+  const [cancelling,     setCancelling]   = useState(new Set());
+  const [activeSits,     setActiveSits]   = useState([]);
   const [activeCuisines, setActiveCuisines] = useState([]);
-  const [removing,     setRemoving]     = useState(new Set());
+  const [removing,       setRemoving]     = useState(new Set());
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    (async () => {
+      const { data } = await supabase.auth.getUser();
       const u = data?.user;
       if (!u) return;
       setAuthId(u.id);
       setUserEmail(u.email || '');
       if (u.created_at) setMemberSince(
-        new Date(u.created_at).toLocaleDateString('fr-FR', { month:'long', year:'numeric' })
+        new Date(u.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
       );
-      supabase.from('users')
+      const { data: row } = await supabase.from('users')
         .select('id, avatar_url, first_name, last_name, city, phone')
-        .eq('auth_id', u.id).single()
-        .then(({ data: row }) => {
-          if (!row) return;
-          setUserId(row.id);
-          setAvatarUri(row.avatar_url ?? null);
-          setFirstName(row.first_name ?? '');
-          setLastName(row.last_name  ?? '');
-          setCity(row.city ?? '');
-          setPhone(row.phone ?? '');
-        });
-    });
+        .eq('auth_id', u.id).single();
+      if (!row) return;
+      setUserId(row.id);
+      setAvatarUri(row.avatar_url ?? null);
+      setFirstName(row.first_name ?? '');
+      setLastName(row.last_name  ?? '');
+      setCity(row.city ?? '');
+      setPhone(row.phone ?? '');
+    })();
   }, []);
 
   useFocusEffect(useCallback(() => {
     if (!userId) return;
     setResaLoading(true);
-    supabase.from('reservations')
-      .select('*, restaurants(id, name, cuisine_type, quartier)')
-      .eq('user_id', userId).order('date', { ascending: false }).limit(30)
-      .then(({ data }) => { setReservations(data ?? []); setResaLoading(false); });
     setFavLoading(true);
-    supabase.from('favorites')
-      .select('id, restaurant_id, restaurants(id, name, cuisine_type, quartier, avg_rating, avg_ticket, photos, photo_url)')
-      .eq('user_id', userId).order('created_at', { ascending: false })
-      .then(({ data }) => { setFavorites(data ?? []); setFavLoading(false); });
+    (async () => {
+      const [{ data: resas }, { data: favs }] = await Promise.all([
+        supabase.from('reservations')
+          .select('*, restaurants(id, name, cuisine_type, quartier)')
+          .eq('user_id', userId).order('date', { ascending: false }).limit(30),
+        supabase.from('favorites')
+          .select('id, restaurant_id, restaurants(id, name, cuisine_type, quartier, avg_rating, avg_ticket, photos, photo_url)')
+          .eq('user_id', userId).order('created_at', { ascending: false }),
+      ]);
+      setReservations(resas ?? []);
+      setResaLoading(false);
+      setFavorites(favs ?? []);
+      setFavLoading(false);
+    })();
   }, [userId]));
 
-  const pickAvatar = async () => {
+  const pickAvatar = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') return;
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      allowsEditing: true, aspect: [1,1], quality: 0.8,
+      allowsEditing: true, aspect: [1, 1], quality: 0.8,
     });
     if (result.canceled || !result.assets[0]) return;
     const uri = result.assets[0].uri;
     setUploading(true);
     try {
-      const ext  = uri.split('.').pop().toLowerCase().replace('jpg','jpeg');
+      const ext  = uri.split('.').pop().toLowerCase().replace('jpg', 'jpeg');
       const path = `${authId}/avatar.${ext}`;
       const blob = await (await fetch(uri)).blob();
-      await supabase.storage.from('avatars').upload(path, blob, { upsert:true, contentType:`image/${ext}` });
+      await supabase.storage.from('avatars').upload(path, blob, { upsert: true, contentType: `image/${ext}` });
       const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
       await supabase.from('users').update({ avatar_url: urlData.publicUrl }).eq('auth_id', authId);
       setAvatarUri(urlData.publicUrl);
-    } catch (e) { console.error(e); }
-    finally { setUploading(false); }
-  };
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setUploading(false);
+    }
+  }, [authId]);
 
-  const saveName = async () => {
+  const saveName = useCallback(async () => {
     setSavingName(true);
-    await supabase.from('users')
-      .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone: phone.trim() })
-      .eq('id', userId);
-    setSavingName(false);
-    setEditingName(false);
-  };
+    try {
+      await supabase.from('users')
+        .update({ first_name: firstName.trim(), last_name: lastName.trim(), phone: phone.trim() })
+        .eq('id', userId);
+      setEditingName(false);
+    } finally {
+      setSavingName(false);
+    }
+  }, [firstName, lastName, phone, userId]);
 
-  const cancelResa = (id, restoName) => {
+  const cancelResa = useCallback((id, restoName) => {
     Alert.alert('Annuler la réservation', `Confirmer l'annulation chez ${restoName} ?`, [
       { text: 'Retour', style: 'cancel' },
       {
@@ -213,28 +235,40 @@ export default function ProfilScreen({ navigation }) {
         onPress: async () => {
           setCancelling(p => new Set(p).add(id));
           await supabase.from('reservations')
-            .update({ status:'cancelled', cancelled_at: new Date().toISOString() }).eq('id', id);
-          setReservations(p => p.map(r => r.id === id ? {...r, status:'cancelled'} : r));
-          setCancelling(p => { const s = new Set(p); s.delete(id); return s; });
+            .update({ status: 'cancelled', cancelled_at: new Date().toISOString() }).eq('id', id);
+          setReservations(p => p.map(r => r.id === id ? { ...r, status: 'cancelled' } : r));
+          setCancelling(p => { const next = new Set(p); next.delete(id); return next; });
         },
       },
     ]);
-  };
+  }, []);
 
-  const removeFav = async (favId) => {
+  const removeFav = useCallback(async (favId) => {
     setRemoving(p => new Set(p).add(favId));
     await supabase.from('favorites').delete().eq('id', favId);
     setFavorites(p => p.filter(f => f.id !== favId));
-    setRemoving(p => { const s = new Set(p); s.delete(favId); return s; });
-  };
+    setRemoving(p => { const next = new Set(p); next.delete(favId); return next; });
+  }, []);
 
-  const displayName  = [firstName, lastName].filter(Boolean).join(' ') || userEmail.split('@')[0] || 'Mon profil';
-  const initial      = displayName[0]?.toUpperCase() || '?';
-  const today        = todayStr();
-  const upcoming     = reservations.filter(r => r.date >= today && ['confirmed','pending'].includes(r.status));
-  const upcomingIds  = new Set(upcoming.map(r => r.id));
-  const history      = reservations.filter(r => !upcomingIds.has(r.id));
-  const pendingCount = reservations.filter(r => r.status === 'pending').length;
+  const displayName = useMemo(
+    () => [firstName, lastName].filter(Boolean).join(' ') || userEmail.split('@')[0] || 'Mon profil',
+    [firstName, lastName, userEmail],
+  );
+  const initial = displayName[0]?.toUpperCase() || '?';
+  const today   = todayStr();
+
+  const upcoming = useMemo(
+    () => reservations.filter(r => r.date >= today && ['confirmed', 'pending'].includes(r.status)),
+    [reservations, today],
+  );
+  const history = useMemo(() => {
+    const ids = new Set(upcoming.map(r => r.id));
+    return reservations.filter(r => !ids.has(r.id));
+  }, [reservations, upcoming]);
+  const pendingCount = useMemo(
+    () => reservations.filter(r => r.status === 'pending').length,
+    [reservations],
+  );
 
   return (
     <SafeAreaView style={s.root}>
@@ -251,10 +285,9 @@ export default function ProfilScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* ── Hero centré ── */}
+        {/* ── Hero ── */}
         <View style={s.heroBlock}>
           <Text style={s.heroDeco}>✦</Text>
-
           <TouchableOpacity style={s.avatarWrap} onPress={pickAvatar} disabled={uploading}>
             {avatarUri
               ? <Image source={{ uri: avatarUri }} style={s.avatarImg} />
@@ -262,8 +295,8 @@ export default function ProfilScreen({ navigation }) {
             }
             <View style={s.avatarBadge}>
               {uploading
-                ? <ActivityIndicator size={10} color={C.bg} />
-                : <Text style={{ fontSize:11 }}>📷</Text>
+                ? <Text style={{ color: colors.bg, fontSize: 10 }}>···</Text>
+                : <Text style={{ fontSize: 11 }}>📷</Text>
               }
             </View>
           </TouchableOpacity>
@@ -271,22 +304,19 @@ export default function ProfilScreen({ navigation }) {
           {editingName ? (
             <View style={s.editBlock}>
               <View style={s.editRow}>
-                <TextInput style={s.editInput} value={firstName} onChangeText={setFirstName} placeholder="Prénom" placeholderTextColor={C.dimmer} />
-                <TextInput style={s.editInput} value={lastName}  onChangeText={setLastName}  placeholder="Nom"    placeholderTextColor={C.dimmer} />
+                <TextInput style={s.editInput} value={firstName} onChangeText={setFirstName} placeholder="Prénom" placeholderTextColor={colors.textDim} />
+                <TextInput style={s.editInput} value={lastName}  onChangeText={setLastName}  placeholder="Nom"    placeholderTextColor={colors.textDim} />
               </View>
               <TextInput
                 style={[s.editInput, { width: '100%' }]}
                 value={phone}
                 onChangeText={setPhone}
                 placeholder="+213 6XX XXX XXX"
-                placeholderTextColor={C.dimmer}
+                placeholderTextColor={colors.textDim}
                 keyboardType="phone-pad"
               />
               <TouchableOpacity style={s.saveBtn} onPress={saveName} disabled={savingName}>
-                {savingName
-                  ? <ActivityIndicator size={14} color={C.bg} />
-                  : <Text style={s.saveBtnTxt}>Enregistrer</Text>
-                }
+                <Text style={s.saveBtnTxt}>{savingName ? '···' : 'Enregistrer'}</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -308,7 +338,7 @@ export default function ProfilScreen({ navigation }) {
           </View>
           <View style={s.statDiv} />
           <View style={s.statItem}>
-            <Text style={[s.statVal, upcoming.length > 0 && { color: C.green }]}>{upcoming.length}</Text>
+            <Text style={[s.statVal, upcoming.length > 0 && { color: colors.green }]}>{upcoming.length}</Text>
             <Text style={s.statLbl}>À VENIR</Text>
           </View>
           <View style={s.statDiv} />
@@ -375,13 +405,13 @@ export default function ProfilScreen({ navigation }) {
             <Text style={s.sectionLbl}>COMPTE</Text>
             <View style={s.settingsCard}>
               {[
-                { icon:'🔔', label:'Notifications'          },
-                { icon:'📍', label:'Localisation'           },
-                { icon:'🌐', label:'Langue'                 },
-                { icon:'🔒', label:'Confidentialité'        },
-                { icon:'⭐', label:'Donner un avis sur MIDA'},
+                { icon:'⚙️', label:'Paramètres',             screen:'Settings'  },
+                { icon:'❓', label:'Aide & Support',          screen:'Aide'      },
+                { icon:'🔔', label:'Notifications'                               },
+                { icon:'🔒', label:'Confidentialité'                             },
+                { icon:'⭐', label:'Donner un avis sur MIDA'                     },
               ].map((item, i, arr) => (
-                <TouchableOpacity key={i} style={[s.settingRow, i < arr.length-1 && s.settingBorder]}>
+                <TouchableOpacity key={i} style={[s.settingRow, i < arr.length-1 && s.settingBorder]} onPress={() => item.screen && navigation.navigate(item.screen)}>
                   <View style={s.settingIconWrap}><Text style={s.settingIcon}>{item.icon}</Text></View>
                   <Text style={s.settingLabel}>{item.label}</Text>
                   <Text style={s.settingArrow}>›</Text>
@@ -400,7 +430,7 @@ export default function ProfilScreen({ navigation }) {
         {tab === 'reservations' && (
           <View>
             {resaLoading ? (
-              <View style={s.center}><ActivityIndicator color={C.accent} size="large" /></View>
+              <View>{[1,2,3].map(i => <SkeletonResaCard key={i} />)}</View>
             ) : reservations.length === 0 ? (
               <View style={s.center}>
                 <Text style={s.emptyEmoji}>📅</Text>
@@ -441,7 +471,7 @@ export default function ProfilScreen({ navigation }) {
         {tab === 'favoris' && (
           <View>
             {favLoading ? (
-              <View style={s.center}><ActivityIndicator color={C.accent} size="large" /></View>
+              <View>{[1,2,3].map(i => <SkeletonFavRow key={i} />)}</View>
             ) : favorites.length === 0 ? (
               <View style={s.center}>
                 <Text style={s.emptyEmoji}>🤍</Text>
@@ -490,10 +520,7 @@ export default function ProfilScreen({ navigation }) {
                         </TouchableOpacity>
                       </View>
                       <TouchableOpacity style={s.favHeart} onPress={() => removeFav(fav.id)} disabled={removing.has(fav.id)}>
-                        {removing.has(fav.id)
-                          ? <ActivityIndicator size={12} color={C.accent} />
-                          : <Text style={s.favHeartTxt}>❤️</Text>
-                        }
+                        <Text style={s.favHeartTxt}>{removing.has(fav.id) ? '···' : '❤️'}</Text>
                       </TouchableOpacity>
                     </TouchableOpacity>
                   );
@@ -510,102 +537,91 @@ export default function ProfilScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  root: { flex:1, backgroundColor:C.bg },
+  root: { flex:1, backgroundColor: colors.bg },
 
-  /* Header */
-  header:      { flexDirection:'row', alignItems:'center', justifyContent:'space-between', paddingHorizontal:20, paddingTop:16, paddingBottom:16, borderBottomWidth:1, borderBottomColor:C.border },
-  backBtn:     { width:36, height:36, borderRadius:18, backgroundColor:C.bg2, borderWidth:1, borderColor:C.border, alignItems:'center', justifyContent:'center' },
-  backBtnTxt:  { color:C.text, fontSize:16 },
-  headerTitle: { color:C.text, fontSize:18, fontWeight:'300', letterSpacing:0.5 },
-  editBtn:     { paddingHorizontal:12, paddingVertical:6, borderRadius:10, backgroundColor:C.bg2, borderWidth:1, borderColor:C.border },
-  editBtnTxt:  { color:C.dim, fontSize:11 },
+  header:      { flexDirection:'row', alignItems:'center', justifyContent:'space-between', paddingHorizontal: spacing.xxl, paddingTop: spacing.xl, paddingBottom: spacing.xl, borderBottomWidth:1, borderBottomColor: colors.cardBorder },
+  backBtn:     { width:36, height:36, borderRadius:18, backgroundColor: colors.card, borderWidth:1, borderColor: colors.cardBorder, alignItems:'center', justifyContent:'center' },
+  backBtnTxt:  { color: colors.text, fontSize: typography.size.heading2 },
+  headerTitle: { color: colors.text, fontSize: typography.size.heading1, fontWeight:typography.weight.regular, letterSpacing:0.5 },
+  editBtn:     { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderRadius: radius.md, backgroundColor: colors.card, borderWidth:1, borderColor: colors.cardBorder },
+  editBtnTxt:  { color: colors.textMuted, fontSize: typography.size.caption },
 
-  /* Hero */
-  heroBlock:     { alignItems:'center', paddingTop:28, paddingBottom:24, borderBottomWidth:1, borderBottomColor:C.border, paddingHorizontal:20, overflow:'hidden' },
-  heroDeco:      { position:'absolute', top:-30, color:'rgba(200,151,90,0.06)', fontSize:220, fontWeight:'700' },
-  avatarWrap:    { position:'relative', marginBottom:14 },
-  avatarImg:     { width:100, height:100, borderRadius:50, borderWidth:2.5, borderColor:C.accent },
-  avatarFallback:{ width:100, height:100, borderRadius:50, backgroundColor:C.bg3, borderWidth:2.5, borderColor:C.accent, alignItems:'center', justifyContent:'center' },
-  avatarInitial: { color:C.accent, fontSize:36, fontWeight:'200' },
-  avatarBadge:   { position:'absolute', bottom:2, right:2, width:26, height:26, borderRadius:13, backgroundColor:C.accent, alignItems:'center', justifyContent:'center', borderWidth:2, borderColor:C.bg },
-  heroInfo:      { alignItems:'center', gap:5 },
-  heroName:      { color:C.text, fontSize:22, fontWeight:'300', letterSpacing:0.5 },
-  heroEmail:     { color:C.dim, fontSize:13 },
-  heroCity:      { color:C.dimmer, fontSize:12 },
-  heroMember:    { color:C.dimmer, fontSize:10, letterSpacing:1, marginTop:2 },
-  editBlock:     { width:'100%', gap:10 },
-  editRow:       { flexDirection:'row', gap:10 },
-  editInput:     { flex:1, backgroundColor:C.bg2, borderRadius:12, borderWidth:1, borderColor:C.border, color:C.text, fontSize:14, paddingHorizontal:14, paddingVertical:10 },
-  saveBtn:       { backgroundColor:C.accent, borderRadius:12, paddingVertical:11, alignItems:'center' },
-  saveBtnTxt:    { color:C.bg, fontSize:13, fontWeight:'500' },
+  heroBlock:     { alignItems:'center', paddingTop:28, paddingBottom:24, borderBottomWidth:1, borderBottomColor: colors.cardBorder, paddingHorizontal: spacing.xxl, overflow:'hidden' },
+  heroDeco:      { position:'absolute', top:-30, color:'rgba(232,160,69,0.06)', fontSize:220, fontWeight:'700' },
+  avatarWrap:    { position:'relative', marginBottom: spacing.lg },
+  avatarImg:     { width:100, height:100, borderRadius:50, borderWidth:2.5, borderColor: colors.accent },
+  avatarFallback:{ width:100, height:100, borderRadius:50, backgroundColor: colors.cardHover, borderWidth:2.5, borderColor: colors.accent, alignItems:'center', justifyContent:'center' },
+  avatarInitial: { color: colors.accent, fontSize:36, fontWeight:typography.weight.regular },
+  avatarBadge:   { position:'absolute', bottom:2, right:2, width:26, height:26, borderRadius:13, backgroundColor: colors.accent, alignItems:'center', justifyContent:'center', borderWidth:2, borderColor: colors.bg },
+  heroInfo:      { alignItems:'center', gap: spacing.sm },
+  heroName:      { color: colors.text, fontSize: typography.size.title, fontWeight:typography.weight.regular, letterSpacing:0.5 },
+  heroEmail:     { color: colors.textMuted, fontSize: typography.size.bodyLg },
+  heroCity:      { color: colors.textDim, fontSize: typography.size.body },
+  heroMember:    { color: colors.textDim, fontSize: typography.size.sm, letterSpacing:1, marginTop:2 },
+  editBlock:     { width:'100%', gap: spacing.lg },
+  editRow:       { flexDirection:'row', gap: spacing.lg },
+  editInput:     { flex:1, backgroundColor: colors.card, borderRadius: radius.lg, borderWidth:1, borderColor: colors.cardBorder, color: colors.text, fontSize: typography.size.subheading, paddingHorizontal: spacing.lg, paddingVertical: spacing.lg },
+  saveBtn:       { backgroundColor: colors.accent, borderRadius: radius.lg, paddingVertical:11, alignItems:'center' },
+  saveBtnTxt:    { color: colors.bg, fontSize: typography.size.bodyLg, fontWeight: typography.weight.medium },
 
-  /* Stats */
-  statsRow: { flexDirection:'row', marginHorizontal:20, marginVertical:16, backgroundColor:C.bg2, borderRadius:18, borderWidth:1, borderColor:C.border, overflow:'hidden' },
-  statItem: { flex:1, alignItems:'center', paddingVertical:16 },
-  statVal:  { color:C.accent, fontSize:24, fontWeight:'200', marginBottom:4 },
-  statLbl:  { color:C.dimmer, fontSize:8, letterSpacing:1.5 },
-  statDiv:  { width:1, backgroundColor:C.border, marginVertical:12 },
+  statsRow: { flexDirection:'row', marginHorizontal: spacing.xxl, marginVertical: spacing.xl, backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth:1, borderColor: colors.cardBorder, overflow:'hidden' },
+  statItem: { flex:1, alignItems:'center', paddingVertical: spacing.xl },
+  statVal:  { color: colors.accent, fontSize: typography.size.title, fontWeight:typography.weight.regular, marginBottom: spacing.xs },
+  statLbl:  { color: colors.textDim, fontSize: typography.size.xs, letterSpacing:1.5 },
+  statDiv:  { width:1, backgroundColor: colors.cardBorder, marginVertical: spacing.lg },
 
-  /* Tabs */
-  tabWrap:    { flexDirection:'row', marginHorizontal:20, marginBottom:8, backgroundColor:C.bg2, borderRadius:14, borderWidth:1, borderColor:C.border, padding:3, gap:2 },
-  tabBtn:     { flex:1, flexDirection:'row', alignItems:'center', justifyContent:'center', paddingVertical:9, borderRadius:11, gap:5 },
-  tabBtnOn:   { backgroundColor:C.bg3 },
-  tabTxt:     { color:C.dimmer, fontSize:12, fontWeight:'300' },
-  tabTxtOn:   { color:C.text, fontWeight:'400' },
-  tabBadge:   { width:16, height:16, borderRadius:8, backgroundColor:C.accent, alignItems:'center', justifyContent:'center' },
-  tabBadgeTxt:{ color:C.bg, fontSize:9, fontWeight:'700' },
+  tabWrap:    { flexDirection:'row', marginHorizontal: spacing.xxl, marginBottom: spacing.md, backgroundColor: colors.card, borderRadius: radius.xl, borderWidth:1, borderColor: colors.cardBorder, padding: spacing.xxs+1, gap: spacing.xxs },
+  tabBtn:     { flex:1, flexDirection:'row', alignItems:'center', justifyContent:'center', paddingVertical: spacing.md+1, borderRadius: radius.lg, gap: spacing.sm },
+  tabBtnOn:   { backgroundColor: colors.cardHover },
+  tabTxt:     { color: colors.textDim, fontSize: typography.size.body, fontWeight:typography.weight.regular },
+  tabTxtOn:   { color: colors.text },
+  tabBadge:   { width:16, height:16, borderRadius:8, backgroundColor: colors.accent, alignItems:'center', justifyContent:'center' },
+  tabBadgeTxt:{ color: colors.bg, fontSize: typography.size.xs, fontWeight: typography.weight.bold },
 
-  /* Section */
-  sectionLbl: { color:C.dimmer, fontSize:9, letterSpacing:3, paddingHorizontal:20, marginTop:20, marginBottom:12 },
+  sectionLbl: { color: colors.textDim, fontSize: typography.size.xs, letterSpacing:3, paddingHorizontal: spacing.xxl, marginTop: spacing.xxl, marginBottom: spacing.lg },
 
-  /* Chips */
-  chipsWrap: { flexDirection:'row', flexWrap:'wrap', gap:8, paddingHorizontal:20 },
-  chip:      { paddingHorizontal:14, paddingVertical:8, borderRadius:100, backgroundColor:C.bg2, borderWidth:1, borderColor:C.border },
-  chipOn:    { backgroundColor:'rgba(200,151,90,0.12)', borderColor:C.accent },
-  chipTxt:   { color:C.dim, fontSize:12, fontWeight:'300' },
-  chipTxtOn: { color:C.accent },
+  chipsWrap: { flexDirection:'row', flexWrap:'wrap', gap: spacing.md, paddingHorizontal: spacing.xxl },
+  chip:      { paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderRadius: radius.full, backgroundColor: colors.card, borderWidth:1, borderColor: colors.cardBorder },
+  chipOn:    { backgroundColor: colors.accentSoft, borderColor: colors.accent },
+  chipTxt:   { color: colors.textMuted, fontSize: typography.size.body, fontWeight:typography.weight.regular },
+  chipTxtOn: { color: colors.accent },
 
-  /* CTA Pro */
-  proCard:      { flexDirection:'row', alignItems:'center', gap:14, marginHorizontal:20, marginTop:20, padding:16, borderRadius:16, backgroundColor:'rgba(200,151,90,0.07)', borderWidth:1, borderColor:C.borderAccent },
-  proCardIcon:  { width:46, height:46, borderRadius:12, backgroundColor:'rgba(200,151,90,0.12)', alignItems:'center', justifyContent:'center' },
-  proCardTitle: { color:C.accent, fontSize:14, fontWeight:'400', marginBottom:2 },
-  proCardSub:   { color:C.dim, fontSize:11 },
-  proCardArrow: { color:C.dimmer, fontSize:22 },
+  proCard:      { flexDirection:'row', alignItems:'center', gap: spacing.lg, marginHorizontal: spacing.xxl, marginTop: spacing.xxl, padding: spacing.xl, borderRadius: radius.xxl, backgroundColor: 'rgba(232,160,69,0.07)', borderWidth:1, borderColor: 'rgba(232,160,69,0.25)' },
+  proCardIcon:  { width:46, height:46, borderRadius: radius.lg, backgroundColor: colors.accentSoft, alignItems:'center', justifyContent:'center' },
+  proCardTitle: { color: colors.accent, fontSize: typography.size.subheading, marginBottom:2 },
+  proCardSub:   { color: colors.textMuted, fontSize: typography.size.caption },
+  proCardArrow: { color: colors.textDim, fontSize: 22 },
 
-  /* Settings */
-  settingsCard:    { marginHorizontal:20, backgroundColor:C.bg2, borderRadius:16, borderWidth:1, borderColor:C.border, overflow:'hidden' },
-  settingRow:      { flexDirection:'row', alignItems:'center', gap:14, paddingHorizontal:16, paddingVertical:14 },
-  settingBorder:   { borderBottomWidth:1, borderBottomColor:C.border },
-  settingIconWrap: { width:32, height:32, borderRadius:8, backgroundColor:C.bg3, alignItems:'center', justifyContent:'center' },
+  settingsCard:    { marginHorizontal: spacing.xxl, backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth:1, borderColor: colors.cardBorder, overflow:'hidden' },
+  settingRow:      { flexDirection:'row', alignItems:'center', gap: spacing.lg, paddingHorizontal: spacing.xl, paddingVertical: spacing.lg },
+  settingBorder:   { borderBottomWidth:1, borderBottomColor: colors.cardBorder },
+  settingIconWrap: { width:32, height:32, borderRadius: radius.md, backgroundColor: colors.cardHover, alignItems:'center', justifyContent:'center' },
   settingIcon:     { fontSize:16 },
-  settingLabel:    { flex:1, color:C.text, fontSize:14, fontWeight:'300' },
-  settingArrow:    { color:C.dimmer, fontSize:20 },
+  settingLabel:    { flex:1, color: colors.text, fontSize: typography.size.subheading, fontWeight:typography.weight.regular },
+  settingArrow:    { color: colors.textDim, fontSize:20 },
 
-  /* Sign out */
-  signOutBtn: { marginHorizontal:20, marginTop:14, paddingVertical:14, borderRadius:14, borderWidth:1, borderColor:'rgba(224,90,90,0.2)', alignItems:'center' },
-  signOutTxt: { color:C.red, fontSize:13 },
+  signOutBtn: { marginHorizontal: spacing.xxl, marginTop: spacing.lg, paddingVertical: spacing.lg, borderRadius: radius.xl, borderWidth:1, borderColor:'rgba(224,90,90,0.2)', alignItems:'center' },
+  signOutTxt: { color: colors.red, fontSize: typography.size.bodyLg },
 
-  /* Empty */
-  center:     { alignItems:'center', paddingVertical:52, gap:12 },
+  center:     { alignItems:'center', paddingVertical:52, gap: spacing.lg },
   emptyEmoji: { fontSize:44 },
-  emptyTitle: { color:C.text, fontSize:18, fontWeight:'300' },
-  emptySub:   { color:C.dim, fontSize:13, textAlign:'center', lineHeight:20 },
-  emptyBtn:   { backgroundColor:C.bg2, borderRadius:12, paddingHorizontal:20, paddingVertical:10, borderWidth:1, borderColor:C.border },
-  emptyBtnTxt:{ color:C.accent2, fontSize:13 },
+  emptyTitle: { color: colors.text, fontSize: typography.size.heading1, fontWeight:typography.weight.regular },
+  emptySub:   { color: colors.textMuted, fontSize: typography.size.bodyLg, textAlign:'center', lineHeight:20 },
+  emptyBtn:   { backgroundColor: colors.card, borderRadius: radius.lg, paddingHorizontal: spacing.xxl, paddingVertical: spacing.lg, borderWidth:1, borderColor: colors.cardBorder },
+  emptyBtnTxt:{ color: colors.blue, fontSize: typography.size.bodyLg },
 
-  /* Favoris */
-  favCard:      { flexDirection:'row', alignItems:'flex-start', gap:12, marginHorizontal:20, marginTop:10, backgroundColor:C.card, borderRadius:14, borderWidth:1, borderColor:C.border, padding:12, overflow:'hidden' },
-  favThumb:     { width:70, height:90, borderRadius:12, alignItems:'center', justifyContent:'center', overflow:'hidden', flexShrink:0 },
+  favCard:      { flexDirection:'row', alignItems:'flex-start', gap: spacing.lg, marginHorizontal: spacing.xxl, marginTop: spacing.lg, backgroundColor: colors.card, borderRadius: radius.xl, borderWidth:1, borderColor: colors.cardBorder, padding: spacing.lg, overflow:'hidden' },
+  favThumb:     { width:70, height:90, borderRadius: radius.lg, alignItems:'center', justifyContent:'center', overflow:'hidden', flexShrink:0 },
   favEmoji:     { fontSize:28 },
-  favBody:      { flex:1, gap:3 },
-  favCuisine:   { color:C.accent, fontSize:8, letterSpacing:2, marginBottom:1 },
-  favName:      { color:C.text, fontSize:14, fontWeight:'300', marginBottom:2 },
-  favMeta:      { flexDirection:'row', alignItems:'center', gap:5, marginBottom:6 },
-  favRating:    { color:C.accent, fontSize:11, fontWeight:'500' },
-  favSep:       { color:C.dimmer },
-  favPrice:     { color:C.dim, fontSize:11 },
-  favResaBtn:   { alignSelf:'flex-start', backgroundColor:C.accent, borderRadius:9, paddingHorizontal:12, paddingVertical:6 },
-  favResaBtnTxt:{ color:C.bg, fontSize:11, fontWeight:'600' },
-  favHeart:     { width:32, height:32, borderRadius:16, backgroundColor:'rgba(200,151,90,0.1)', alignItems:'center', justifyContent:'center', borderWidth:1, borderColor:C.borderAccent, flexShrink:0 },
+  favBody:      { flex:1, gap: spacing.xxs+1 },
+  favCuisine:   { color: colors.accent, fontSize: typography.size.xs, letterSpacing:2, marginBottom:1 },
+  favName:      { color: colors.text, fontSize: typography.size.subheading, fontWeight:typography.weight.regular, marginBottom:2 },
+  favMeta:      { flexDirection:'row', alignItems:'center', gap: spacing.sm, marginBottom: spacing.sm },
+  favRating:    { color: colors.accent, fontSize: typography.size.caption, fontWeight: typography.weight.medium },
+  favSep:       { color: colors.textDim },
+  favPrice:     { color: colors.textMuted, fontSize: typography.size.caption },
+  favResaBtn:   { alignSelf:'flex-start', backgroundColor: colors.accent, borderRadius: radius.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
+  favResaBtnTxt:{ color: colors.bg, fontSize: typography.size.caption, fontWeight: typography.weight.semibold },
+  favHeart:     { width:32, height:32, borderRadius:16, backgroundColor: colors.accentSoft, alignItems:'center', justifyContent:'center', borderWidth:1, borderColor:'rgba(232,160,69,0.25)', flexShrink:0 },
   favHeartTxt:  { fontSize:14 },
 });

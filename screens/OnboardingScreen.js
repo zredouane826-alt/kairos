@@ -1,53 +1,39 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, SafeAreaView,
-  Dimensions, Animated,
+  View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Animated,
 } from 'react-native';
-
-const SW = Dimensions.get('window').width;
-const SH = Dimensions.get('window').height;
-
-const C = {
-  bg: '#080d18', bg2: '#0f1828', bg3: '#162035',
-  accent: '#c8975a', accent2: '#4a7fa5',
-  text: '#f0ece4', dim: '#8a9ab0', dimmer: '#3a4a5e',
-  green: '#3d9970',
-  border: 'rgba(255,255,255,0.07)',
-};
+import { colors, typography, spacing, radius } from '../src/theme';
 
 const SLIDES = [
   {
-    emoji: '🏆',
-    bg: '#070e1a',
-    ringBg: 'rgba(61,153,112,0.1)',
-    ringBorder: 'rgba(61,153,112,0.25)',
-    accent: '#3d9970',
-    tag: 'BIENVENUE SUR MIDA',
-    title: 'La meilleure\ntable vous attend',
-    sub: 'Les restaurants d\'exception d\'Alger, Oran et Constantine sélectionnés pour vous.',
-    chips: ['35+ restaurants', 'Meilleure sélection', 'Toutes cuisines'],
-  },
-  {
-    emoji: '🗺️',
-    bg: '#070c18',
-    ringBg: 'rgba(74,127,165,0.1)',
-    ringBorder: 'rgba(74,127,165,0.25)',
-    accent: '#4a7fa5',
-    tag: 'EXPLOREZ LA VILLE',
-    title: 'Trouvez\nla table idéale',
-    sub: 'Carte interactive, filtres par quartier, cuisine et budget. L\'adresse parfaite en quelques secondes.',
-    chips: ['Vue carte & liste', 'Filtres avancés', 'Avis vérifiés'],
+    emoji: '🔍',
+    tag: 'DÉCOUVERTE',
+    title: 'Trouve ton resto\nen 10 secondes',
+    sub: 'Parcours les meilleurs restaurants d\'Alger, filtre par quartier, cuisine et budget.',
+    chips: ['347 restaurants', '100% avis vérifiés', 'Résa en 30s'],
+    accentColor: colors.accent,
+    ringBg: colors.accentSoft,
+    ringBorder: 'rgba(232,160,69,0.25)',
   },
   {
     emoji: '📅',
-    bg: '#0d0a05',
-    ringBg: 'rgba(200,151,90,0.1)',
-    ringBorder: 'rgba(200,151,90,0.25)',
-    accent: '#c8975a',
-    tag: 'RÉSERVATION INSTANTANÉE',
-    title: 'Réservez\nen 30 secondes',
-    sub: 'Date, heure, couverts. Confirmation directe par le restaurant, rappel automatique.',
+    tag: 'RÉSERVATION',
+    title: 'Réserve\nsans appeler',
+    sub: 'Choisis ton créneau, ton nombre de couverts, et c\'est confirmé instantanément.',
     chips: ['Zéro appel', 'Confirmation rapide', 'Annulation libre'],
+    accentColor: colors.green,
+    ringBg: colors.greenSoft,
+    ringBorder: 'rgba(76,175,130,0.25)',
+  },
+  {
+    emoji: '⭐',
+    tag: 'CONFIANCE',
+    title: 'Des avis\n100% vérifiés',
+    sub: 'Chaque note vient d\'un client ayant vraiment réservé. Pas de faux avis.',
+    chips: ['Avis certifiés', 'Notes fiables', 'Expériences réelles'],
+    accentColor: colors.blue,
+    ringBg: colors.blueSoft,
+    ringBorder: 'rgba(90,155,224,0.25)',
   },
 ];
 
@@ -57,7 +43,6 @@ const CITIES = [
   { id: 'constantine', label: 'Constantine',  emoji: '🌉', sub: 'Cité des Ponts',   count: '5+'  },
 ];
 
-/* ─── Dots animés ─── */
 function Dots({ total, current, accentColor }) {
   return (
     <View style={d.row}>
@@ -67,8 +52,10 @@ function Dots({ total, current, accentColor }) {
           style={[
             d.dot,
             i === current
-              ? { backgroundColor: accentColor || C.accent, width: 22 }
-              : { backgroundColor: C.dimmer, width: 6 },
+              ? { backgroundColor: accentColor || colors.accent, width: 22 }
+              : i < current
+              ? { backgroundColor: colors.accentDim, width: 6 }
+              : { backgroundColor: colors.cardBorder, width: 6 },
           ]}
         />
       ))}
@@ -90,7 +77,7 @@ export default function OnboardingScreen({ onSelect }) {
 
   const TOTAL = 5;
 
-  function goTo(next) {
+  const goTo = useCallback((next) => {
     Animated.parallel([
       Animated.timing(fadeAnim,  { toValue: 0, duration: 160, useNativeDriver: true }),
       Animated.timing(slideAnim, { toValue: -24, duration: 160, useNativeDriver: true }),
@@ -98,8 +85,6 @@ export default function OnboardingScreen({ onSelect }) {
       setStep(next);
       slideAnim.setValue(24);
       scaleAnim.setValue(0.78);
-      // setTimeout(0) laisse React committer le nouveau rendu avant de lancer
-      // l'animation sur les nouveaux noeuds natifs — évite l'écran noir bloqué
       setTimeout(() => {
         fadeAnim.setValue(0);
         Animated.parallel([
@@ -109,56 +94,55 @@ export default function OnboardingScreen({ onSelect }) {
         ]).start();
       }, 0);
     });
-  }
+  }, []);
 
   useEffect(() => {
     scaleAnim.setValue(0.78);
     Animated.spring(scaleAnim, { toValue: 1, tension: 60, friction: 8, useNativeDriver: true }).start();
   }, []);
 
-  /* ── Slides intro (0-2) ── */
+  /* ── Slides intro (0–2) ── */
   if (step <= 2) {
     const sl = SLIDES[step];
     return (
-      <SafeAreaView style={[s.root, { backgroundColor: sl.bg }]}>
+      <SafeAreaView style={s.root}>
         <Animated.View style={[s.slideWrap, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
 
-          {/* Tag */}
-          <View style={[s.tag, { borderColor: sl.accent + '40', backgroundColor: sl.accent + '14' }]}>
-            <View style={[s.tagDot, { backgroundColor: sl.accent }]} />
-            <Text style={[s.tagTxt, { color: sl.accent }]}>{sl.tag}</Text>
+          <View style={[s.tag, { borderColor: sl.ringBorder, backgroundColor: sl.ringBg }]}>
+            <View style={[s.tagDot, { backgroundColor: sl.accentColor }]} />
+            <Text style={[s.tagTxt, { color: sl.accentColor }]}>{sl.tag}</Text>
           </View>
 
-          {/* Icône animée */}
           <Animated.View style={[s.emojiOuter, { borderColor: sl.ringBorder, backgroundColor: sl.ringBg, transform: [{ scale: scaleAnim }] }]}>
-            <View style={[s.emojiInner, { backgroundColor: sl.accent + '18', borderColor: sl.accent + '30' }]}>
+            <View style={[s.emojiInner, { backgroundColor: sl.ringBg, borderColor: sl.ringBorder }]}>
               <Text style={s.mainEmoji}>{sl.emoji}</Text>
             </View>
           </Animated.View>
 
-          {/* Texte */}
           <Text style={s.slideTitle}>{sl.title}</Text>
           <Text style={s.slideSub}>{sl.sub}</Text>
 
-          {/* Chips features */}
           <View style={s.chipsRow}>
-            {sl.chips.map((c, i) => (
-              <View key={i} style={[s.chip, { borderColor: sl.accent + '35', backgroundColor: sl.accent + '10' }]}>
-                <Text style={[s.chipTxt, { color: sl.accent }]}>{c}</Text>
+            {sl.chips.map((chip, i) => (
+              <View key={i} style={[s.chip, { borderColor: sl.ringBorder, backgroundColor: sl.ringBg }]}>
+                <Text style={[s.chipTxt, { color: sl.accentColor }]}>{chip}</Text>
               </View>
             ))}
           </View>
 
         </Animated.View>
 
-        {/* Footer */}
         <View style={s.footer}>
-          <Dots total={TOTAL} current={step} accentColor={sl.accent} />
+          <Dots total={TOTAL} current={step} accentColor={sl.accentColor} />
           <View style={s.footerBtns}>
             <TouchableOpacity style={s.skipBtn} onPress={() => goTo(4)} activeOpacity={0.6}>
               <Text style={s.skipTxt}>Passer</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[s.nextBtn, { backgroundColor: sl.accent }]} onPress={() => goTo(step + 1)} activeOpacity={0.85}>
+            <TouchableOpacity
+              style={[s.nextBtn, { backgroundColor: sl.accentColor }]}
+              onPress={() => goTo(step + 1)}
+              activeOpacity={0.85}
+            >
               <Text style={s.nextTxt}>{step === 2 ? 'Commencer  ✦' : 'Suivant  →'}</Text>
             </TouchableOpacity>
           </View>
@@ -195,7 +179,7 @@ export default function OnboardingScreen({ onSelect }) {
                   <Text style={s.citySub}>{c.sub}</Text>
                 </View>
                 <View style={s.cityCountBadge}>
-                  <Text style={[s.cityCount, city === c.id && { color: C.accent }]}>{c.count}</Text>
+                  <Text style={[s.cityCount, city === c.id && { color: colors.accent }]}>{c.count}</Text>
                   <Text style={s.cityCountLbl}>tables</Text>
                 </View>
                 {city === c.id
@@ -209,7 +193,7 @@ export default function OnboardingScreen({ onSelect }) {
         </Animated.View>
 
         <View style={s.footer}>
-          <Dots total={TOTAL} current={3} accentColor={C.accent} />
+          <Dots total={TOTAL} current={3} accentColor={colors.accent} />
           <View style={s.footerBtns}>
             <TouchableOpacity style={s.skipBtn} onPress={() => goTo(4)} activeOpacity={0.6}>
               <Text style={s.skipTxt}>Passer</Text>
@@ -234,56 +218,52 @@ export default function OnboardingScreen({ onSelect }) {
       <Animated.View style={[s.stepWrap, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
 
         <View style={s.stepHeader}>
-          <Text style={s.logoMain}>MIDA</Text>
+          <Text style={s.logoMain}>mida</Text>
           <Text style={s.stepTitle}>Vous êtes…</Text>
           <Text style={s.stepSub}>Choisissez votre profil pour commencer.</Text>
         </View>
 
-        {/* Carte client */}
-        <TouchableOpacity style={s.roleCard} onPress={() => onSelect('client')} activeOpacity={0.82}>
-          <View style={[s.roleIconWrap, { backgroundColor: 'rgba(74,127,165,0.15)', borderColor: 'rgba(74,127,165,0.3)' }]}>
+        <TouchableOpacity style={[s.roleCard, s.roleCardClient]} onPress={() => onSelect('client')} activeOpacity={0.82}>
+          <View style={[s.roleIconWrap, { backgroundColor: colors.blueSoft, borderColor: 'rgba(90,155,224,0.3)' }]}>
             <Text style={s.roleEmoji}>🍽️</Text>
           </View>
           <View style={{ flex: 1 }}>
             <Text style={s.roleTitle}>Je cherche une table</Text>
             <Text style={s.roleDesc}>Découvrir, réserver et savourer les meilleures adresses</Text>
             <View style={s.roleChips}>
-              <View style={s.roleChipSmall}><Text style={s.roleChipTxt}>Explorer</Text></View>
-              <View style={s.roleChipSmall}><Text style={s.roleChipTxt}>Réserver</Text></View>
-              <View style={s.roleChipSmall}><Text style={s.roleChipTxt}>Favoris</Text></View>
+              {['Explorer', 'Réserver', 'Favoris'].map((t, i) => (
+                <View key={i} style={s.roleChipSmall}><Text style={s.roleChipTxt}>{t}</Text></View>
+              ))}
             </View>
           </View>
-          <View style={[s.roleArrowWrap, { backgroundColor: 'rgba(74,127,165,0.15)' }]}>
-            <Text style={[s.roleArrow, { color: C.accent2 }]}>›</Text>
+          <View style={[s.roleArrowWrap, { backgroundColor: colors.blueSoft }]}>
+            <Text style={[s.roleArrow, { color: colors.blue }]}>›</Text>
           </View>
         </TouchableOpacity>
 
-        {/* Séparateur */}
         <View style={s.roleSep}>
           <View style={s.roleSepLine} />
           <Text style={s.roleSepTxt}>OU</Text>
           <View style={s.roleSepLine} />
         </View>
 
-        {/* Carte pro */}
         <TouchableOpacity style={[s.roleCard, s.roleCardPro]} onPress={() => onSelect('pro')} activeOpacity={0.82}>
-          <View style={[s.roleIconWrap, { backgroundColor: 'rgba(200,151,90,0.15)', borderColor: 'rgba(200,151,90,0.3)' }]}>
+          <View style={[s.roleIconWrap, { backgroundColor: colors.accentSoft, borderColor: 'rgba(232,160,69,0.3)' }]}>
             <Text style={s.roleEmoji}>📊</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={[s.roleTitle, { color: C.accent }]}>J'ai un restaurant</Text>
-            <Text style={s.roleDesc}>Gérer mes réservations et ma visibilité sur MIDA</Text>
+            <Text style={[s.roleTitle, { color: colors.accent }]}>J'ai un restaurant</Text>
+            <Text style={s.roleDesc}>Gérer mes réservations et ma visibilité sur Mida</Text>
             <View style={s.roleChips}>
-              <View style={[s.roleChipSmall, { borderColor: 'rgba(200,151,90,0.3)', backgroundColor: 'rgba(200,151,90,0.08)' }]}>
-                <Text style={[s.roleChipTxt, { color: C.accent }]}>Dashboard</Text>
-              </View>
-              <View style={[s.roleChipSmall, { borderColor: 'rgba(200,151,90,0.3)', backgroundColor: 'rgba(200,151,90,0.08)' }]}>
-                <Text style={[s.roleChipTxt, { color: C.accent }]}>Comptoir</Text>
-              </View>
+              {['Dashboard', 'Comptoir'].map((t, i) => (
+                <View key={i} style={[s.roleChipSmall, { borderColor: 'rgba(232,160,69,0.3)', backgroundColor: colors.accentSoft }]}>
+                  <Text style={[s.roleChipTxt, { color: colors.accent }]}>{t}</Text>
+                </View>
+              ))}
             </View>
           </View>
-          <View style={[s.roleArrowWrap, { backgroundColor: 'rgba(200,151,90,0.12)' }]}>
-            <Text style={[s.roleArrow, { color: C.accent }]}>›</Text>
+          <View style={[s.roleArrowWrap, { backgroundColor: colors.accentSoft }]}>
+            <Text style={[s.roleArrow, { color: colors.accent }]}>›</Text>
           </View>
         </TouchableOpacity>
 
@@ -291,81 +271,79 @@ export default function OnboardingScreen({ onSelect }) {
 
       </Animated.View>
 
-      <View style={[s.footer, { paddingBottom: 12 }]}>
-        <Dots total={TOTAL} current={4} accentColor={C.accent} />
+      <View style={[s.footer, { paddingBottom: spacing.lg }]}>
+        <Dots total={TOTAL} current={4} accentColor={colors.accent} />
       </View>
     </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
+  root: { flex: 1, backgroundColor: colors.bg },
 
-  /* ── Slide intro ── */
-  slideWrap:   { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
-  tag:         { flexDirection: 'row', alignItems: 'center', gap: 7, borderRadius: 100, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 6, marginBottom: 32 },
-  tagDot:      { width: 5, height: 5, borderRadius: 3 },
-  tagTxt:      { fontSize: 9, letterSpacing: 3, fontWeight: '600' },
+  /* Slides */
+  slideWrap:    { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
+  tag:          { flexDirection: 'row', alignItems: 'center', gap: 7, borderRadius: 100, borderWidth: 1, paddingHorizontal: spacing.xl, paddingVertical: spacing.sm, marginBottom: spacing.section },
+  tagDot:       { width: 5, height: 5, borderRadius: 3 },
+  tagTxt:       { fontSize: typography.size.xs, letterSpacing: 3, fontWeight: typography.weight.semibold },
+  emojiOuter:   { width: 148, height: 148, borderRadius: 40, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.section + 4 },
+  emojiInner:   { width: 108, height: 108, borderRadius: 28, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  mainEmoji:    { fontSize: 56 },
+  slideTitle:   { color: colors.text, fontSize: typography.size.hero, fontWeight: typography.weight.regular, letterSpacing: 0.3, textAlign: 'center', lineHeight: 40, marginBottom: spacing.xl },
+  slideSub:     { color: colors.textMuted, fontSize: typography.size.bodyLg, textAlign: 'center', lineHeight: 22, marginBottom: spacing.xxl + 4, paddingHorizontal: spacing.md },
+  chipsRow:     { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, justifyContent: 'center' },
+  chip:         { borderRadius: 100, borderWidth: 1, paddingHorizontal: spacing.lg, paddingVertical: spacing.xs },
+  chipTxt:      { fontSize: typography.size.caption, fontWeight: typography.weight.regular },
 
-  emojiOuter:  { width: 148, height: 148, borderRadius: 40, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginBottom: 36 },
-  emojiInner:  { width: 108, height: 108, borderRadius: 28, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  mainEmoji:   { fontSize: 56 },
+  /* Étapes */
+  stepWrap:     { flex: 1, paddingHorizontal: spacing.xxl, paddingTop: spacing.xl },
+  stepHeader:   { alignItems: 'center', marginBottom: spacing.section },
+  stepTag:      { color: colors.accent, fontSize: typography.size.xs, letterSpacing: 3, fontWeight: typography.weight.semibold, marginBottom: spacing.lg },
+  stepTitle:    { color: colors.text, fontSize: typography.size.hero, fontWeight: typography.weight.regular, letterSpacing: 0.3, marginBottom: spacing.md, textAlign: 'center' },
+  stepSub:      { color: colors.textMuted, fontSize: typography.size.bodyLg, textAlign: 'center', lineHeight: 20 },
+  logoMain:     { color: colors.accent, fontSize: typography.size.display, fontWeight: typography.weight.black, letterSpacing: 2, marginBottom: spacing.xxl, fontFamily: 'Georgia' },
 
-  slideTitle:  { color: C.text, fontSize: 32, fontWeight: '200', letterSpacing: 0.3, textAlign: 'center', lineHeight: 40, marginBottom: 14 },
-  slideSub:    { color: C.dim, fontSize: 14, textAlign: 'center', lineHeight: 22, marginBottom: 28, paddingHorizontal: 8 },
+  /* Ville */
+  cityCards:        { gap: spacing.lg },
+  cityCard:         { flexDirection: 'row', alignItems: 'center', gap: spacing.xl, backgroundColor: colors.card, borderRadius: radius.xxl - 2, borderWidth: 1, borderColor: colors.cardBorder, padding: spacing.xl },
+  cityCardOn:       { borderColor: colors.accent, backgroundColor: colors.accentSoft },
+  cityEmojiWrap:    { width: 48, height: 48, borderRadius: radius.lg, backgroundColor: colors.cardBorder, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  cityEmojiWrapOn:  { backgroundColor: colors.accentSoft },
+  cityEmoji:        { fontSize: 24 },
+  cityLabel:        { color: colors.textMuted, fontSize: typography.size.heading2, fontWeight: typography.weight.regular, marginBottom: 2 },
+  cityLabelOn:      { color: colors.text },
+  citySub:          { color: colors.textDim, fontSize: typography.size.caption },
+  cityCountBadge:   { alignItems: 'center', marginRight: spacing.md },
+  cityCount:        { color: colors.textMuted, fontSize: typography.size.heading1, fontWeight: typography.weight.regular },
+  cityCountLbl:     { color: colors.textDim, fontSize: typography.size.xs },
+  cityCheck:        { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  cityCheckTxt:     { color: colors.bg, fontSize: typography.size.bodyLg, fontWeight: typography.weight.bold },
+  cityUncheck:      { width: 26, height: 26, borderRadius: 13, borderWidth: 1.5, borderColor: colors.textDim, flexShrink: 0 },
 
-  chipsRow:    { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
-  chip:        { borderRadius: 100, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 5 },
-  chipTxt:     { fontSize: 11, fontWeight: '400' },
+  /* Rôle */
+  roleCard:         { flexDirection: 'row', alignItems: 'center', gap: spacing.xl, backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, padding: spacing.xxl - 2 },
+  roleCardClient:   { borderColor: 'rgba(90,155,224,0.3)' },
+  roleCardPro:      { borderColor: 'rgba(232,160,69,0.2)', backgroundColor: colors.accentSoft },
+  roleIconWrap:     { width: 52, height: 52, borderRadius: radius.lg + 1, borderWidth: 1, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  roleEmoji:        { fontSize: 24 },
+  roleTitle:        { color: colors.text, fontSize: typography.size.heading3, fontWeight: typography.weight.medium, marginBottom: spacing.xs },
+  roleDesc:         { color: colors.textMuted, fontSize: typography.size.caption, lineHeight: 16, marginBottom: spacing.lg },
+  roleChips:        { flexDirection: 'row', gap: spacing.sm },
+  roleChipSmall:    { borderRadius: 100, borderWidth: 1, borderColor: colors.cardBorder, backgroundColor: colors.cardBorder, paddingHorizontal: spacing.md, paddingVertical: spacing.xxs },
+  roleChipTxt:      { color: colors.textMuted, fontSize: typography.size.xs, fontWeight: typography.weight.regular },
+  roleArrowWrap:    { width: 34, height: 34, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  roleArrow:        { fontSize: 20, fontWeight: typography.weight.regular },
+  roleSep:          { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, marginVertical: spacing.xl },
+  roleSepLine:      { flex: 1, height: 1, backgroundColor: colors.cardBorder },
+  roleSepTxt:       { color: colors.textDim, fontSize: typography.size.sm, letterSpacing: 2 },
+  legal:            { color: colors.textDim, fontSize: typography.size.sm, textAlign: 'center', lineHeight: 16, marginTop: spacing.xxl },
 
-  /* ── Étapes ── */
-  stepWrap:    { flex: 1, paddingHorizontal: 24, paddingTop: 16 },
-  stepHeader:  { alignItems: 'center', marginBottom: 32 },
-  stepTag:     { color: C.accent, fontSize: 9, letterSpacing: 3, fontWeight: '600', marginBottom: 12 },
-  stepTitle:   { color: C.text, fontSize: 28, fontWeight: '200', letterSpacing: 0.3, marginBottom: 10, textAlign: 'center' },
-  stepSub:     { color: C.dim, fontSize: 13, textAlign: 'center', lineHeight: 20 },
-  logoMain:    { color: C.accent, fontSize: 26, fontWeight: '300', letterSpacing: 10, marginBottom: 18 },
-
-  /* ── Ville ── */
-  cityCards:   { gap: 12 },
-  cityCard:    { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: C.bg2, borderRadius: 18, borderWidth: 1, borderColor: C.border, padding: 16 },
-  cityCardOn:  { borderColor: C.accent, backgroundColor: 'rgba(200,151,90,0.06)' },
-  cityEmojiWrap:   { width: 48, height: 48, borderRadius: 14, backgroundColor: C.bg3, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  cityEmojiWrapOn: { backgroundColor: 'rgba(200,151,90,0.14)' },
-  cityEmoji:   { fontSize: 24 },
-  cityLabel:   { color: C.dim, fontSize: 17, fontWeight: '300', marginBottom: 2 },
-  cityLabelOn: { color: C.text },
-  citySub:     { color: C.dimmer, fontSize: 11 },
-  cityCountBadge:{ alignItems: 'center', marginRight: 8 },
-  cityCount:   { color: C.dim, fontSize: 18, fontWeight: '200' },
-  cityCountLbl:{ color: C.dimmer, fontSize: 9 },
-  cityCheck:   { width: 26, height: 26, borderRadius: 13, backgroundColor: C.accent, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  cityCheckTxt:{ color: C.bg, fontSize: 13, fontWeight: '700' },
-  cityUncheck: { width: 26, height: 26, borderRadius: 13, borderWidth: 1.5, borderColor: C.dimmer, flexShrink: 0 },
-
-  /* ── Rôle ── */
-  roleCard:    { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: C.bg2, borderRadius: 20, borderWidth: 1, borderColor: C.border, padding: 18 },
-  roleCardPro: { borderColor: 'rgba(200,151,90,0.2)', backgroundColor: 'rgba(200,151,90,0.04)' },
-  roleIconWrap:    { width: 52, height: 52, borderRadius: 15, borderWidth: 1, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  roleEmoji:   { fontSize: 24 },
-  roleTitle:   { color: C.text, fontSize: 15, fontWeight: '400', marginBottom: 4 },
-  roleDesc:    { color: C.dim, fontSize: 11, lineHeight: 16, marginBottom: 10 },
-  roleChips:   { flexDirection: 'row', gap: 6 },
-  roleChipSmall:   { borderRadius: 100, borderWidth: 1, borderColor: 'rgba(138,154,176,0.25)', backgroundColor: 'rgba(138,154,176,0.08)', paddingHorizontal: 8, paddingVertical: 3 },
-  roleChipTxt: { color: C.dim, fontSize: 9, fontWeight: '400' },
-  roleArrowWrap:   { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  roleArrow:   { fontSize: 20, fontWeight: '300' },
-  roleSep:     { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 14 },
-  roleSepLine: { flex: 1, height: 1, backgroundColor: C.border },
-  roleSepTxt:  { color: C.dimmer, fontSize: 10, letterSpacing: 2 },
-  legal:       { color: C.dimmer, fontSize: 10, textAlign: 'center', lineHeight: 16, marginTop: 24 },
-
-  /* ── Footer ── */
-  footer:      { paddingHorizontal: 24, paddingBottom: 28, gap: 18 },
-  footerBtns:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  skipBtn:     { paddingVertical: 10, paddingHorizontal: 4 },
-  skipTxt:     { color: C.dimmer, fontSize: 14 },
-  nextBtn:     { borderRadius: 14, paddingVertical: 14, paddingHorizontal: 26, backgroundColor: C.accent },
-  nextBtnDim:  { backgroundColor: C.dimmer },
-  nextTxt:     { color: C.bg, fontSize: 14, fontWeight: '500' },
+  /* Footer */
+  footer:     { paddingHorizontal: spacing.xxl, paddingBottom: spacing.section - 4, gap: spacing.xxl - 2 },
+  footerBtns: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  skipBtn:    { paddingVertical: spacing.md, paddingHorizontal: spacing.xs },
+  skipTxt:    { color: colors.textDim, fontSize: typography.size.subheading },
+  nextBtn:    { borderRadius: radius.xl, paddingVertical: spacing.xl - 2, paddingHorizontal: spacing.xxl + 6 },
+  nextBtnDim: { backgroundColor: colors.textDim },
+  nextTxt:    { color: colors.bg, fontSize: typography.size.subheading, fontWeight: typography.weight.medium },
 });
