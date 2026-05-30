@@ -234,6 +234,11 @@ export default function ExplorerScreen({ navigation }) {
     />
   ), [navigation]);
 
+  const goBack            = useCallback(() => navigation.goBack(), [navigation]);
+  const toggleMode        = useCallback(() => { setMode(m => m === 'map' ? 'list' : 'map'); setSelected(null); }, []);
+  const closeSelected     = useCallback(() => setSelected(null), []);
+  const goReserveSelected = useCallback(() => navigation.navigate('ReservationForm', { restaurant: selected }), [navigation, selected]);
+  const goViewSelected    = useCallback(() => navigation.navigate('Restaurant', { restaurant: selected }), [navigation, selected]);
 
   return (
     <View style={s.root}>
@@ -278,14 +283,14 @@ export default function ExplorerScreen({ navigation }) {
                 </View>
               </View>
               <View style={s.selActions}>
-                <TouchableOpacity style={s.selBtnPrimary} onPress={() => navigation.navigate('ReservationForm', { restaurant: selected })}>
+                <TouchableOpacity style={s.selBtnPrimary} onPress={goReserveSelected}>
                   <Text style={s.selBtnPrimaryTxt}>Réserver</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={s.selBtnSecondary} onPress={() => navigation.navigate('Restaurant', { restaurant: selected })}>
+                <TouchableOpacity style={s.selBtnSecondary} onPress={goViewSelected}>
                   <Text style={s.selBtnSecondaryTxt}>Voir le resto →</Text>
                 </TouchableOpacity>
               </View>
-              <TouchableOpacity style={s.selClose} onPress={() => setSelected(null)}>
+              <TouchableOpacity style={s.selClose} onPress={closeSelected}>
                 <Text style={s.selCloseTxt}>✕</Text>
               </TouchableOpacity>
             </View>
@@ -296,7 +301,7 @@ export default function ExplorerScreen({ navigation }) {
       {/* ── HEADER OVERLAY ── */}
       <SafeAreaView style={s.overlay} pointerEvents="box-none">
         <View style={s.header}>
-          <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+          <TouchableOpacity style={s.backBtn} onPress={goBack}>
             <Text style={s.backBtnTxt}>←</Text>
           </TouchableOpacity>
           <View>
@@ -312,7 +317,7 @@ export default function ExplorerScreen({ navigation }) {
             )}
             <TouchableOpacity
               style={[s.modeBtn, mode === 'list' && s.modeBtnOn]}
-              onPress={() => { setMode(m => m === 'map' ? 'list' : 'map'); setSelected(null); }}
+              onPress={toggleMode}
             >
               <Text style={s.modeBtnTxt}>{mode === 'map' ? '☰' : '🗺️'}</Text>
             </TouchableOpacity>
