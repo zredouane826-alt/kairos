@@ -201,6 +201,14 @@ export default function FavorisScreen({ navigation }) {
     [favorites],
   );
 
+  const clearSearch = useCallback(() => setSearch(''), []);
+  const cycleSort   = useCallback(() => setSort(cur => {
+    const idx = SORT_OPTIONS.findIndex(o => o.id === cur);
+    return SORT_OPTIONS[(idx + 1) % SORT_OPTIONS.length].id;
+  }), []);
+  const goExplorer  = useCallback(() => navigation.navigate('Explorer'), [navigation]);
+  const onRefresh   = useCallback(() => load(true), [load]);
+
   return (
     <SafeAreaView style={s.root}>
 
@@ -228,17 +236,14 @@ export default function FavorisScreen({ navigation }) {
               onChangeText={setSearch}
             />
             {search.length > 0 && (
-              <TouchableOpacity onPress={() => setSearch('')}>
+              <TouchableOpacity onPress={clearSearch}>
                 <Text style={{ color: colors.textDim, fontSize: typography.size.bodyLg }}>✕</Text>
               </TouchableOpacity>
             )}
           </View>
           <TouchableOpacity
             style={s.sortBtn}
-            onPress={() => setSort(cur => {
-              const idx = SORT_OPTIONS.findIndex(o => o.id === cur);
-              return SORT_OPTIONS[(idx + 1) % SORT_OPTIONS.length].id;
-            })}
+            onPress={cycleSort}
           >
             <Text style={s.sortTxt}>{SORT_OPTIONS.find(o => o.id === sort)?.label}</Text>
           </TouchableOpacity>
@@ -252,7 +257,7 @@ export default function FavorisScreen({ navigation }) {
           <Text style={s.emptyEmoji}>🤍</Text>
           <Text style={s.emptyTitle}>Aucun favori</Text>
           <Text style={s.emptySub}>Appuyez sur ❤️ sur la page d'un restaurant{'\n'}pour l'ajouter ici.</Text>
-          <TouchableOpacity style={s.exploreBtn} onPress={() => navigation.navigate('Explorer')}>
+          <TouchableOpacity style={s.exploreBtn} onPress={goExplorer}>
             <Text style={s.exploreBtnTxt}>EXPLORER LES RESTAURANTS</Text>
           </TouchableOpacity>
         </View>
@@ -260,7 +265,7 @@ export default function FavorisScreen({ navigation }) {
         <View style={s.center}>
           <Text style={{ fontSize: 36 }}>🔍</Text>
           <Text style={s.emptyTitle}>Aucun résultat</Text>
-          <TouchableOpacity onPress={() => setSearch('')}>
+          <TouchableOpacity onPress={clearSearch}>
             <Text style={{ color: colors.blue, fontSize: typography.size.bodyLg }}>Effacer la recherche</Text>
           </TouchableOpacity>
         </View>
@@ -268,7 +273,7 @@ export default function FavorisScreen({ navigation }) {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={s.grid}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={colors.accent} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
         >
           <View style={s.statStrip}>
             <View style={s.statItem}>
