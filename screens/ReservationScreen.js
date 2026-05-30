@@ -320,7 +320,7 @@ export default function ReservationScreen({ navigation }) {
     );
   }, [load]);
 
-  const today = todayStr();
+  const today = useMemo(() => todayStr(), []);
 
   const aVenir = useMemo(
     () => reservations.filter(r => r.date >= today && ['confirmed','pending'].includes(r.status)),
@@ -332,9 +332,18 @@ export default function ReservationScreen({ navigation }) {
     [reservations, aVenir],
   );
 
-  const next    = aVenir[0];
-  const later   = aVenir.slice(1);
+  const { next, later } = useMemo(() => ({ next: aVenir[0], later: aVenir.slice(1) }), [aVenir]);
   const pending = useMemo(() => aVenir.filter(r => r.status === 'pending').length, [aVenir]);
+
+  const onRefresh     = useCallback(() => load(true), [load]);
+  const goAvenir      = useCallback(() => setTab('avenir'), []);
+  const goHistorique  = useCallback(() => setTab('historique'), []);
+  const goExplorer    = useCallback(() => navigation?.navigate('Explorer'), [navigation]);
+  const onCancelNext  = useCallback(() => next && cancelResa(next), [cancelResa, next]);
+  const onViewNext    = useCallback(
+    () => next?.restaurants?.id && navigation?.navigate('Restaurant', { restaurant: next.restaurants }),
+    [navigation, next],
+  );
 
   const histByMonth = useMemo(() => {
     const groups = {};
@@ -380,13 +389,13 @@ export default function ReservationScreen({ navigation }) {
       </View>
 
       <View style={s.tabs}>
-        <TouchableOpacity style={[s.tab, tab==='avenir' && s.tabOn]} onPress={() => setTab('avenir')}>
+        <TouchableOpacity style={[s.tab, tab==='avenir' && s.tabOn]} onPress={goAvenir}>
           <Text style={[s.tabTxt, tab==='avenir' && s.tabTxtOn]}>À venir</Text>
           {aVenir.length > 0 && (
             <View style={s.tabBadge}><Text style={s.tabBadgeTxt}>{aVenir.length}</Text></View>
           )}
         </TouchableOpacity>
-        <TouchableOpacity style={[s.tab, tab==='historique' && s.tabOn]} onPress={() => setTab('historique')}>
+        <TouchableOpacity style={[s.tab, tab==='historique' && s.tabOn]} onPress={goHistorique}>
           <Text style={[s.tabTxt, tab==='historique' && s.tabTxtOn]}>Historique</Text>
           {historique.length > 0 && (
             <View style={[s.tabBadge, { backgroundColor: colors.cardHover }]}>
@@ -399,7 +408,7 @@ export default function ReservationScreen({ navigation }) {
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={{ flex:1 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={colors.accent} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
       >
         {tab === 'avenir' && (
           !next ? (
@@ -407,7 +416,7 @@ export default function ReservationScreen({ navigation }) {
               <Text style={s.emptyEmoji}>📅</Text>
               <Text style={s.emptyTitle}>Aucune réservation à venir</Text>
               <Text style={s.emptySub}>Explorez les restaurants et réservez votre prochaine table.</Text>
-              <TouchableOpacity style={s.emptyBtn} onPress={() => navigation?.navigate('Explorer')}>
+              <TouchableOpacity style={s.emptyBtn} onPress={goExplorer}>
                 <Text style={s.emptyBtnTxt}>Explorer les restaurants →</Text>
               </TouchableOpacity>
             </View>
@@ -416,11 +425,8 @@ export default function ReservationScreen({ navigation }) {
               <Text style={s.sectionLbl}>PROCHAINE TABLE</Text>
               <NextCard
                 r={next}
-                onCancel={() => cancelResa(next)}
-                onViewRestaurant={next.restaurants?.id
-                  ? () => navigation?.navigate('Restaurant', { restaurant: next.restaurants })
-                  : null
-                }
+                onCancel={onCancelNext}
+                onViewRestaurant={next?.restaurants?.id ? onViewNext : null}
               />
 
               {later.length > 0 && (
