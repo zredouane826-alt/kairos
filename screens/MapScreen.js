@@ -4,6 +4,7 @@ import {
   SafeAreaView, ActivityIndicator, Platform,
 } from 'react-native';
 import { supabase } from '../supabase';
+import { colors, typography, spacing, radius } from '../src/theme';
 
 let MapView, Marker;
 if (Platform.OS !== 'web') {
@@ -11,14 +12,6 @@ if (Platform.OS !== 'web') {
   MapView = maps.default;
   Marker  = maps.Marker;
 }
-
-// ─── Palette ─────────────────────────────────────────────────────────────────
-const C = {
-  bg: '#0d1628', bg2: '#111827', bg3: '#1a2332',
-  accent: '#c8975a', text: '#f0ece4', dim: '#8a9ab0', dimmer: '#4a5568',
-  green: '#3d9970', border: 'rgba(255,255,255,0.07)',
-  borderAccent: 'rgba(200,151,90,0.35)',
-};
 
 // ─── Map config ───────────────────────────────────────────────────────────────
 const ALGER = { latitude: 36.7538, longitude: 3.0588 };
@@ -98,33 +91,33 @@ export default function MapScreen({ navigation }) {
   if (Platform.OS === 'web') {
     return (
       <View style={s.root}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32 }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32 }}>
           <Text style={{ fontSize: 48 }}>🗺️</Text>
-          <Text style={{ color: C.accent, fontSize: 20, fontWeight: '600', letterSpacing: 4 }}>CARTE</Text>
-          <Text style={{ color: C.dim, fontSize: 13, textAlign: 'center', lineHeight: 20 }}>
+          <Text style={{ color: colors.accent, fontSize: 20, fontWeight: '600', letterSpacing: 4 }}>CARTE</Text>
+          <Text style={{ color: colors.textMuted, fontSize: 13, textAlign: 'center', lineHeight: 20 }}>
             La carte interactive est disponible sur l'application mobile.
           </Text>
           {loading ? (
-            <ActivityIndicator color={C.accent} />
+            <ActivityIndicator color={colors.accent} />
           ) : (
-            <View style={{ backgroundColor: 'rgba(200,151,90,0.1)', borderRadius: 12, borderWidth: 1, borderColor: C.borderAccent, padding: 14, width: '100%' }}>
-              <Text style={{ color: C.accent, fontSize: 11, letterSpacing: 2, marginBottom: 8 }}>RESTAURANTS DISPONIBLES</Text>
+            <View style={{ backgroundColor: colors.accentSoft, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(232,160,69,0.3)', padding: 14, width: '100%' }}>
+              <Text style={{ color: colors.accent, fontSize: 11, letterSpacing: 2, marginBottom: 8 }}>RESTAURANTS DISPONIBLES</Text>
               {restaurants.slice(0, 6).map(r => (
                 <TouchableOpacity
                   key={r.id}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' }}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.cardBorder }}
                   onPress={() => navigation.navigate('Restaurant', { restaurant: r })}
                 >
                   <Text style={{ fontSize: 18 }}>{CUISINE_EMOJI[r.cuisine_type] || '🍽️'}</Text>
                   <View style={{ flex: 1 }}>
-                    <Text style={{ color: C.text, fontSize: 13 }}>{r.name}</Text>
-                    <Text style={{ color: C.dim, fontSize: 11 }}>{r.quartier || '—'}</Text>
+                    <Text style={{ color: colors.text, fontSize: 13 }}>{r.name}</Text>
+                    <Text style={{ color: colors.textMuted, fontSize: 11 }}>{r.quartier || '—'}</Text>
                   </View>
-                  {r.avg_rating > 0 && <Text style={{ color: C.accent, fontSize: 11 }}>★ {Number(r.avg_rating).toFixed(1)}</Text>}
+                  {r.avg_rating > 0 && <Text style={{ color: colors.accent, fontSize: 11 }}>★ {Number(r.avg_rating).toFixed(1)}</Text>}
                 </TouchableOpacity>
               ))}
               {restaurants.length > 6 && (
-                <Text style={{ color: C.dim, fontSize: 11, textAlign: 'center', marginTop: 8 }}>+{restaurants.length - 6} autres</Text>
+                <Text style={{ color: colors.textDim, fontSize: 11, textAlign: 'center', marginTop: 8 }}>+{restaurants.length - 6} autres</Text>
               )}
             </View>
           )}
@@ -181,7 +174,7 @@ export default function MapScreen({ navigation }) {
       {/* ── Spinner ──────────────────────────────────────────────────── */}
       {loading && (
         <View style={s.spinner}>
-          <ActivityIndicator color={C.accent} size="small" />
+          <ActivityIndicator color={colors.accent} size="small" />
         </View>
       )}
 
@@ -234,13 +227,13 @@ const s = StyleSheet.create({
   /* Marker */
   pin: {
     width: 38, height: 38, borderRadius: 19,
-    backgroundColor: 'rgba(13,22,40,0.9)',
-    borderWidth: 2, borderColor: C.border,
+    backgroundColor: 'rgba(15,13,11,0.9)',
+    borderWidth: 2, borderColor: colors.cardBorder,
     alignItems: 'center', justifyContent: 'center',
   },
   pinActive: {
-    borderColor: C.accent, borderWidth: 2.5,
-    backgroundColor: C.bg3,
+    borderColor: colors.accent, borderWidth: 2.5,
+    backgroundColor: colors.card,
     width: 46, height: 46, borderRadius: 23,
   },
   pinEmoji:   { fontSize: 18 },
@@ -250,63 +243,63 @@ const s = StyleSheet.create({
   headerWrap: { position: 'absolute', top: 0, left: 0, right: 0 },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    marginHorizontal: 16, marginTop: 12,
-    backgroundColor: 'rgba(13,22,40,0.9)',
-    borderRadius: 16, paddingHorizontal: 18, paddingVertical: 12,
-    borderWidth: 1, borderColor: C.border,
+    marginHorizontal: spacing.xl, marginTop: spacing.lg,
+    backgroundColor: 'rgba(15,13,11,0.92)',
+    borderRadius: radius.xxl, paddingHorizontal: spacing.xxl, paddingVertical: spacing.lg,
+    borderWidth: 1, borderColor: colors.cardBorder,
   },
-  headerLogo: { color: C.accent, fontSize: 16, fontWeight: '700', letterSpacing: 5 },
-  headerSub:  { color: C.dim, fontSize: 11, marginTop: 1 },
+  headerLogo: { color: colors.accent, fontSize: typography.size.heading2, fontWeight: '700', letterSpacing: 5 },
+  headerSub:  { color: colors.textMuted, fontSize: typography.size.caption, marginTop: 1 },
   countBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: 'rgba(200,151,90,0.12)',
-    borderRadius: 100, paddingHorizontal: 12, paddingVertical: 6,
-    borderWidth: 1, borderColor: C.borderAccent,
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    backgroundColor: colors.accentSoft,
+    borderRadius: radius.full, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm,
+    borderWidth: 1, borderColor: 'rgba(232,160,69,0.3)',
   },
-  countDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.green },
-  countTxt:  { color: C.accent, fontSize: 11, fontWeight: '500' },
+  countDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.green },
+  countTxt:  { color: colors.accent, fontSize: typography.size.caption, fontWeight: '500' },
 
   /* Spinner */
   spinner: {
     position: 'absolute', bottom: 140, alignSelf: 'center',
-    backgroundColor: 'rgba(13,22,40,0.9)',
-    borderRadius: 100, padding: 12,
+    backgroundColor: 'rgba(15,13,11,0.92)',
+    borderRadius: radius.full, padding: spacing.lg,
   },
 
   /* Restaurant card */
   cardWrap: {
-    position: 'absolute', bottom: 110, left: 16, right: 16,
-    flexDirection: 'row', alignItems: 'center', gap: 10,
+    position: 'absolute', bottom: 110, left: spacing.xl, right: spacing.xl,
+    flexDirection: 'row', alignItems: 'center', gap: spacing.md,
   },
   card: {
     flex: 1, flexDirection: 'row', alignItems: 'center',
-    backgroundColor: C.bg2,
-    borderRadius: 18, overflow: 'hidden',
-    borderWidth: 1, borderColor: C.borderAccent,
-    padding: 14, gap: 12,
+    backgroundColor: colors.card,
+    borderRadius: radius.xxl, overflow: 'hidden',
+    borderWidth: 1, borderColor: 'rgba(232,160,69,0.3)',
+    padding: spacing.xl, gap: spacing.lg,
   },
   cardThumb: {
-    width: 50, height: 50, borderRadius: 13,
-    backgroundColor: C.bg3,
+    width: 50, height: 50, borderRadius: radius.xl,
+    backgroundColor: colors.cardHover,
     alignItems: 'center', justifyContent: 'center',
   },
   cardEmoji: { fontSize: 24 },
   cardInfo:  { flex: 1 },
-  cardTag:   { color: C.accent, fontSize: 9,  letterSpacing: 2.5, marginBottom: 3 },
-  cardName:  { color: C.text,   fontSize: 15, fontWeight: '400',  marginBottom: 3 },
-  cardAddr:  { color: C.dim,    fontSize: 11, marginBottom: 4 },
-  cardRating:{ color: C.accent, fontSize: 11, fontWeight: '500' },
+  cardTag:   { color: colors.accent, fontSize: typography.size.xs, letterSpacing: 2.5, marginBottom: 3 },
+  cardName:  { color: colors.text,   fontSize: typography.size.heading3, fontWeight: '400', marginBottom: 3 },
+  cardAddr:  { color: colors.textMuted, fontSize: typography.size.caption, marginBottom: 4 },
+  cardRating:{ color: colors.accent, fontSize: typography.size.caption, fontWeight: '500' },
   cardArrow: {
     width: 32, height: 32, borderRadius: 16,
-    backgroundColor: C.accent,
+    backgroundColor: colors.accent,
     alignItems: 'center', justifyContent: 'center',
   },
-  cardArrowTxt: { color: '#0d1628', fontSize: 20, fontWeight: '700', marginTop: -1 },
+  cardArrowTxt: { color: colors.bg, fontSize: 20, fontWeight: '700', marginTop: -1 },
 
   closeBtn: {
     width: 40, height: 40, borderRadius: 20,
-    backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border,
+    backgroundColor: colors.card, borderWidth: 1, borderColor: colors.cardBorder,
     alignItems: 'center', justifyContent: 'center',
   },
-  closeBtnTxt: { color: C.dim, fontSize: 13 },
+  closeBtnTxt: { color: colors.textMuted, fontSize: typography.size.bodyLg },
 });

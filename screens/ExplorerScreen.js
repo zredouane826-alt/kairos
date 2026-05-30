@@ -6,20 +6,11 @@ import {
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { supabase } from '../supabase';
+import { colors, typography, spacing, radius } from '../src/theme';
 
 const SW = Dimensions.get('window').width;
-const SH = Dimensions.get('window').height;
 const TOP = Platform.OS === 'android' ? (RNStatusBar.currentHeight || 0) : 0;
 const CARD_W = (SW - 14 * 2 - 10) / 2;
-
-const C = {
-  bg:'#0d1628', bg2:'#111827', bg3:'#1a2332',
-  accent:'#c8975a', accent2:'#4a7fa5',
-  text:'#f0ece4', dim:'#8a9ab0', dimmer:'#4a5568',
-  green:'#3d9970', red:'#e05a5a', card:'#141e2e',
-  border:'rgba(255,255,255,0.07)',
-  borderAccent:'rgba(200,151,90,0.3)',
-};
 
 const CITIES = [
   { id:'alger',       label:'Alger',       emoji:'🏛️', region:{ latitude:36.7538, longitude:3.0588,  latitudeDelta:0.13, longitudeDelta:0.13 } },
@@ -88,7 +79,7 @@ function RestaurantPin({ restaurant, isSelected }) {
       </Text>
       {restaurant.avg_rating > 0 && (
         <View style={[pin.badge, isSelected && pin.badgeOn]}>
-          <Text style={[pin.badgeTxt, isSelected && { color: C.bg }]}>
+          <Text style={[pin.badgeTxt, isSelected && { color: colors.bg }]}>
             {Number(restaurant.avg_rating).toFixed(1)}
           </Text>
         </View>
@@ -101,9 +92,9 @@ const pin = StyleSheet.create({
   wrap:    { alignItems:'center', gap:2 },
   emoji:   { fontSize:22, lineHeight:28 },
   emojiOn: { fontSize:28, lineHeight:34 },
-  badge:   { backgroundColor:'rgba(13,22,40,0.88)', borderRadius:8, paddingHorizontal:5, paddingVertical:2, borderWidth:1, borderColor:C.borderAccent },
-  badgeOn: { backgroundColor:C.accent, borderColor:C.accent },
-  badgeTxt:{ color:C.accent, fontSize:9, fontWeight:'600' },
+  badge:   { backgroundColor:'rgba(15,13,11,0.88)', borderRadius:radius.sm, paddingHorizontal:5, paddingVertical:2, borderWidth:1, borderColor:'rgba(232,160,69,0.3)' },
+  badgeOn: { backgroundColor:colors.accent, borderColor:colors.accent },
+  badgeTxt:{ color:colors.accent, fontSize:typography.size.xs, fontWeight:'600' },
 });
 
 /* ─── Carte restaurant (mode liste) ─── */
@@ -153,24 +144,24 @@ function RestoCard({ r, rank, onPress, onReserve }) {
 }
 
 const lc = StyleSheet.create({
-  card:        { width: CARD_W, backgroundColor: C.card, borderRadius: 16, borderWidth: 1, borderColor: C.border, overflow:'hidden', marginBottom: 10 },
+  card:        { width: CARD_W, backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, overflow:'hidden', marginBottom: 10 },
   imgWrap:     { position:'relative', width:'100%', height: 130 },
   img:         { width:'100%', height:'100%' },
-  imgPlaceholder:{ backgroundColor: C.bg3, alignItems:'center', justifyContent:'center' },
-  ratingBadge: { position:'absolute', top:8, right:8, backgroundColor:'rgba(13,22,40,0.82)', borderRadius:10, paddingHorizontal:7, paddingVertical:3, borderWidth:1, borderColor:C.borderAccent },
-  ratingBadgeTxt:{ color:C.accent, fontSize:10, fontWeight:'600' },
+  imgPlaceholder:{ backgroundColor: colors.cardHover, alignItems:'center', justifyContent:'center' },
+  ratingBadge: { position:'absolute', top:8, right:8, backgroundColor:'rgba(15,13,11,0.82)', borderRadius:radius.md, paddingHorizontal:7, paddingVertical:3, borderWidth:1, borderColor:'rgba(232,160,69,0.3)' },
+  ratingBadgeTxt:{ color:colors.accent, fontSize:typography.size.sm, fontWeight:'600' },
   medalWrap:   { position:'absolute', top:8, left:8, width:22, height:22, borderRadius:11, alignItems:'center', justifyContent:'center' },
-  medalTxt:    { color:C.bg, fontSize:10, fontWeight:'700' },
-  cuisinePill: { position:'absolute', bottom:8, left:8, backgroundColor:'rgba(13,22,40,0.78)', borderRadius:8, paddingHorizontal:7, paddingVertical:3 },
-  cuisinePillTxt:{ color:C.text, fontSize:9 },
+  medalTxt:    { color:colors.bg, fontSize:typography.size.sm, fontWeight:'700' },
+  cuisinePill: { position:'absolute', bottom:8, left:8, backgroundColor:'rgba(15,13,11,0.78)', borderRadius:radius.sm, paddingHorizontal:7, paddingVertical:3 },
+  cuisinePillTxt:{ color:colors.text, fontSize:typography.size.xs },
   body:        { padding:10, gap:4 },
-  name:        { color:C.text, fontSize:13, fontWeight:'400', letterSpacing:0.2 },
-  quartier:    { color:C.dim, fontSize:10 },
+  name:        { color:colors.text, fontSize:typography.size.bodyLg, fontWeight:'400', letterSpacing:0.2 },
+  quartier:    { color:colors.textMuted, fontSize:typography.size.sm },
   footer:      { flexDirection:'row', justifyContent:'space-between', alignItems:'flex-end', marginTop:4 },
-  price:       { color:C.accent, fontSize:10, fontWeight:'500' },
-  reviews:     { color:C.dimmer, fontSize:9, marginTop:1 },
-  reserveBtn:  { backgroundColor:'rgba(200,151,90,0.15)', borderRadius:8, paddingHorizontal:8, paddingVertical:5, borderWidth:1, borderColor:C.borderAccent },
-  reserveTxt:  { color:C.accent, fontSize:10, fontWeight:'500' },
+  price:       { color:colors.accent, fontSize:typography.size.sm, fontWeight:'500' },
+  reviews:     { color:colors.textDim, fontSize:typography.size.xs, marginTop:1 },
+  reserveBtn:  { backgroundColor:colors.accentSoft, borderRadius:radius.sm, paddingHorizontal:8, paddingVertical:5, borderWidth:1, borderColor:'rgba(232,160,69,0.3)' },
+  reserveTxt:  { color:colors.accent, fontSize:typography.size.sm, fontWeight:'500' },
 });
 
 
@@ -271,7 +262,7 @@ export default function ExplorerScreen({ navigation }) {
             <View style={s.selCard}>
               {selected.photos?.[0]
                 ? <Image source={{ uri: selected.photos[0] }} style={s.selPhoto} resizeMode="cover" />
-                : <View style={[s.selPhoto, { backgroundColor:C.bg3, alignItems:'center', justifyContent:'center' }]}><Text style={{ fontSize:28 }}>🍽️</Text></View>
+                : <View style={[s.selPhoto, { backgroundColor:colors.cardHover, alignItems:'center', justifyContent:'center' }]}><Text style={{ fontSize:28 }}>🍽️</Text></View>
               }
               <View style={s.selOverlay}>
                 <Text style={s.selCuisine}>{(selected.cuisine_type||'').toUpperCase().replace(/_/g,' ')}</Text>
@@ -341,7 +332,7 @@ export default function ExplorerScreen({ navigation }) {
 
         {/* Contenu liste */}
         {loading ? (
-            <View style={s.empty}><ActivityIndicator color={C.accent} size="large" /></View>
+            <View style={s.empty}><ActivityIndicator color={colors.accent} size="large" /></View>
           ) : restaurants.length === 0 ? (
             <View style={s.empty}>
               <Text style={{ fontSize: 36 }}>🍽️</Text>
@@ -367,54 +358,53 @@ export default function ExplorerScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  root:    { flex:1, backgroundColor:C.bg },
+  root:    { flex:1, backgroundColor:colors.bg },
   mapWrap: { flex:46 },
 
   /* Header overlay */
   overlay:     { position:'absolute', top:0, left:0, right:0, zIndex:10 },
-  header:      { flexDirection:'row', justifyContent:'space-between', alignItems:'center', margin:14, marginTop:TOP+10, backgroundColor:'rgba(13,22,40,0.92)', borderRadius:16, paddingHorizontal:16, paddingVertical:11, borderWidth:1, borderColor:C.border },
-  headerLogo:  { color:C.accent, fontSize:14, fontWeight:'700', letterSpacing:5 },
-  headerSub:   { color:C.dim, fontSize:10 },
-  countBadge:  { flexDirection:'row', alignItems:'center', gap:5, backgroundColor:'rgba(200,151,90,0.1)', borderRadius:100, paddingHorizontal:10, paddingVertical:5, borderWidth:1, borderColor:C.borderAccent },
-  countDot:    { width:6, height:6, borderRadius:3, backgroundColor:C.green },
-  countTxt:    { color:C.accent, fontSize:11, fontWeight:'500' },
-  modeBtn:     { width:36, height:36, borderRadius:18, backgroundColor:C.bg3, borderWidth:1, borderColor:C.border, alignItems:'center', justifyContent:'center' },
-  modeBtnOn:   { backgroundColor:'rgba(200,151,90,0.15)', borderColor:C.borderAccent },
+  header:      { flexDirection:'row', justifyContent:'space-between', alignItems:'center', margin:14, marginTop:TOP+10, backgroundColor:'rgba(15,13,11,0.92)', borderRadius:radius.xxl, paddingHorizontal:spacing.xl, paddingVertical:11, borderWidth:1, borderColor:colors.cardBorder },
+  headerLogo:  { color:colors.accent, fontSize:typography.size.subheading, fontWeight:'700', letterSpacing:5 },
+  headerSub:   { color:colors.textMuted, fontSize:typography.size.sm },
+  countBadge:  { flexDirection:'row', alignItems:'center', gap:5, backgroundColor:colors.accentSoft, borderRadius:radius.full, paddingHorizontal:spacing.md, paddingVertical:5, borderWidth:1, borderColor:'rgba(232,160,69,0.3)' },
+  countDot:    { width:6, height:6, borderRadius:3, backgroundColor:colors.green },
+  countTxt:    { color:colors.accent, fontSize:typography.size.caption, fontWeight:'500' },
+  modeBtn:     { width:36, height:36, borderRadius:18, backgroundColor:colors.card, borderWidth:1, borderColor:colors.cardBorder, alignItems:'center', justifyContent:'center' },
+  modeBtnOn:   { backgroundColor:colors.accentSoft, borderColor:'rgba(232,160,69,0.3)' },
   modeBtnTxt:  { fontSize:16 },
 
   /* Selected card (map) */
-  selCard:    { position:'absolute', bottom:8, left:14, right:14, backgroundColor:C.bg2, borderRadius:18, borderWidth:1, borderColor:C.borderAccent, overflow:'hidden', zIndex:5 },
+  selCard:    { position:'absolute', bottom:8, left:14, right:14, backgroundColor:colors.card, borderRadius:radius.xxl, borderWidth:1, borderColor:'rgba(232,160,69,0.3)', overflow:'hidden', zIndex:5 },
   selPhoto:   { width:'100%', height:120 },
-  selOverlay: { paddingHorizontal:14, paddingTop:10, paddingBottom:4 },
-  selCuisine: { color:C.accent, fontSize:8, letterSpacing:2.5, marginBottom:3 },
-  selName:    { color:C.text, fontSize:17, fontWeight:'300', letterSpacing:0.3, marginBottom:4 },
+  selOverlay: { paddingHorizontal:spacing.xl, paddingTop:spacing.md, paddingBottom:spacing.xs },
+  selCuisine: { color:colors.accent, fontSize:typography.size.xs, letterSpacing:2.5, marginBottom:3 },
+  selName:    { color:colors.text, fontSize:typography.size.heading2, fontWeight:'300', letterSpacing:0.3, marginBottom:4 },
   selMeta:    { flexDirection:'row', flexWrap:'wrap', gap:6 },
-  selRating:  { color:'#f0c040', fontSize:12, fontWeight:'500' },
-  selAddr:    { color:C.dim, fontSize:12 },
-  selPrice:   { color:C.dimmer, fontSize:12 },
-  selActions: { flexDirection:'row', gap:8, paddingHorizontal:14, paddingVertical:12 },
-  selBtnPrimary:    { flex:1, backgroundColor:C.accent, borderRadius:10, paddingVertical:11, alignItems:'center' },
-  selBtnPrimaryTxt: { color:C.bg, fontSize:13, fontWeight:'500' },
-  selBtnSecondary:  { flex:1, borderRadius:10, paddingVertical:11, alignItems:'center', borderWidth:1, borderColor:C.border },
-  selBtnSecondaryTxt:{ color:C.text, fontSize:13 },
-  selClose:   { position:'absolute', top:10, right:10, width:28, height:28, borderRadius:14, backgroundColor:'rgba(13,22,40,0.72)', alignItems:'center', justifyContent:'center' },
-  selCloseTxt:{ color:C.text, fontSize:12 },
+  selRating:  { color:colors.accent, fontSize:typography.size.body, fontWeight:'500' },
+  selAddr:    { color:colors.textMuted, fontSize:typography.size.body },
+  selPrice:   { color:colors.textDim, fontSize:typography.size.body },
+  selActions: { flexDirection:'row', gap:8, paddingHorizontal:spacing.xl, paddingVertical:spacing.lg },
+  selBtnPrimary:    { flex:1, backgroundColor:colors.accent, borderRadius:radius.md, paddingVertical:11, alignItems:'center' },
+  selBtnPrimaryTxt: { color:colors.bg, fontSize:typography.size.bodyLg, fontWeight:'500' },
+  selBtnSecondary:  { flex:1, borderRadius:radius.md, paddingVertical:11, alignItems:'center', borderWidth:1, borderColor:colors.cardBorder },
+  selBtnSecondaryTxt:{ color:colors.text, fontSize:typography.size.bodyLg },
+  selClose:   { position:'absolute', top:10, right:10, width:28, height:28, borderRadius:14, backgroundColor:'rgba(15,13,11,0.72)', alignItems:'center', justifyContent:'center' },
+  selCloseTxt:{ color:colors.text, fontSize:typography.size.body },
 
   /* Sheet */
-  sheet:       { flex:54, backgroundColor:C.bg2, borderTopLeftRadius:22, borderTopRightRadius:22, borderWidth:1, borderColor:C.border, paddingTop:10 },
+  sheet:       { flex:54, backgroundColor:colors.cardHover, borderTopLeftRadius:22, borderTopRightRadius:22, borderWidth:1, borderColor:colors.cardBorder, paddingTop:10 },
   sheetFull:   { flex:1, borderRadius:0, borderTopWidth:1, marginTop:TOP+62 },
-  sheetHandle: { width:40, height:4, backgroundColor:C.dimmer, borderRadius:2, alignSelf:'center', marginBottom:10, opacity:0.4 },
+  sheetHandle: { width:40, height:4, backgroundColor:colors.textDim, borderRadius:2, alignSelf:'center', marginBottom:10, opacity:0.4 },
 
   cityGrid:    { flexDirection:'row', flexWrap:'wrap', paddingHorizontal:14, paddingVertical:10, gap:8 },
-  cityChip:    { flexDirection:'row', alignItems:'center', gap:6, paddingHorizontal:14, paddingVertical:9, borderRadius:12, backgroundColor:C.bg3, borderWidth:1, borderColor:'rgba(255,255,255,0.18)' },
-  cityChipOn:  { backgroundColor:C.accent, borderColor:C.accent },
+  cityChip:    { flexDirection:'row', alignItems:'center', gap:6, paddingHorizontal:14, paddingVertical:9, borderRadius:radius.xl, backgroundColor:colors.card, borderWidth:1, borderColor:colors.cardBorder },
+  cityChipOn:  { backgroundColor:colors.accent, borderColor:colors.accent },
   cityEmoji:   { fontSize:14 },
-  cityTxt:     { color:C.text, fontSize:13 },
-  cityTxtOn:   { color:C.bg, fontWeight:'600' },
+  cityTxt:     { color:colors.text, fontSize:typography.size.bodyLg },
+  cityTxtOn:   { color:colors.bg, fontWeight:'600' },
 
-
-  backBtn:     { width:36, height:36, borderRadius:18, backgroundColor:C.bg3, borderWidth:1, borderColor:'rgba(255,255,255,0.18)', alignItems:'center', justifyContent:'center' },
-  backBtnTxt:  { color:C.text, fontSize:18, lineHeight:22 },
+  backBtn:     { width:36, height:36, borderRadius:18, backgroundColor:colors.card, borderWidth:1, borderColor:colors.cardBorder, alignItems:'center', justifyContent:'center' },
+  backBtnTxt:  { color:colors.text, fontSize:18, lineHeight:22 },
 
   /* Grid */
   gridRow:     { paddingHorizontal:14, justifyContent:'space-between' },
@@ -422,8 +412,8 @@ const s = StyleSheet.create({
 
   /* Empty state */
   empty:       { flex:1, alignItems:'center', justifyContent:'center', gap:8, padding:30 },
-  emptyTitle:  { color:C.text, fontSize:16, fontWeight:'300' },
-  emptyDesc:   { color:C.dim, fontSize:12, textAlign:'center' },
-  emptyBtn:    { marginTop:8, backgroundColor:'rgba(200,151,90,0.12)', borderRadius:10, paddingHorizontal:18, paddingVertical:10, borderWidth:1, borderColor:C.borderAccent },
-  emptyBtnTxt: { color:C.accent, fontSize:13 },
+  emptyTitle:  { color:colors.text, fontSize:typography.size.heading2, fontWeight:'300' },
+  emptyDesc:   { color:colors.textMuted, fontSize:typography.size.body, textAlign:'center' },
+  emptyBtn:    { marginTop:8, backgroundColor:colors.accentSoft, borderRadius:radius.md, paddingHorizontal:18, paddingVertical:10, borderWidth:1, borderColor:'rgba(232,160,69,0.3)' },
+  emptyBtnTxt: { color:colors.accent, fontSize:typography.size.bodyLg },
 });

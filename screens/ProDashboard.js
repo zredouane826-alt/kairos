@@ -331,13 +331,16 @@ export default function ProDashboard({ navigation }) {
         { text: 'Annuler', style: 'cancel' },
         { text: 'Confirmer ✓', onPress: async () => {
           addActing(resa.id);
-          await supabase.from('reservations').update({ status: 'confirmed' }).eq('id', resa.id);
-          await sendNotification(
-            resa.users, 'confirm', 'Réservation confirmée ✅',
-            `Votre table chez ${restaurant?.name} le ${formatDate(resa.date)} à ${resa.time_slot?.slice(0,5)} est confirmée.`,
-          );
-          removeActing(resa.id);
-          load();
+          try {
+            await supabase.from('reservations').update({ status: 'confirmed' }).eq('id', resa.id);
+            await sendNotification(
+              resa.users, 'confirm', 'Réservation confirmée ✅',
+              `Votre table chez ${restaurant?.name} le ${formatDate(resa.date)} à ${resa.time_slot?.slice(0,5)} est confirmée.`,
+            );
+          } finally {
+            removeActing(resa.id);
+            load();
+          }
         }},
       ]
     );
@@ -351,15 +354,18 @@ export default function ProDashboard({ navigation }) {
         { text: 'Retour', style: 'cancel' },
         { text: 'Refuser ✕', style: 'destructive', onPress: async () => {
           addActing(resa.id);
-          await supabase.from('reservations')
-            .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
-            .eq('id', resa.id);
-          await sendNotification(
-            resa.users, 'cancellation', 'Réservation annulée',
-            `Votre réservation chez ${restaurant?.name} le ${formatDate(resa.date)} n'a pas pu être confirmée.`,
-          );
-          removeActing(resa.id);
-          load();
+          try {
+            await supabase.from('reservations')
+              .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+              .eq('id', resa.id);
+            await sendNotification(
+              resa.users, 'cancellation', 'Réservation annulée',
+              `Votre réservation chez ${restaurant?.name} le ${formatDate(resa.date)} n'a pas pu être confirmée.`,
+            );
+          } finally {
+            removeActing(resa.id);
+            load();
+          }
         }},
       ]
     );
@@ -367,9 +373,12 @@ export default function ProDashboard({ navigation }) {
 
   const markArrived = useCallback(async (resa) => {
     addActing(resa.id);
-    await supabase.from('reservations').update({ status: 'arrived' }).eq('id', resa.id);
-    removeActing(resa.id);
-    load();
+    try {
+      await supabase.from('reservations').update({ status: 'arrived' }).eq('id', resa.id);
+    } finally {
+      removeActing(resa.id);
+      load();
+    }
   }, [addActing, removeActing, load]);
 
   /* Stats */

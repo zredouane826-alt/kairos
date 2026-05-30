@@ -4,18 +4,10 @@ import {
   SafeAreaView, ActivityIndicator, Dimensions, Image, FlatList,
 } from 'react-native';
 import { supabase } from '../supabase';
+import { colors, typography, spacing, radius } from '../src/theme';
 
 const SW = Dimensions.get('window').width;
 const CARD_W = Math.min((SW - 14 * 2 - 10) / 2, 300);
-
-const C = {
-  bg:'#0d1628', bg2:'#111827', bg3:'#1a2332',
-  accent:'#c8975a', accent2:'#4a7fa5',
-  text:'#f0ece4', dim:'#8a9ab0', dimmer:'#4a5568',
-  green:'#3d9970', red:'#e05a5a', card:'#141e2e',
-  border:'rgba(255,255,255,0.07)',
-  borderAccent:'rgba(200,151,90,0.3)',
-};
 
 const CITIES = [
   { id:'alger',       label:'Alger',       emoji:'🏛️' },
@@ -76,24 +68,24 @@ function RestoCard({ r, rank, onPress, onReserve }) {
 }
 
 const lc = StyleSheet.create({
-  card:           { width: CARD_W, backgroundColor: C.card, borderRadius: 16, borderWidth: 1, borderColor: C.border, overflow:'hidden', marginBottom: 10 },
+  card:           { width: CARD_W, backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, overflow:'hidden', marginBottom: 10 },
   imgWrap:        { position:'relative', width:'100%', height: 130 },
   img:            { width:'100%', height:'100%' },
-  imgPlaceholder: { backgroundColor: C.bg3, alignItems:'center', justifyContent:'center' },
-  ratingBadge:    { position:'absolute', top:8, right:8, backgroundColor:'rgba(13,22,40,0.82)', borderRadius:10, paddingHorizontal:7, paddingVertical:3, borderWidth:1, borderColor:C.borderAccent },
-  ratingBadgeTxt: { color:C.accent, fontSize:10, fontWeight:'600' },
+  imgPlaceholder: { backgroundColor: colors.cardHover, alignItems:'center', justifyContent:'center' },
+  ratingBadge:    { position:'absolute', top:8, right:8, backgroundColor:'rgba(15,13,11,0.82)', borderRadius:radius.md, paddingHorizontal:7, paddingVertical:3, borderWidth:1, borderColor:'rgba(232,160,69,0.3)' },
+  ratingBadgeTxt: { color:colors.accent, fontSize:typography.size.sm, fontWeight:'600' },
   medalWrap:      { position:'absolute', top:8, left:8, width:22, height:22, borderRadius:11, alignItems:'center', justifyContent:'center' },
-  medalTxt:       { color:C.bg, fontSize:10, fontWeight:'700' },
-  cuisinePill:    { position:'absolute', bottom:8, left:8, backgroundColor:'rgba(13,22,40,0.78)', borderRadius:8, paddingHorizontal:7, paddingVertical:3 },
-  cuisinePillTxt: { color:C.text, fontSize:9 },
+  medalTxt:       { color:colors.bg, fontSize:typography.size.sm, fontWeight:'700' },
+  cuisinePill:    { position:'absolute', bottom:8, left:8, backgroundColor:'rgba(15,13,11,0.78)', borderRadius:radius.sm, paddingHorizontal:7, paddingVertical:3 },
+  cuisinePillTxt: { color:colors.text, fontSize:typography.size.xs },
   body:           { padding:10, gap:4 },
-  name:           { color:C.text, fontSize:13, fontWeight:'400', letterSpacing:0.2 },
-  quartier:       { color:C.dim, fontSize:10 },
+  name:           { color:colors.text, fontSize:typography.size.bodyLg, fontWeight:'400', letterSpacing:0.2 },
+  quartier:       { color:colors.textMuted, fontSize:typography.size.sm },
   footer:         { flexDirection:'row', justifyContent:'space-between', alignItems:'flex-end', marginTop:4 },
-  price:          { color:C.accent, fontSize:10, fontWeight:'500' },
-  reviews:        { color:C.dimmer, fontSize:9, marginTop:1 },
-  reserveBtn:     { backgroundColor:'rgba(200,151,90,0.15)', borderRadius:8, paddingHorizontal:8, paddingVertical:5, borderWidth:1, borderColor:C.borderAccent },
-  reserveTxt:     { color:C.accent, fontSize:10, fontWeight:'500' },
+  price:          { color:colors.accent, fontSize:typography.size.sm, fontWeight:'500' },
+  reviews:        { color:colors.textDim, fontSize:typography.size.xs, marginTop:1 },
+  reserveBtn:     { backgroundColor:colors.accentSoft, borderRadius:radius.sm, paddingHorizontal:8, paddingVertical:5, borderWidth:1, borderColor:'rgba(232,160,69,0.3)' },
+  reserveTxt:     { color:colors.accent, fontSize:typography.size.sm, fontWeight:'500' },
 });
 
 export default function ExplorerScreen({ navigation }) {
@@ -155,7 +147,7 @@ export default function ExplorerScreen({ navigation }) {
 
       {/* Liste */}
       {loading ? (
-        <View style={s.center}><ActivityIndicator color={C.accent} size="large" /></View>
+        <View style={s.center}><ActivityIndicator color={colors.accent} size="large" /></View>
       ) : restaurants.length === 0 ? (
         <View style={s.center}>
           <Text style={{ fontSize:36 }}>🍽️</Text>
@@ -178,25 +170,24 @@ export default function ExplorerScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  root:    { flex:1, backgroundColor:C.bg },
-  header:  { flexDirection:'row', justifyContent:'space-between', alignItems:'center', paddingHorizontal:20, paddingTop:16, paddingBottom:12, borderBottomWidth:1, borderBottomColor:C.border },
-  logo:    { color:C.accent, fontSize:16, fontWeight:'700', letterSpacing:5 },
-  logoSub: { color:C.dim, fontSize:10 },
-  countBadge: { flexDirection:'row', alignItems:'center', gap:5, backgroundColor:'rgba(200,151,90,0.1)', borderRadius:100, paddingHorizontal:10, paddingVertical:5, borderWidth:1, borderColor:C.borderAccent },
-  countDot:   { width:6, height:6, borderRadius:3, backgroundColor:C.green },
-  countTxt:   { color:C.accent, fontSize:11, fontWeight:'500' },
+  root:    { flex:1, backgroundColor:colors.bg },
+  header:  { flexDirection:'row', justifyContent:'space-between', alignItems:'center', paddingHorizontal:spacing.xxl, paddingTop:spacing.xl, paddingBottom:spacing.lg, borderBottomWidth:1, borderBottomColor:colors.cardBorder },
+  logo:    { color:colors.accent, fontSize:typography.size.heading2, fontWeight:'700', letterSpacing:5 },
+  logoSub: { color:colors.textMuted, fontSize:typography.size.sm },
+  countBadge: { flexDirection:'row', alignItems:'center', gap:5, backgroundColor:colors.accentSoft, borderRadius:radius.full, paddingHorizontal:spacing.md, paddingVertical:5, borderWidth:1, borderColor:'rgba(232,160,69,0.3)' },
+  countDot:   { width:6, height:6, borderRadius:3, backgroundColor:colors.green },
+  countTxt:   { color:colors.accent, fontSize:typography.size.caption, fontWeight:'500' },
 
   cityGrid:  { flexDirection:'row', flexWrap:'wrap', paddingHorizontal:14, paddingVertical:10, gap:8 },
-  cityChip:  { flexDirection:'row', alignItems:'center', gap:6, paddingHorizontal:14, paddingVertical:9, borderRadius:12, backgroundColor:C.bg3, borderWidth:1, borderColor:'rgba(255,255,255,0.18)' },
-  cityChipOn:{ backgroundColor:C.accent, borderColor:C.accent },
+  cityChip:  { flexDirection:'row', alignItems:'center', gap:6, paddingHorizontal:14, paddingVertical:9, borderRadius:radius.xl, backgroundColor:colors.card, borderWidth:1, borderColor:colors.cardBorder },
+  cityChipOn:{ backgroundColor:colors.accent, borderColor:colors.accent },
   cityEmoji: { fontSize:14 },
-  cityTxt:   { color:C.text, fontSize:13 },
-  cityTxtOn: { color:C.bg, fontWeight:'600' },
-
+  cityTxt:   { color:colors.text, fontSize:typography.size.bodyLg },
+  cityTxtOn: { color:colors.bg, fontWeight:'600' },
 
   gridRow:     { paddingHorizontal:14, justifyContent:'space-between' },
   gridContent: { paddingTop:6 },
 
   center:     { flex:1, alignItems:'center', justifyContent:'center', gap:8 },
-  emptyTitle: { color:C.text, fontSize:16, fontWeight:'300' },
+  emptyTitle: { color:colors.text, fontSize:typography.size.heading2, fontWeight:'300' },
 });
