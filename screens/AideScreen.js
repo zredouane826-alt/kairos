@@ -1,29 +1,17 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  SafeAreaView, Linking,
+  SafeAreaView,
 } from 'react-native';
 import { colors, typography, spacing, radius } from '../src/theme';
-
-const FAQS = [
-  { q: 'Comment annuler une réservation ?',        section: 'Réservations', answer: 'Va dans Profil → Réservations, puis appuie sur la réservation concernée et sélectionne "Annuler". L\'annulation doit être faite au moins 2h avant l\'heure prévue.' },
-  { q: 'Comment fonctionne le système de points ?', section: 'Points & Récompenses', answer: 'Tu gagnes 1 point par tranche de 100 DA dépensés dans les restaurants partenaires Mida. 100 points = 100 DA de bon de réduction.' },
-  { q: 'Mon avis n\'est pas publié ?',              section: 'Avis', answer: 'Les avis Mida sont certifiés : tu peux publier un avis uniquement après avoir honoré une réservation chez ce restaurant. L\'avis est visible sous 24h après modération.' },
-  { q: 'Comment modifier mes informations ?',       section: 'Compte', answer: 'Va dans Profil → appuie sur ton nom ou photo de profil pour modifier tes informations personnelles (nom, téléphone, photo).' },
-  { q: 'Le restaurant n\'a pas honoré ma réservation', section: 'Réclamations', answer: 'Contacte le support via le chat ci-dessus. Nous traiterons ta réclamation sous 24h et, si justifiée, des points de compensation seront crédités sur ton compte.' },
-  { q: 'Comment ajouter mon restaurant sur Mida ?', section: 'Restaurateurs', answer: 'Va dans l\'onglet Profil et appuie sur "Inscris ton restaurant". Tu seras guidé pour créer ta fiche, ajouter tes photos, horaires et menu.' },
-];
+import useAide, { FAQS } from '../src/hooks/useAide';
 
 export default function AideScreen({ navigation }) {
-  const [expanded, setExpanded] = useState(null);
-
-  const openSupport = useCallback(() => Linking.openURL('mailto:support@mida.dz'), []);
-  const toggleFaq   = useCallback((i) => setExpanded(prev => prev === i ? null : i), []);
-  const goBack      = useCallback(() => navigation.goBack(), [navigation]);
+  const { expanded, openSupport, toggleFaq } = useAide();
+  const goBack = useCallback(() => navigation.goBack(), [navigation]);
 
   return (
     <SafeAreaView style={s.root}>
-      {/* Header */}
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={goBack}>
           <Text style={s.backBtnTxt}>←</Text>
@@ -37,13 +25,8 @@ export default function AideScreen({ navigation }) {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={{ padding: spacing.xl, gap: spacing.xl }}>
 
-          {/* Canaux de contact */}
           <View style={s.contactRow}>
-            <TouchableOpacity
-              style={s.contactCard}
-              onPress={openSupport}
-              activeOpacity={0.8}
-            >
+            <TouchableOpacity style={s.contactCard} onPress={openSupport} activeOpacity={0.8}>
               <Text style={s.contactIcon}>💬</Text>
               <Text style={s.contactTitle}>Chat en direct</Text>
               <Text style={s.contactSub}>Réponse en {'<'}5 min</Text>
@@ -53,11 +36,7 @@ export default function AideScreen({ navigation }) {
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[s.contactCard, s.contactCardAlt]}
-              onPress={openSupport}
-              activeOpacity={0.8}
-            >
+            <TouchableOpacity style={[s.contactCard, s.contactCardAlt]} onPress={openSupport} activeOpacity={0.8}>
               <Text style={s.contactIcon}>📧</Text>
               <Text style={[s.contactTitle, { color: colors.text }]}>Email</Text>
               <Text style={s.contactSub}>support@mida.dz</Text>
@@ -65,7 +44,6 @@ export default function AideScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          {/* Astuce urgence */}
           <View style={s.urgenceBanner}>
             <Text style={{ fontSize: 16 }}>📞</Text>
             <View style={{ flex: 1 }}>
@@ -74,7 +52,6 @@ export default function AideScreen({ navigation }) {
             </View>
           </View>
 
-          {/* FAQ */}
           <View>
             <Text style={s.sectionLabel}>❓ Questions fréquentes</Text>
             <View style={s.faqCard}>
@@ -83,11 +60,7 @@ export default function AideScreen({ navigation }) {
                 const isLast = i === FAQS.length - 1;
                 return (
                   <View key={i} style={[s.faqItem, !isLast && s.faqBorder]}>
-                    <TouchableOpacity
-                      style={s.faqQ}
-                      onPress={() => toggleFaq(i)}
-                      activeOpacity={0.8}
-                    >
+                    <TouchableOpacity style={s.faqQ} onPress={() => toggleFaq(i)} activeOpacity={0.8}>
                       <View style={{ flex: 1 }}>
                         <Text style={s.faqQTxt}>{faq.q}</Text>
                         <Text style={s.faqSection}>{faq.section}</Text>
@@ -105,16 +78,11 @@ export default function AideScreen({ navigation }) {
             </View>
           </View>
 
-          {/* Liens légaux */}
           <View>
             <Text style={s.sectionLabel}>📄 Légal</Text>
             <View style={s.legalCard}>
               {["Conditions d'utilisation", "Politique de confidentialité"].map((label, i) => (
-                <TouchableOpacity
-                  key={i}
-                  style={[s.legalRow, i === 0 && s.legalBorder]}
-                  activeOpacity={0.7}
-                >
+                <TouchableOpacity key={i} style={[s.legalRow, i === 0 && s.legalBorder]} activeOpacity={0.7}>
                   <Text style={s.legalTxt}>{label}</Text>
                   <Text style={s.legalArrow}>›</Text>
                 </TouchableOpacity>
@@ -155,16 +123,16 @@ const s = StyleSheet.create({
 
   sectionLabel: { color: colors.text, fontSize: typography.size.body, fontWeight: typography.weight.bold, marginBottom: spacing.md },
 
-  faqCard:    { backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden' },
-  faqItem:    {},
-  faqBorder:  { borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
-  faqQ:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.xl, paddingVertical: spacing.lg, gap: spacing.lg },
-  faqQTxt:    { color: colors.text, fontSize: typography.size.body },
-  faqSection: { color: colors.textDim, fontSize: typography.size.xs, marginTop: 2 },
-  faqChevron: { color: colors.textDim, fontSize: typography.size.subheading },
+  faqCard:        { backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden' },
+  faqItem:        {},
+  faqBorder:      { borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  faqQ:           { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.xl, paddingVertical: spacing.lg, gap: spacing.lg },
+  faqQTxt:        { color: colors.text, fontSize: typography.size.body },
+  faqSection:     { color: colors.textDim, fontSize: typography.size.xs, marginTop: 2 },
+  faqChevron:     { color: colors.textDim, fontSize: typography.size.subheading },
   faqChevronOpen: { transform: [{ rotate: '90deg' }] },
-  faqA:       { paddingHorizontal: spacing.xl, paddingBottom: spacing.lg, paddingTop: 0 },
-  faqATxt:    { color: colors.textMuted, fontSize: typography.size.body, lineHeight: 20 },
+  faqA:           { paddingHorizontal: spacing.xl, paddingBottom: spacing.lg, paddingTop: 0 },
+  faqATxt:        { color: colors.textMuted, fontSize: typography.size.body, lineHeight: 20 },
 
   legalCard:   { backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden' },
   legalRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.xl, paddingVertical: spacing.lg },
