@@ -106,7 +106,7 @@ export default function useComptoir() {
             type:           'resa_confirmed',
             title:          'Réservation confirmée ✓',
             body:           `Votre réservation chez ${restaurant?.name} le ${date} à ${resa.time_slot?.slice(0, 5)} a été confirmée.`,
-          });
+          }).catch(() => {});
         }
       })},
     ]);
@@ -138,7 +138,7 @@ export default function useComptoir() {
             type:           'resa_cancelled',
             title:          'Réservation annulée',
             body:           `Votre réservation chez ${restaurant?.name} le ${date} à ${resa.time_slot?.slice(0, 5)} a été annulée par le restaurant.`,
-          });
+          }).catch(() => {});
         }
       })},
     ]);

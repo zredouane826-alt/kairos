@@ -129,7 +129,7 @@ export default function useReservationForm(restaurant) {
         type:           'new_resa',
         title:          'Demande envoyée',
         body:           `Votre réservation chez ${restaurant.name} le ${formatDateLong(date)} à ${heure} pour ${adults} personne${adults > 1 ? 's' : ''} est en attente de confirmation.`,
-      });
+      }).catch(() => {});
 
       setSuccess(true);
     } finally {
