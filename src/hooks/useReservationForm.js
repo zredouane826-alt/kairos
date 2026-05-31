@@ -123,7 +123,7 @@ export default function useReservationForm(restaurant) {
 
       if (resaErr) { setError(resaErr.message); return; }
 
-      await supabase.from('notifications').insert({
+      supabase.from('notifications').insert({
         recipient_id:   uid,
         recipient_type: 'user',
         type:           'new_resa',

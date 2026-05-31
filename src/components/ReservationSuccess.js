@@ -11,7 +11,7 @@ export default function ReservationSuccess({
     <Animated.ScrollView
       contentContainerStyle={s.wrap}
       showsVerticalScrollIndicator={false}
-      style={{ opacity: successAnim, transform: [{ scale: successScale }] }}
+      style={{ transform: [{ scale: successScale }] }}
     >
       <View style={s.ring}>
         <View style={s.check}>

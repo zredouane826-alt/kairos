@@ -100,7 +100,7 @@ export default function useComptoir() {
         setReservations(prev => prev.map(r => r.id === resa.id ? { ...r, status: 'confirmed' } : r));
         if (resa.user_id) {
           const date = new Date(resa.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-          await supabase.from('notifications').insert({
+          supabase.from('notifications').insert({
             recipient_id:   resa.user_id,
             recipient_type: 'user',
             type:           'resa_confirmed',
@@ -132,7 +132,7 @@ export default function useComptoir() {
         setReservations(prev => prev.map(r => r.id === resa.id ? { ...r, status: 'cancelled' } : r));
         if (resa.user_id) {
           const date = new Date(resa.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-          await supabase.from('notifications').insert({
+          supabase.from('notifications').insert({
             recipient_id:   resa.user_id,
             recipient_type: 'user',
             type:           'resa_cancelled',
