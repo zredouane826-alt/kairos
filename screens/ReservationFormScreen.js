@@ -1,8 +1,24 @@
-import { useCallback } from 'react';
+import { useCallback, Component } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   SafeAreaView, TextInput, Image, Animated,
 } from 'react-native';
+
+class ErrorBoundary extends Component {
+  state = { error: null };
+  static getDerivedStateFromError(e) { return { error: e }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <View style={{ flex: 1, backgroundColor: '#0d1628', alignItems: 'center', justifyContent: 'center', padding: 30 }}>
+          <Text style={{ color: '#e85a5a', fontSize: 16, fontWeight: 'bold', marginBottom: 10 }}>Erreur de rendu</Text>
+          <Text style={{ color: '#f0ece4', fontSize: 13, textAlign: 'center' }}>{this.state.error?.message}</Text>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
 import { colors, typography, spacing, radius } from '../src/theme';
 import useReservationForm, { MIDI_SLOTS, SOIR_SLOTS, OCCASIONS, DAYS, formatDateLong } from '../src/hooks/useReservationForm';
 import FormProgressBar from '../src/components/FormProgressBar';
@@ -24,7 +40,7 @@ const SLOT_GROUPS = [
   { label: 'Dîner',    icon: '🌙', slots: SOIR_SLOTS },
 ];
 
-export default function ReservationFormScreen({ route, navigation }) {
+function ReservationFormInner({ route, navigation }) {
   const restaurant = route?.params?.restaurant || { name: 'Restaurant', id: null, photo_url: null, avg_rating: null };
 
   const onSuccess = useCallback(() => navigation.navigate('Main'), [navigation]);
@@ -265,6 +281,14 @@ export default function ReservationFormScreen({ route, navigation }) {
         <View style={{ height: 60 }} />
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+export default function ReservationFormScreen(props) {
+  return (
+    <ErrorBoundary>
+      <ReservationFormInner {...props} />
+    </ErrorBoundary>
   );
 }
 
