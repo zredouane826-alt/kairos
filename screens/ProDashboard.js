@@ -11,6 +11,7 @@ import useDashboard, { FILTERS, DATE_FILTERS } from '../src/hooks/useDashboard';
 import WeekStrip from '../src/components/WeekStrip';
 import StatCard from '../src/components/StatCard';
 import AlertBanner from '../src/components/AlertBanner';
+import MidaLogo from '../src/components/MidaLogo';
 import DashResaCard from '../src/components/DashResaCard';
 
 function SkeletonDashboard() {
@@ -65,6 +66,7 @@ export default function ProDashboard({ navigation }) {
         {/* Header */}
         <View style={s.header}>
           <View style={{ flex: 1 }}>
+            <MidaLogo showTagline={false} style={{ alignItems: 'flex-start', marginBottom: spacing.xs }} />
             <Text style={s.headerGreeting}>{greetingTxt} 👋</Text>
             <Text style={s.headerTitle}>{restaurant?.name || 'Manager'}</Text>
           </View>
