@@ -9,6 +9,7 @@ import useReservations, { daysUntil } from '../src/hooks/useReservations';
 import NextResaCard from '../src/components/NextResaCard';
 import SmallResaCard from '../src/components/SmallResaCard';
 import HistResaCard from '../src/components/HistResaCard';
+import MidaLogo from '../src/components/MidaLogo';
 
 function SkeletonView() {
   return (
@@ -59,6 +60,7 @@ export default function ReservationScreen({ navigation }) {
 
       <View style={s.header}>
         <View style={{ flex:1 }}>
+          <MidaLogo showTagline={false} style={{ alignItems: 'flex-start', marginBottom: spacing.xs }} />
           <Text style={s.headerSub}>MES RÉSERVATIONS</Text>
           <Text style={s.headerTitle}>
             {aVenir.length > 0
