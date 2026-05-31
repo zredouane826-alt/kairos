@@ -9,6 +9,7 @@ import { colors, typography, spacing, radius } from '../src/theme';
 import useExplorer, { CITIES, getCoord } from '../src/hooks/useExplorer';
 import RestaurantPin from '../src/components/RestaurantPin';
 import ExplorerRestoCard, { CARD_W } from '../src/components/ExplorerRestoCard';
+import MidaLogo from '../src/components/MidaLogo';
 
 const TOP = Platform.OS === 'android' ? (RNStatusBar.currentHeight || 0) : 0;
 
@@ -114,7 +115,7 @@ export default function ExplorerScreen({ navigation, route }) {
             <Text style={s.backBtnTxt}>←</Text>
           </TouchableOpacity>
           <View>
-            <Text style={s.headerLogo}>MIDA</Text>
+            <MidaLogo showTagline={false} style={{ alignItems: 'center', marginBottom: 2 }} />
             <Text style={s.headerSub}>Explorer</Text>
           </View>
           <View style={{ flexDirection:'row', gap:8, alignItems:'center' }}>
@@ -174,7 +175,6 @@ const s = StyleSheet.create({
 
   overlay:     { position:'absolute', top:0, left:0, right:0, zIndex:10 },
   header:      { flexDirection:'row', justifyContent:'space-between', alignItems:'center', margin:14, marginTop:TOP+10, backgroundColor:'rgba(15,13,11,0.92)', borderRadius:radius.xxl, paddingHorizontal:spacing.xl, paddingVertical:11, borderWidth:1, borderColor:colors.cardBorder },
-  headerLogo:  { color:colors.accent, fontSize:typography.size.subheading, fontWeight:'700', letterSpacing:5 },
   headerSub:   { color:colors.textMuted, fontSize:typography.size.sm },
   countBadge:  { flexDirection:'row', alignItems:'center', gap:5, backgroundColor:colors.accentSoft, borderRadius:radius.full, paddingHorizontal:spacing.md, paddingVertical:5, borderWidth:1, borderColor:'rgba(232,160,69,0.3)' },
   countDot:    { width:6, height:6, borderRadius:3, backgroundColor:colors.green },
