@@ -9,6 +9,7 @@ import useRestaurant from '../src/hooks/useRestaurant';
 import RestaurantMenuTab from '../src/components/RestaurantMenuTab';
 import RestaurantAvisTab from '../src/components/RestaurantAvisTab';
 import RestaurantInfosTab from '../src/components/RestaurantInfosTab';
+import MidaLogo from '../src/components/MidaLogo';
 
 const SW   = Dimensions.get('window').width;
 const HERO = 310;
@@ -69,6 +70,8 @@ export default function RestaurantScreen({ route, navigation }) {
         <TouchableOpacity style={[s.heroBtn, { left: spacing.xl }]} onPress={goBack}>
           <Text style={s.heroBtnTxt}>←</Text>
         </TouchableOpacity>
+
+        <MidaLogo showTagline={false} style={s.heroLogo} />
 
         <TouchableOpacity style={[s.heroBtn, { right: spacing.xl }]} onPress={toggleFav} disabled={favLoading}>
           <Text style={favLoading ? s.heroBtnActing : s.heroBtnIcon}>
@@ -154,7 +157,7 @@ export default function RestaurantScreen({ route, navigation }) {
       <Animated.ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, opacity: tabAnim }}>
         {tab === 'Menu' && <RestaurantMenuTab menu={menu} />}
         {tab === 'Avis' && <RestaurantAvisTab restaurant={restaurant} reviews={reviews} loadingReviews={loadingReviews} />}
-        {tab === 'Infos' && <RestaurantInfosTab restaurant={restaurant} />}
+        {tab === 'Infos' && <RestaurantInfosTab restaurant={restaurant} desc={desc} />}
         <View style={{ height: 100 }} />
       </Animated.ScrollView>
 
@@ -185,6 +188,7 @@ const s = StyleSheet.create({
 
   hero:         { height: HERO, overflow: 'hidden' },
   heroBtn:      { position: 'absolute', top: TOP, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(15,13,11,0.76)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(240,235,227,0.12)' },
+  heroLogo:     { position: 'absolute', top: TOP + 2, alignSelf: 'center', left: 0, right: 0 },
   heroBtnTxt:   { color: colors.text, fontSize: typography.size.heading1 },
   heroBtnIcon:  { fontSize: typography.size.heading1 },
   heroBtnActing:{ color: colors.accent, fontSize: typography.size.bodyLg, fontWeight: typography.weight.bold },
