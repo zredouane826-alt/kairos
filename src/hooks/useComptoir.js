@@ -100,13 +100,15 @@ export default function useComptoir() {
         setReservations(prev => prev.map(r => r.id === resa.id ? { ...r, status: 'confirmed' } : r));
         if (resa.user_id) {
           const date = new Date(resa.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-          supabase.from('notifications').insert({
-            recipient_id:   resa.user_id,
-            recipient_type: 'user',
-            type:           'resa_confirmed',
-            title:          'Réservation confirmée ✓',
-            body:           `Votre réservation chez ${restaurant?.name} le ${date} à ${resa.time_slot?.slice(0, 5)} a été confirmée.`,
-          }).catch(() => {});
+          try {
+            await supabase.from('notifications').insert({
+              recipient_id:   resa.user_id,
+              recipient_type: 'user',
+              type:           'resa_confirmed',
+              title:          'Réservation confirmée ✓',
+              body:           `Votre réservation chez ${restaurant?.name} le ${date} à ${resa.time_slot?.slice(0, 5)} a été confirmée.`,
+            });
+          } catch (_) {}
         }
       })},
     ]);
@@ -132,13 +134,15 @@ export default function useComptoir() {
         setReservations(prev => prev.map(r => r.id === resa.id ? { ...r, status: 'cancelled' } : r));
         if (resa.user_id) {
           const date = new Date(resa.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-          supabase.from('notifications').insert({
-            recipient_id:   resa.user_id,
-            recipient_type: 'user',
-            type:           'resa_cancelled',
-            title:          'Réservation annulée',
-            body:           `Votre réservation chez ${restaurant?.name} le ${date} à ${resa.time_slot?.slice(0, 5)} a été annulée par le restaurant.`,
-          }).catch(() => {});
+          try {
+            await supabase.from('notifications').insert({
+              recipient_id:   resa.user_id,
+              recipient_type: 'user',
+              type:           'resa_cancelled',
+              title:          'Réservation annulée',
+              body:           `Votre réservation chez ${restaurant?.name} le ${date} à ${resa.time_slot?.slice(0, 5)} a été annulée par le restaurant.`,
+            });
+          } catch (_) {}
         }
       })},
     ]);

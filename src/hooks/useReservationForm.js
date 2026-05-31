@@ -107,13 +107,15 @@ export default function useReservationForm(restaurant, onSuccess) {
 
       if (resaErr) { setError(resaErr.message); return; }
 
-      supabase.from('notifications').insert({
-        recipient_id:   uid,
-        recipient_type: 'user',
-        type:           'new_resa',
-        title:          'Demande envoyée',
-        body:           `Votre réservation chez ${restaurant.name} le ${formatDateLong(date)} à ${heure} pour ${adults} personne${adults > 1 ? 's' : ''} est en attente de confirmation.`,
-      }).catch(() => {});
+      try {
+        await supabase.from('notifications').insert({
+          recipient_id:   uid,
+          recipient_type: 'user',
+          type:           'new_resa',
+          title:          'Demande envoyée',
+          body:           `Votre réservation chez ${restaurant.name} le ${formatDateLong(date)} à ${heure} pour ${adults} personne${adults > 1 ? 's' : ''} est en attente de confirmation.`,
+        });
+      } catch (_) {}
 
       onSuccess?.();
     } catch (e) {
