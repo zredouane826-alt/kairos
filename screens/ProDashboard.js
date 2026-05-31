@@ -8,6 +8,7 @@ import { supabase } from '../supabase';
 import { colors, typography, spacing, radius } from '../src/theme';
 import MLoader from '../src/components/MLoader';
 import usePushNotifications from '../src/hooks/usePushNotifications';
+import useDeepLink from '../src/hooks/useDeepLink';
 
 const STATUS = {
   pending:   { label:'EN ATTENTE', color: colors.accent, bg: colors.accentSoft,             border: 'rgba(232,160,69,0.3)'  },
@@ -259,7 +260,8 @@ const rc = StyleSheet.create({
 
 /* ─── Écran principal ─── */
 export default function ProDashboard({ navigation }) {
-  usePushNotifications();
+  usePushNotifications(navigation);
+  useDeepLink(navigation);
   const [restaurant,   setRestaurant]   = useState(null);
   const [reservations, setReservations] = useState([]);
   const [loading,      setLoading]      = useState(true);

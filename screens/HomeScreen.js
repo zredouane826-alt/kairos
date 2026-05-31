@@ -8,6 +8,7 @@ import { supabase } from '../supabase';
 import { colors, typography, spacing, radius } from '../src/theme';
 import MLoader from '../src/components/MLoader';
 import usePushNotifications from '../src/hooks/usePushNotifications';
+import useDeepLink from '../src/hooks/useDeepLink';
 
 const SW     = Dimensions.get('window').width;
 const CARD_W = SW - 40;
@@ -263,7 +264,8 @@ function SkeletonCard() {
 
 /* ── Écran principal ── */
 export default function HomeScreen({ navigation }) {
-  usePushNotifications();
+  usePushNotifications(navigation);
+  useDeepLink(navigation);
   const [city,         setCity]         = useState('alger');
   const [category,     setCategory]     = useState('all');
   const [restaurants,  setRestaurants]  = useState([]);

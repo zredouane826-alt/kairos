@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { Platform, Alert } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
@@ -54,22 +53,34 @@ async function savePushToken(token) {
   }
 }
 
-export default function usePushNotifications() {
-  const notifListener = useRef(null);
+function handleNotificationTap(response, navigation) {
+  if (!navigation) return;
+  navigation.navigate('Notifications');
+}
+
+export default function usePushNotifications(navigation) {
+  const notifListener   = useRef(null);
   const responseListener = useRef(null);
 
   useEffect(() => {
     registerForPushNotifications().then(savePushToken);
 
+    // Tap sur notif quand app était fermée (cold start)
+    Notifications.getLastNotificationResponseAsync().then(response => {
+      if (response) handleNotificationTap(response, navigation);
+    });
+
     // Notification reçue quand app est ouverte
     notifListener.current = Notifications.addNotificationReceivedListener(() => {});
 
-    // Utilisateur a tapé sur la notification
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(() => {});
+    // Utilisateur a tapé sur la notification (app en arrière-plan ou ouverte)
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      handleNotificationTap(response, navigation);
+    });
 
     return () => {
       notifListener.current?.remove();
       responseListener.current?.remove();
     };
-  }, []);
+  }, [navigation]);
 }

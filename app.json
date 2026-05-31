@@ -3,6 +3,7 @@
     "name": "MIDA",
     "slug": "mida",
     "version": "1.0.0",
+    "scheme": "mida",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "dark",
