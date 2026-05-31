@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   SafeAreaView, KeyboardAvoidingView, Platform, ScrollView,
@@ -5,6 +6,7 @@ import {
 } from 'react-native';
 import { colors, typography, spacing, radius } from '../src/theme';
 import useAuth from '../src/hooks/useAuth';
+import MidaLogo from '../src/components/MidaLogo';
 
 function Field({ icon, label, children }) {
   return (
@@ -33,6 +35,8 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
     sendReset, submit,
   } = useAuth({ onAuth, userType, onSwitchType });
 
+  const passwordRef = useRef(null);
+
   return (
     <SafeAreaView style={s.root}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
@@ -44,8 +48,7 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
                 <Text style={s.heroStar}>✦</Text>
               </View>
             </Animated.View>
-            <Text style={s.logo}>mida</Text>
-            <Text style={s.tagline}>La bonne table, au bon moment.</Text>
+            <MidaLogo />
           </View>
 
           {isPro && (
@@ -85,6 +88,9 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
+                returnKeyType="next"
+                onSubmitEditing={() => passwordRef.current?.focus()}
+                blurOnSubmit={false}
                 value={email}
                 onChangeText={setEmail}
               />
@@ -92,10 +98,13 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
 
             <Field icon="🔒" label="Mot de passe">
               <TextInput
+                ref={passwordRef}
                 style={[s.input, { flex: 1 }]}
                 placeholder="••••••••"
                 placeholderTextColor={colors.textDim}
                 secureTextEntry={!showPwd}
+                returnKeyType="done"
+                onSubmitEditing={submit}
                 value={password}
                 onChangeText={setPassword}
               />
@@ -183,8 +192,6 @@ const s = StyleSheet.create({
   heroRingOuter: { width: 88, height: 88, borderRadius: radius.xxl, backgroundColor: colors.accentSoft, borderWidth: 1.5, borderColor: 'rgba(232,160,69,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xxl },
   heroRingInner: { width: 60, height: 60, borderRadius: radius.xl, backgroundColor: colors.accentSoft, borderWidth: 1, borderColor: 'rgba(232,160,69,0.3)', alignItems: 'center', justifyContent: 'center' },
   heroStar:      { color: colors.accent, fontSize: 28 },
-  logo:          { color: colors.accent, fontSize: typography.size.display, fontWeight: typography.weight.black, letterSpacing: -1, marginBottom: spacing.sm, fontFamily: 'Georgia' },
-  tagline:       { color: colors.textMuted, fontSize: typography.size.body, fontStyle: 'italic', letterSpacing: 0.5 },
 
   tabRow:   { flexDirection: 'row', backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, padding: 4, marginBottom: spacing.xl },
   tabBtn:   { flex: 1, paddingVertical: spacing.lg, alignItems: 'center', borderRadius: radius.xl },

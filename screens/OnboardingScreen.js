@@ -3,6 +3,7 @@ import {
 } from 'react-native';
 import { colors, typography, spacing, radius } from '../src/theme';
 import useOnboarding, { SLIDES, CITIES, TOTAL } from '../src/hooks/useOnboarding';
+import MidaLogo from '../src/components/MidaLogo';
 
 function Dots({ total, current, accentColor }) {
   return (
@@ -140,7 +141,7 @@ export default function OnboardingScreen({ onSelect }) {
       <Animated.View style={[s.stepWrap, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
 
         <View style={s.stepHeader}>
-          <Text style={s.logoMain}>mida</Text>
+          <MidaLogo showTagline={false} style={{ marginBottom: spacing.xxl }} />
           <Text style={s.stepTitle}>Vous êtes…</Text>
           <Text style={s.stepSub}>Choisissez votre profil pour commencer.</Text>
         </View>
@@ -221,7 +222,6 @@ const s = StyleSheet.create({
   stepTag:    { color: colors.accent, fontSize: typography.size.xs, letterSpacing: 3, fontWeight: typography.weight.semibold, marginBottom: spacing.lg },
   stepTitle:  { color: colors.text, fontSize: typography.size.hero, fontWeight: typography.weight.regular, letterSpacing: 0.3, marginBottom: spacing.md, textAlign: 'center' },
   stepSub:    { color: colors.textMuted, fontSize: typography.size.bodyLg, textAlign: 'center', lineHeight: 20 },
-  logoMain:   { color: colors.accent, fontSize: typography.size.display, fontWeight: typography.weight.black, letterSpacing: 2, marginBottom: spacing.xxl, fontFamily: 'Georgia' },
 
   cityCards:       { gap: spacing.lg },
   cityCard:        { flexDirection: 'row', alignItems: 'center', gap: spacing.xl, backgroundColor: colors.card, borderRadius: radius.xxl - 2, borderWidth: 1, borderColor: colors.cardBorder, padding: spacing.xl },
