@@ -10,6 +10,7 @@ import Clock from '../src/components/Clock';
 import ResaRow from '../src/components/ResaRow';
 import CompactResaRow from '../src/components/CompactResaRow';
 import ResaDetail from '../src/components/ResaDetail';
+import MidaLogo from '../src/components/MidaLogo';
 
 function StatBox({ label, value, color }) {
   return (
@@ -79,7 +80,7 @@ export default function ProComptoir({ navigation }) {
           </TouchableOpacity>
         )}
         <View>
-          <Text style={s.logo}>MIDA</Text>
+          <MidaLogo showTagline={false} style={{ alignItems: 'flex-start', marginBottom: spacing.xxs }} />
           <Text style={s.restoName}>{restaurant?.name || 'Mode comptoir'}</Text>
         </View>
       </View>
@@ -195,7 +196,6 @@ const s = StyleSheet.create({
   headerRight: { flex: 1, alignItems: 'flex-end' },
   backBtn:     { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.cardHover, borderWidth: 1, borderColor: colors.cardBorder, alignItems: 'center', justifyContent: 'center' },
   backTxt:     { color: colors.text, fontSize: 22 },
-  logo:        { color: colors.accent, fontSize: typography.size.title, fontWeight: typography.weight.bold, letterSpacing: 6 },
   restoName:   { color: colors.textMuted, fontSize: typography.size.caption, letterSpacing: 1, marginTop: 2 },
   refreshBtn:  { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.cardHover, borderRadius: radius.lg, paddingHorizontal: spacing.xl, paddingVertical: spacing.lg, borderWidth: 1, borderColor: colors.cardBorder },
   refreshTxt:  { color: colors.accent, fontSize: typography.size.subheading, fontWeight: typography.weight.regular, letterSpacing: 0.5 },
