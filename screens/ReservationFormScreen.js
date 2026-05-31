@@ -286,7 +286,6 @@ export default function ReservationFormScreen({ route, navigation }) {
   );
 }
 
-export default function ReservationFormScreen(props) {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
 
