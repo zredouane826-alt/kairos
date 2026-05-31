@@ -132,6 +132,8 @@ export default function useReservationForm(restaurant) {
       }).catch(() => {});
 
       setSuccess(true);
+    } catch (e) {
+      setError(e?.message || 'Une erreur inattendue est survenue.');
     } finally {
       setLoading(false);
     }

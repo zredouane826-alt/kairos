@@ -47,7 +47,6 @@ export default function ReservationFormScreen({ route, navigation }) {
           restaurant={restaurant}
           date={date} heure={heure} adults={adults} children={children}
           occasionObj={occasionObj}
-          successAnim={successAnim} successScale={successScale}
           onGoHome={goHome} onReset={resetForm}
         />
       </SafeAreaView>

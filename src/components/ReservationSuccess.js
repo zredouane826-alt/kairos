@@ -1,17 +1,15 @@
-import { View, Text, TouchableOpacity, Image, StyleSheet, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView } from 'react-native';
 import { colors, typography, spacing, radius } from '../theme';
 import { formatDateLong } from '../hooks/useReservationForm';
 
 export default function ReservationSuccess({
   restaurant, date, heure, adults, children, occasionObj,
-  successAnim, successScale,
   onGoHome, onReset,
 }) {
   return (
-    <Animated.ScrollView
+    <ScrollView
       contentContainerStyle={s.wrap}
       showsVerticalScrollIndicator={false}
-      style={{ transform: [{ scale: successScale }] }}
     >
       <View style={s.ring}>
         <View style={s.check}>
@@ -82,7 +80,7 @@ export default function ReservationSuccess({
         <Text style={s.btnOutlineTxt}>Faire une autre réservation</Text>
       </TouchableOpacity>
       <View style={{ height: 40 }} />
-    </Animated.ScrollView>
+    </ScrollView>
   );
 }
 
