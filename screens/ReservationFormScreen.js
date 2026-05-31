@@ -1,29 +1,14 @@
-import { useCallback, Component } from 'react';
+import { useCallback, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   SafeAreaView, TextInput, Image, Animated,
 } from 'react-native';
-
-class ErrorBoundary extends Component {
-  state = { error: null };
-  static getDerivedStateFromError(e) { return { error: e }; }
-  render() {
-    if (this.state.error) {
-      return (
-        <View style={{ flex: 1, backgroundColor: '#0d1628', alignItems: 'center', justifyContent: 'center', padding: 30 }}>
-          <Text style={{ color: '#e85a5a', fontSize: 16, fontWeight: 'bold', marginBottom: 10 }}>Erreur de rendu</Text>
-          <Text style={{ color: '#f0ece4', fontSize: 13, textAlign: 'center' }}>{this.state.error?.message}</Text>
-        </View>
-      );
-    }
-    return this.props.children;
-  }
-}
 import { colors, typography, spacing, radius } from '../src/theme';
 import useReservationForm, { MIDI_SLOTS, SOIR_SLOTS, OCCASIONS, DAYS, formatDateLong } from '../src/hooks/useReservationForm';
 import FormProgressBar from '../src/components/FormProgressBar';
 import FormStepper from '../src/components/FormStepper';
 import MidaLogo from '../src/components/MidaLogo';
+import ReservationSuccess from '../src/components/ReservationSuccess';
 
 function SumRow({ icon, label, val, accent, last }) {
   return (
@@ -40,10 +25,12 @@ const SLOT_GROUPS = [
   { label: 'Dîner',    icon: '🌙', slots: SOIR_SLOTS },
 ];
 
-function ReservationFormInner({ route, navigation }) {
+export default function ReservationFormScreen({ route, navigation }) {
   const restaurant = route?.params?.restaurant || { name: 'Restaurant', id: null, photo_url: null, avg_rating: null };
 
-  const onSuccess = useCallback(() => navigation.navigate('Main'), [navigation]);
+  const [success, setSuccess] = useState(false);
+
+  const onSuccess = useCallback(() => setSuccess(true), []);
 
   const {
     date, setDate, heure, setHeure,
@@ -57,6 +44,21 @@ function ReservationFormInner({ route, navigation }) {
   const goBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const step = date ? (heure ? 2 : 1) : 0;
+
+  if (success) {
+    return (
+      <SafeAreaView style={s.root}>
+        <ReservationSuccess
+          restaurant={restaurant}
+          date={formatDateLong(date)}
+          heure={heure}
+          adults={adults}
+          onGoHome={() => navigation.navigate('Main')}
+          onReset={() => setSuccess(false)}
+        />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={s.root}>
@@ -285,13 +287,6 @@ function ReservationFormInner({ route, navigation }) {
 }
 
 export default function ReservationFormScreen(props) {
-  return (
-    <ErrorBoundary>
-      <ReservationFormInner {...props} />
-    </ErrorBoundary>
-  );
-}
-
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
 

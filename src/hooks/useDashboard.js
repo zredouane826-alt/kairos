@@ -50,7 +50,7 @@ export default function useDashboard() {
   const [loading,      setLoading]      = useState(true);
   const [refreshing,   setRefreshing]   = useState(false);
   const [filter,       setFilter]       = useState('Tout');
-  const [dateFilter,   setDateFilter]   = useState("Aujourd'hui");
+  const [dateFilter,   setDateFilter]   = useState('Tout');
   const [acting,       setActing]       = useState(new Set());
 
   const addActing    = useCallback(id => setActing(p => new Set(p).add(id)), []);
