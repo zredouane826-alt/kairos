@@ -140,11 +140,6 @@ export default function RestaurantScreen({ route, navigation }) {
         </View>
       </View>
 
-      {/* Description */}
-      <View style={s.descWrap}>
-        <Text style={s.descTxt} numberOfLines={3}>{desc}</Text>
-      </View>
-
       {/* Tabs */}
       <View style={s.tabBar}>
         {['Menu', 'Avis', 'Infos'].map(t => (
