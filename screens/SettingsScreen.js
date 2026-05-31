@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { colors, typography, spacing, radius } from '../src/theme';
 import useSettings, { GROUPS } from '../src/hooks/useSettings';
+import MidaLogo from '../src/components/MidaLogo';
 
 export default function SettingsScreen({ navigation }) {
   const { toggles, toggle } = useSettings();
@@ -17,7 +18,10 @@ export default function SettingsScreen({ navigation }) {
         <TouchableOpacity style={s.backBtn} onPress={goBack}>
           <Text style={s.backBtnTxt}>←</Text>
         </TouchableOpacity>
-        <Text style={s.title}>Paramètres</Text>
+        <View style={{ flex: 1 }}>
+          <MidaLogo showTagline={false} style={{ alignItems: 'flex-start', marginBottom: 2 }} />
+          <Text style={s.title}>Paramètres</Text>
+        </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>

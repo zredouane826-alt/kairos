@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { colors, typography, spacing, radius } from '../src/theme';
 import MLoader from '../src/components/MLoader';
+import MidaLogo from '../src/components/MidaLogo';
 import useProPromos from '../src/hooks/useProPromos';
 import PromoListView from '../src/components/PromoListView';
 import PromoCreateView from '../src/components/PromoCreateView';
@@ -33,6 +34,7 @@ export default function ProPromosScreen({ navigation }) {
             <Text style={s.backBtnTxt}>←</Text>
           </TouchableOpacity>
           <View>
+            <MidaLogo showTagline={false} style={{ alignItems: 'flex-start', marginBottom: 2 }} />
             <Text style={s.title}>
               {view === 'list'   ? 'Mes promotions'      :
                view === 'create' ? 'Créer une promotion' :

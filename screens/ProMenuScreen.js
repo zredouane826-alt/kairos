@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { colors, typography, spacing, radius } from '../src/theme';
 import MLoader from '../src/components/MLoader';
+import MidaLogo from '../src/components/MidaLogo';
 import useProMenu, { DEFAULT_CATS, EMPTY_FORM } from '../src/hooks/useProMenu';
 import DishCard from '../src/components/DishCard';
 import DishForm from '../src/components/DishForm';
@@ -85,6 +86,7 @@ export default function ProMenuScreen({ navigation }) {
           <Text style={s.backBtnTxt}>←</Text>
         </TouchableOpacity>
         <View style={s.headerCenter}>
+          <MidaLogo showTagline={false} style={{ alignItems: 'center', marginBottom: 2 }} />
           <Text style={s.headerSub}>GESTION DU MENU</Text>
           <Text style={s.headerTitle}>{restaurant?.name || 'Menu'}</Text>
         </View>

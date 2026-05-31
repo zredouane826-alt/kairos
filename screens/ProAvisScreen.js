@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { colors, typography, spacing, radius } from '../src/theme';
 import MLoader from '../src/components/MLoader';
+import MidaLogo from '../src/components/MidaLogo';
 import useProAvis, { FILTERS } from '../src/hooks/useProAvis';
 import AvisStats from '../src/components/AvisStats';
 import ReviewCard from '../src/components/ReviewCard';
@@ -36,6 +37,7 @@ export default function ProAvisScreen({ navigation }) {
           <Text style={s.backBtnTxt}>←</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
+          <MidaLogo showTagline={false} style={{ alignItems: 'flex-start', marginBottom: 2 }} />
           <Text style={s.title}>Avis clients</Text>
           {restaurant && <Text style={s.subtitle}>{restaurant.name}</Text>}
         </View>

@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { colors, typography, spacing, radius } from '../src/theme';
 import useAide, { FAQS } from '../src/hooks/useAide';
+import MidaLogo from '../src/components/MidaLogo';
 
 export default function AideScreen({ navigation }) {
   const { expanded, openSupport, toggleFaq } = useAide();
@@ -17,6 +18,7 @@ export default function AideScreen({ navigation }) {
           <Text style={s.backBtnTxt}>←</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
+          <MidaLogo showTagline={false} style={{ alignItems: 'flex-start', marginBottom: 2 }} />
           <Text style={s.title}>Aide & Support</Text>
           <Text style={s.subtitle}>On est là pour t'aider</Text>
         </View>
