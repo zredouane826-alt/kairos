@@ -5,11 +5,13 @@ import { supabase } from '../../supabase';
 import { colors } from '../theme';
 
 export const TYPE_CFG = {
-  confirm:      { icon: '✅', color: colors.green,  label: 'Confirmation', group: 'resa' },
-  cancellation: { icon: '❌', color: colors.red,    label: 'Annulation',   group: 'resa' },
-  new_resa:     { icon: '📅', color: colors.blue,   label: 'Réservation',  group: 'resa' },
-  reminder:     { icon: '⏰', color: colors.accent, label: 'Rappel',       group: 'rappel' },
-  review_ask:   { icon: '⭐', color: colors.accent,  label: 'Avis',         group: 'rappel' },
+  confirm:        { icon: '✅', color: colors.green,  label: 'Confirmation', group: 'resa' },
+  resa_confirmed: { icon: '✅', color: colors.green,  label: 'Confirmation', group: 'resa' },
+  cancellation:   { icon: '❌', color: colors.red,    label: 'Annulation',   group: 'resa' },
+  resa_cancelled: { icon: '❌', color: colors.red,    label: 'Annulation',   group: 'resa' },
+  new_resa:       { icon: '📅', color: colors.blue,   label: 'Réservation',  group: 'resa' },
+  reminder:       { icon: '⏰', color: colors.accent, label: 'Rappel',       group: 'rappel' },
+  review_ask:     { icon: '⭐', color: colors.accent, label: 'Avis',         group: 'rappel' },
 };
 
 export const TABS = [

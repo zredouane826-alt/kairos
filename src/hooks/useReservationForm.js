@@ -119,6 +119,25 @@ export default function useReservationForm(restaurant, onSuccess, existingResa =
             body:           `Votre réservation chez ${restaurant.name} a été modifiée : ${formatDateLong(date)} à ${heure} pour ${adults} personne${adults > 1 ? 's' : ''}.`,
           });
         } catch (_) {}
+        try {
+          const { data: owner } = await supabase
+            .from('restaurant_owners').select('auth_id')
+            .eq('restaurant_id', restaurant.id).maybeSingle();
+          if (owner?.auth_id) {
+            const { data: mgr } = await supabase
+              .from('users').select('id')
+              .eq('auth_id', owner.auth_id).maybeSingle();
+            if (mgr) {
+              await supabase.from('notifications').insert({
+                recipient_id:   mgr.id,
+                recipient_type: 'user',
+                type:           'new_resa',
+                title:          'Réservation modifiée',
+                body:           `Modification pour le ${formatDateLong(date)} à ${heure} · ${adults} couvert${adults > 1 ? 's' : ''}.`,
+              });
+            }
+          }
+        } catch (_) {}
       } else {
         const { error: resaErr } = await supabase.from('reservations').insert({
           user_id:       uid,
@@ -139,6 +158,25 @@ export default function useReservationForm(restaurant, onSuccess, existingResa =
             title:          'Demande envoyée',
             body:           `Votre réservation chez ${restaurant.name} le ${formatDateLong(date)} à ${heure} pour ${adults} personne${adults > 1 ? 's' : ''} est en attente de confirmation.`,
           });
+        } catch (_) {}
+        try {
+          const { data: owner } = await supabase
+            .from('restaurant_owners').select('auth_id')
+            .eq('restaurant_id', restaurant.id).maybeSingle();
+          if (owner?.auth_id) {
+            const { data: mgr } = await supabase
+              .from('users').select('id')
+              .eq('auth_id', owner.auth_id).maybeSingle();
+            if (mgr) {
+              await supabase.from('notifications').insert({
+                recipient_id:   mgr.id,
+                recipient_type: 'user',
+                type:           'new_resa',
+                title:          'Nouvelle réservation',
+                body:           `Demande pour le ${formatDateLong(date)} à ${heure} · ${adults} couvert${adults > 1 ? 's' : ''}.`,
+              });
+            }
+          }
         } catch (_) {}
       }
 
