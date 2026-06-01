@@ -12,7 +12,7 @@ function Thumb({ url, size = 52 }) {
   );
 }
 
-export default function HistResaCard({ r, onReserveAgain, onPress, onReview, hasReview }) {
+export default function HistResaCard({ r, onReserveAgain, onPress, onReview, hasReview, isPendingReview }) {
   const sc        = statusCfg(r.status);
   const canRebook = ['completed','arrived','no_show'].includes(r.status);
   const canReview = ['arrived','completed','confirmed'].includes(r.status) && !!r.restaurants?.id;
@@ -33,11 +33,13 @@ export default function HistResaCard({ r, onReserveAgain, onPress, onReview, has
           {canReview && onReview && (
             hasReview
               ? <Text style={s.reviewed}>✓ Avis publié</Text>
-              : (
-                <TouchableOpacity onPress={() => onReview(r)} style={s.reviewBtn}>
-                  <Text style={s.reviewBtnTxt}>★ Laisser un avis</Text>
-                </TouchableOpacity>
-              )
+              : isPendingReview
+                ? <Text style={s.pending}>⏳ Modération en cours</Text>
+                : (
+                  <TouchableOpacity onPress={() => onReview(r)} style={s.reviewBtn}>
+                    <Text style={s.reviewBtnTxt}>★ Laisser un avis</Text>
+                  </TouchableOpacity>
+                )
           )}
         </View>
       </View>
@@ -56,4 +58,5 @@ const s = StyleSheet.create({
   reviewBtn:    { backgroundColor: colors.accentSoft, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.xxs, borderWidth:1, borderColor:'rgba(232,160,69,0.3)' },
   reviewBtnTxt: { color: colors.accent, fontSize: typography.size.caption, fontWeight: typography.weight.regular },
   reviewed:     { color: colors.green, fontSize: typography.size.caption },
+  pending:      { color: colors.textMuted, fontSize: typography.size.caption, fontStyle: 'italic' },
 });

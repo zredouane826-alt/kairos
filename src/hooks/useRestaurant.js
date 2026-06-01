@@ -142,6 +142,7 @@ export default function useRestaurant(restaurant) {
           const { data } = await supabase.from('reviews')
             .select('id, rating, comment, created_at, users(first_name, last_name)')
             .eq('restaurant_id', restaurant.id)
+            .eq('moderation_status', 'approved')
             .order('created_at', { ascending: false })
             .limit(20);
           if (data?.length > 0) {

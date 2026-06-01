@@ -107,7 +107,7 @@ export default function useDashboard() {
   const confirm = useCallback((resa) => {
     Alert.alert(
       'Confirmer la réservation',
-      `${clientName(resa)} · ${formatDate(resa.date)} à ${resa.time_slot?.slice(0,5)}\n${resa.nb_adults} adulte${resa.nb_adults > 1 ? 's' : ''}`,
+      `${clientName(resa)} · ${formatDate(resa.date)} à ${resa.time_slot?.slice(0,5)}`,
       [
         { text: 'Annuler', style: 'cancel' },
         { text: 'Confirmer ✓', onPress: async () => {
@@ -115,6 +115,7 @@ export default function useDashboard() {
           try {
             const { error } = await supabase.from('reservations').update({ status: 'confirmed' }).eq('id', resa.id);
             if (error) throw error;
+            setReservations(prev => prev.map(r => r.id === resa.id ? { ...r, status: 'confirmed' } : r));
             await sendNotification(
               resa.users, 'confirm', 'Réservation confirmée ✅',
               `Votre table chez ${restaurant?.name} le ${formatDate(resa.date)} à ${resa.time_slot?.slice(0,5)} est confirmée.`,
@@ -143,6 +144,7 @@ export default function useDashboard() {
               .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
               .eq('id', resa.id);
             if (error) throw error;
+            setReservations(prev => prev.map(r => r.id === resa.id ? { ...r, status: 'cancelled', cancelled_at: new Date().toISOString() } : r));
             await sendNotification(
               resa.users, 'cancellation', 'Réservation annulée',
               `Votre réservation chez ${restaurant?.name} le ${formatDate(resa.date)} n'a pas pu être confirmée.`,
@@ -161,7 +163,8 @@ export default function useDashboard() {
   const markArrived = useCallback(async (resa) => {
     addActing(resa.id);
     try {
-      await supabase.from('reservations').update({ status: 'arrived' }).eq('id', resa.id);
+      const { error } = await supabase.from('reservations').update({ status: 'arrived' }).eq('id', resa.id);
+      if (!error) setReservations(prev => prev.map(r => r.id === resa.id ? { ...r, status: 'arrived' } : r));
     } finally {
       removeActing(resa.id);
       load();

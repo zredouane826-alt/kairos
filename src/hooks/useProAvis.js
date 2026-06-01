@@ -4,7 +4,7 @@ import { supabase } from '../../supabase';
 import { colors } from '../theme';
 
 export const STARS   = [1, 2, 3, 4, 5];
-export const FILTERS = ['Tous', '5 ⭐', '4 ⭐', '3 ⭐', '1–2 ⭐', 'Sans réponse'];
+export const FILTERS = ['Tous', 'En attente', '5 ⭐', '4 ⭐', '3 ⭐', '1–2 ⭐', 'Sans réponse'];
 
 export function formatDate(iso) {
   if (!iso) return '';
@@ -53,7 +53,7 @@ export default function useProAvis() {
 
       const { data } = await supabase
         .from('reviews')
-        .select('id, rating, comment, created_at, pro_response, users(first_name, last_name)')
+        .select('id, rating, comment, created_at, pro_response, moderation_status, users(first_name, last_name)')
         .eq('restaurant_id', ownerRow.restaurant_id)
         .order('created_at', { ascending: false });
 
@@ -72,27 +72,42 @@ export default function useProAvis() {
 
   const onRefresh = useCallback(() => load(true), [load]);
 
-  const noReply = useMemo(() => reviews.filter(r => !r.pro_response).length, [reviews]);
+  const approved = useMemo(() => reviews.filter(r => r.moderation_status === 'approved'), [reviews]);
+  const pending  = useMemo(() => reviews.filter(r => r.moderation_status === 'pending'),  [reviews]);
+
+  const noReply = useMemo(() => approved.filter(r => !r.pro_response).length, [approved]);
 
   const ratingCounts = useMemo(() => ({
-    5:   reviews.filter(r => r.rating === 5).length,
-    4:   reviews.filter(r => r.rating === 4).length,
-    3:   reviews.filter(r => r.rating === 3).length,
-    low: reviews.filter(r => r.rating <= 2).length,
-  }), [reviews]);
+    5:   approved.filter(r => r.rating === 5).length,
+    4:   approved.filter(r => r.rating === 4).length,
+    3:   approved.filter(r => r.rating === 3).length,
+    low: approved.filter(r => r.rating <= 2).length,
+  }), [approved]);
 
   const filtered = useMemo(() => reviews.filter(r => {
     if (filter === 'Tous')         return true;
-    if (filter === '5 ⭐')         return r.rating === 5;
-    if (filter === '4 ⭐')         return r.rating === 4;
-    if (filter === '3 ⭐')         return r.rating === 3;
-    if (filter === '1–2 ⭐')       return r.rating <= 2;
-    if (filter === 'Sans réponse') return !r.pro_response;
+    if (filter === 'En attente')   return r.moderation_status === 'pending';
+    if (filter === '5 ⭐')         return r.moderation_status === 'approved' && r.rating === 5;
+    if (filter === '4 ⭐')         return r.moderation_status === 'approved' && r.rating === 4;
+    if (filter === '3 ⭐')         return r.moderation_status === 'approved' && r.rating === 3;
+    if (filter === '1–2 ⭐')       return r.moderation_status === 'approved' && r.rating <= 2;
+    if (filter === 'Sans réponse') return r.moderation_status === 'approved' && !r.pro_response;
     return true;
   }), [reviews, filter]);
 
+  const handleApprove = useCallback(async (id) => {
+    await supabase.from('reviews').update({ moderation_status: 'approved' }).eq('id', id);
+    setReviews(prev => prev.map(r => r.id === id ? { ...r, moderation_status: 'approved' } : r));
+  }, []);
+
+  const handleReject = useCallback(async (id) => {
+    await supabase.from('reviews').update({ moderation_status: 'rejected' }).eq('id', id);
+    setReviews(prev => prev.filter(r => r.id !== id));
+  }, []);
+
   return {
     reviews, loading, refreshing, filter, setFilter, restaurant,
-    handleSaveResponse, onRefresh, noReply, ratingCounts, filtered,
+    handleSaveResponse, handleApprove, handleReject,
+    onRefresh, noReply, ratingCounts, filtered, pendingCount: pending.length,
   };
 }

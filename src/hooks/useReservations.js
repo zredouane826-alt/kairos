@@ -40,7 +40,8 @@ export default function useReservations() {
   const [loading,      setLoading]      = useState(true);
   const [refreshing,   setRefreshing]   = useState(false);
   const [reservations, setReservations] = useState([]);
-  const [reviewedIds,  setReviewedIds]  = useState(new Set());
+  const [reviewedIds,      setReviewedIds]      = useState(new Set());
+  const [pendingReviewIds, setPendingReviewIds] = useState(new Set());
 
   const load = useCallback(async (refresh = false) => {
     if (refresh) setRefreshing(true); else setLoading(true);
@@ -61,9 +62,10 @@ export default function useReservations() {
       if (rows.length > 0) {
         const { data: reviewRows } = await supabase
           .from('reviews')
-          .select('reservation_id')
+          .select('reservation_id, moderation_status')
           .in('reservation_id', rows.map(r => r.id));
-        setReviewedIds(new Set((reviewRows || []).map(r => r.reservation_id)));
+        setReviewedIds(new Set((reviewRows || []).filter(r => r.moderation_status === 'approved').map(r => r.reservation_id)));
+        setPendingReviewIds(new Set((reviewRows || []).filter(r => r.moderation_status === 'pending').map(r => r.reservation_id)));
       }
     } finally {
       setLoading(false);
@@ -170,16 +172,16 @@ export default function useReservations() {
       reservation_id:    resa.id,
       rating,
       comment:           comment || null,
-      moderation_status: 'approved',
+      moderation_status: 'pending',
     });
     if (error) throw error;
-    setReviewedIds(prev => new Set(prev).add(resa.id));
+    setPendingReviewIds(prev => new Set(prev).add(resa.id));
   }, []);
 
   return {
     tab, setTab, loading, refreshing,
     today, aVenir, historique, next, later, pending, histByMonth,
-    reviewedIds,
+    reviewedIds, pendingReviewIds,
     cancelResa, submitReview, onRefresh,
   };
 }

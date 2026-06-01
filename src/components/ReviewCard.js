@@ -4,11 +4,24 @@ import { supabase } from '../../supabase';
 import { colors, typography, spacing, radius } from '../theme';
 import { formatDate, initials, avatarColor } from '../hooks/useProAvis';
 
-export default function ReviewCard({ review, onSaveResponse }) {
+export default function ReviewCard({ review, onSaveResponse, onApprove, onReject }) {
   const [replying, setReplying] = useState(false);
   const [text,     setText]     = useState(review.pro_response || '');
-  const [saving,   setSaving]   = useState(false);
-  const [saved,    setSaved]    = useState(!!review.pro_response);
+  const [saving,    setSaving]    = useState(false);
+  const [saved,     setSaved]     = useState(!!review.pro_response);
+  const [moderating, setModerating] = useState(false);
+
+  const isPending = review.moderation_status === 'pending';
+
+  const handleApprove = useCallback(async () => {
+    setModerating(true);
+    try { await onApprove?.(review.id); } finally { setModerating(false); }
+  }, [review.id, onApprove]);
+
+  const handleReject = useCallback(async () => {
+    setModerating(true);
+    try { await onReject?.(review.id); } finally { setModerating(false); }
+  }, [review.id, onReject]);
 
   const name        = [review.users?.first_name, review.users?.last_name].filter(Boolean).join(' ') || 'Client';
   const col         = avatarColor(name);
@@ -30,7 +43,12 @@ export default function ReviewCard({ review, onSaveResponse }) {
   }, [text, review.id, onSaveResponse]);
 
   return (
-    <View style={s.card}>
+    <View style={[s.card, isPending && s.cardPending]}>
+      {isPending && (
+        <View style={s.pendingBanner}>
+          <Text style={s.pendingBannerTxt}>⏳  En attente de modération</Text>
+        </View>
+      )}
       <View style={s.top}>
         <View style={[s.avatar, { backgroundColor: col + '22', borderColor: col + '55' }]}>
           <Text style={[s.avatarTxt, { color: col }]}>{ini}</Text>
@@ -61,7 +79,16 @@ export default function ReviewCard({ review, onSaveResponse }) {
         </View>
       )}
 
-      {replying ? (
+      {isPending ? (
+        <View style={s.moderateRow}>
+          <TouchableOpacity style={s.rejectBtn} onPress={handleReject} disabled={moderating}>
+            <Text style={s.rejectTxt}>{moderating ? '···' : '✕  Rejeter'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.approveBtn} onPress={handleApprove} disabled={moderating}>
+            <Text style={s.approveTxt}>{moderating ? '···' : '✓  Approuver'}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : replying ? (
         <View style={s.replyBox}>
           <TextInput
             style={s.replyInput}
@@ -92,6 +119,14 @@ export default function ReviewCard({ review, onSaveResponse }) {
 
 const s = StyleSheet.create({
   card:           { backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, marginHorizontal: spacing.xl, marginBottom: spacing.lg, padding: spacing.xl, gap: spacing.lg },
+  cardPending:    { borderColor: 'rgba(232,160,69,0.4)', borderLeftWidth: 3, borderLeftColor: colors.accent },
+  pendingBanner:  { backgroundColor: colors.accentSoft, borderRadius: radius.md, paddingVertical: spacing.sm, paddingHorizontal: spacing.md, alignItems: 'center' },
+  pendingBannerTxt: { color: colors.accent, fontSize: typography.size.caption, fontWeight: typography.weight.regular },
+  moderateRow:    { flexDirection: 'row', gap: spacing.md },
+  rejectBtn:      { flex: 1, padding: spacing.md, borderRadius: radius.lg, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(224,90,90,0.35)', backgroundColor: 'rgba(224,90,90,0.08)' },
+  rejectTxt:      { color: colors.red, fontSize: typography.size.body },
+  approveBtn:     { flex: 2, padding: spacing.md, borderRadius: radius.lg, alignItems: 'center', backgroundColor: colors.green },
+  approveTxt:     { color: colors.bg, fontSize: typography.size.body, fontWeight: typography.weight.bold },
   top:            { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
   avatar:         { width: 38, height: 38, borderRadius: 19, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   avatarTxt:      { fontSize: typography.size.bodyLg || 15, fontWeight: typography.weight.medium },

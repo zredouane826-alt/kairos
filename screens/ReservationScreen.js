@@ -34,7 +34,7 @@ export default function ReservationScreen({ navigation }) {
   const {
     tab, setTab, loading, refreshing,
     today, aVenir, historique, next, later, pending, histByMonth,
-    reviewedIds,
+    reviewedIds, pendingReviewIds,
     cancelResa, submitReview, onRefresh,
   } = useReservations();
 
@@ -189,6 +189,7 @@ export default function ReservationScreen({ navigation }) {
                     }
                     onReview={openReview}
                     hasReview={reviewedIds.has(r.id)}
+                    isPendingReview={pendingReviewIds.has(r.id)}
                   />
                 ))}
               </View>

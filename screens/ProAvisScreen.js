@@ -25,7 +25,8 @@ function Skeleton() {
 export default function ProAvisScreen({ navigation }) {
   const {
     reviews, loading, refreshing, filter, setFilter, restaurant,
-    handleSaveResponse, onRefresh, noReply, ratingCounts, filtered,
+    handleSaveResponse, handleApprove, handleReject,
+    onRefresh, noReply, ratingCounts, filtered, pendingCount,
   } = useProAvis();
 
   const goBack = useCallback(() => navigation.goBack(), [navigation]);
@@ -63,6 +64,7 @@ export default function ProAvisScreen({ navigation }) {
                 const isActive = filter === f;
                 const count = f === 'Sans réponse' ? noReply
                             : f === 'Tous'          ? reviews.length
+                            : f === 'En attente'    ? pendingCount
                             : f === '5 ⭐'          ? ratingCounts[5]
                             : f === '4 ⭐'          ? ratingCounts[4]
                             : f === '3 ⭐'          ? ratingCounts[3]
@@ -70,7 +72,7 @@ export default function ProAvisScreen({ navigation }) {
                 return (
                   <TouchableOpacity
                     key={f}
-                    style={[s.chip, isActive && s.chipOn, f === 'Sans réponse' && noReply > 0 && !isActive && s.chipAlert]}
+                    style={[s.chip, isActive && s.chipOn, f === 'Sans réponse' && noReply > 0 && !isActive && s.chipAlert, f === 'En attente' && pendingCount > 0 && !isActive && s.chipPending]}
                     onPress={() => setFilter(f)}
                   >
                     <Text style={[s.chipTxt, isActive && s.chipTxtOn]}>{f}</Text>
@@ -96,7 +98,13 @@ export default function ProAvisScreen({ navigation }) {
               </View>
             ) : (
               filtered.map(r => (
-                <ReviewCard key={r.id} review={r} onSaveResponse={handleSaveResponse} />
+                <ReviewCard
+                  key={r.id}
+                  review={r}
+                  onSaveResponse={handleSaveResponse}
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                />
               ))
             )}
 
@@ -123,6 +131,7 @@ const s = StyleSheet.create({
   chip:        { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderRadius: radius.full, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.cardBorder },
   chipOn:      { backgroundColor: colors.accentSoft, borderColor: colors.accent },
   chipAlert:   { borderColor: 'rgba(224,90,90,0.4)' },
+  chipPending: { borderColor: 'rgba(232,160,69,0.5)' },
   chipTxt:     { color: colors.textMuted, fontSize: typography.size.body },
   chipTxtOn:   { color: colors.accent },
   chipCount:   { color: colors.textDim, fontSize: typography.size.xs },
