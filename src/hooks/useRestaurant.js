@@ -171,9 +171,20 @@ export default function useRestaurant(restaurant) {
         if (!error) { setIsFav(false); setFavId(null); }
       } else {
         const { data, error } = await supabase.from('favorites')
-          .insert({ user_id: userId, restaurant_id: restaurant.id }).select('id');
-        if (error) { console.error('Fav insert:', error.message); }
-        else if (data?.length > 0) { setIsFav(true); setFavId(data[0].id); }
+          .upsert({ user_id: userId, restaurant_id: restaurant.id }, { onConflict: 'user_id,restaurant_id' })
+          .select('id');
+        if (error) {
+          console.error('Fav upsert:', error.message, error.code);
+        } else {
+          const id = data?.[0]?.id;
+          if (id) {
+            setIsFav(true); setFavId(id);
+          } else {
+            const { data: f } = await supabase.from('favorites')
+              .select('id').eq('user_id', userId).eq('restaurant_id', restaurant.id).maybeSingle();
+            if (f) { setIsFav(true); setFavId(f.id); }
+          }
+        }
       }
     } finally {
       setFavLoading(false);

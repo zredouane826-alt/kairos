@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  SafeAreaView, RefreshControl, Image,
+  SafeAreaView, RefreshControl,
 } from 'react-native';
 import { colors, typography, spacing, radius } from '../src/theme';
 import MLoader from '../src/components/MLoader';
@@ -72,6 +72,14 @@ export default function ProDashboard({ navigation }) {
           </View>
           <View style={{ gap: spacing.md, alignItems: 'flex-end' }}>
             <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+              <TouchableOpacity style={s.comptoirBtn} onPress={goMenu}>
+                <Text style={s.comptoirBtnTxt}>🍽️  Menu</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.comptoirBtn} onPress={goAvis}>
+                <Text style={s.comptoirBtnTxt}>⭐  Avis</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
               <TouchableOpacity style={s.comptoirBtn} onPress={goPromos}>
                 <Text style={s.comptoirBtnTxt}>🏷️  Promos</Text>
               </TouchableOpacity>
@@ -85,34 +93,6 @@ export default function ProDashboard({ navigation }) {
             </View>
           </View>
         </View>
-
-        {/* Restaurant card */}
-        {restaurant && (
-          <View style={s.restoCard}>
-            {restaurant.photos?.[0]
-              ? <Image source={{ uri: restaurant.photos[0] }} style={s.restoPhoto} resizeMode="cover" />
-              : <View style={s.restoPhotoPlaceholder}><Text style={{ fontSize: 22 }}>🍽️</Text></View>
-            }
-            <View style={{ flex: 1 }}>
-              <Text style={s.restoName}>{restaurant.name}</Text>
-              <Text style={s.restoMeta}>
-                {(restaurant.cuisine_type || '').replace(/_/g, ' ')}
-                {restaurant.quartier ? '  ·  ' + restaurant.quartier : ''}
-              </Text>
-              {restaurant.avg_rating > 0 && (
-                <Text style={s.restoRating}>★ {Number(restaurant.avg_rating).toFixed(1)}  {restaurant.capacity > 0 ? `·  ${restaurant.capacity} couverts` : ''}</Text>
-              )}
-            </View>
-            <View style={{ gap: spacing.sm, alignItems: 'flex-end' }}>
-              <TouchableOpacity style={s.menuShortcut} onPress={goMenu}>
-                <Text style={s.menuShortcutTxt}>🍽️ Menu</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={s.menuShortcut} onPress={goAvis}>
-                <Text style={s.menuShortcutTxt}>⭐ Avis</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
 
         {/* KPIs */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.statsRow}>
@@ -228,15 +208,6 @@ const s = StyleSheet.create({
   onlineBadge:    { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.greenSoft, borderRadius: radius.full, paddingHorizontal: spacing.lg, paddingVertical: spacing.xs, borderWidth: 1, borderColor: 'rgba(76,175,130,0.25)' },
   onlineDot:      { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.green },
   onlineTxt:      { color: colors.green, fontSize: typography.size.sm },
-
-  restoCard:             { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, marginHorizontal: spacing.xxl, marginTop: spacing.lg, marginBottom: spacing.lg, backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, padding: spacing.lg, overflow: 'hidden' },
-  restoPhoto:            { width: 52, height: 52, borderRadius: radius.lg },
-  restoPhotoPlaceholder: { width: 52, height: 52, borderRadius: radius.lg, backgroundColor: colors.cardHover, alignItems: 'center', justifyContent: 'center' },
-  restoName:             { color: colors.text, fontSize: typography.size.heading3, marginBottom: spacing.xxs },
-  restoMeta:             { color: colors.accent, fontSize: typography.size.sm, letterSpacing: 1.5, marginBottom: spacing.xxs },
-  restoRating:           { color: colors.textMuted, fontSize: typography.size.caption },
-  menuShortcut:          { backgroundColor: colors.accentSoft, borderRadius: radius.lg, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderWidth: 1, borderColor: 'rgba(232,160,69,0.3)' },
-  menuShortcutTxt:       { color: colors.accent, fontSize: typography.size.sm, fontWeight: typography.weight.medium },
 
   statsRow: { paddingHorizontal: spacing.xxl, paddingBottom: spacing.xl, gap: spacing.lg },
 

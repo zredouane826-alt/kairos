@@ -231,7 +231,7 @@ const s = StyleSheet.create({
 
   chipsScroll: { borderBottomWidth:1, borderBottomColor:colors.cardBorder },
   cityGrid:    { flexDirection:'row', paddingHorizontal:14, paddingVertical:10, gap:8 },
-  cityChip:    { flexDirection:'row', alignItems:'center', gap:5, paddingHorizontal:12, paddingVertical:8, backgroundColor:colors.card },
+  cityChip:    { flexDirection:'row', alignItems:'center', gap:5, paddingHorizontal:18, paddingVertical:5, backgroundColor:colors.card },
   nearMeChip:  { backgroundColor:colors.blueSoft },
   cityChipOn:  { backgroundColor:colors.accent },
   cityEmoji:   { fontSize:13 },
