@@ -61,7 +61,8 @@ export default function ExplorerScreen({ navigation, route }) {
     />
   ), [navigation]);
 
-  const goBack            = useCallback(() => navigation.goBack(), [navigation]);
+  const canBack           = navigation.canGoBack();
+  const goBack            = useCallback(() => { if (navigation.canGoBack()) navigation.goBack(); }, [navigation]);
   const toggleMode        = useCallback(() => { setMode(m => m === 'map' ? 'list' : 'map'); setSelected(null); }, [setMode, setSelected]);
   const closeSelected     = useCallback(() => setSelected(null), [setSelected]);
   const goReserveSelected = useCallback(() => navigation.navigate('ReservationForm', { restaurant: selected }), [navigation, selected]);
@@ -125,9 +126,10 @@ export default function ExplorerScreen({ navigation, route }) {
 
       <SafeAreaView style={s.overlay} pointerEvents="box-none">
         <View style={s.header}>
-          <TouchableOpacity style={s.backBtn} onPress={goBack}>
-            <Text style={s.backBtnTxt}>←</Text>
-          </TouchableOpacity>
+          {canBack
+            ? <TouchableOpacity style={s.backBtn} onPress={goBack}><Text style={s.backBtnTxt}>←</Text></TouchableOpacity>
+            : <View style={{ width: 36 }} />
+          }
           <View style={{ alignItems: 'center' }}>
             <Text style={s.headerItalic}>découvrir</Text>
             <Text style={s.headerTitle}>EXPLORER</Text>
