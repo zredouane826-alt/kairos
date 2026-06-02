@@ -149,8 +149,6 @@ export default function ExplorerScreen({ navigation, route }) {
       </SafeAreaView>
 
       <View style={[s.sheet, mode === 'list' && s.sheetFull]}>
-        {mode === 'map' && <View style={s.sheetHandle} />}
-
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.chipsScroll} contentContainerStyle={s.cityGrid}>
           <TouchableOpacity
             style={[s.cityChip, s.nearMeChip, nearMe && s.cityChipOn]}
@@ -195,7 +193,7 @@ export default function ExplorerScreen({ navigation, route }) {
 
 const s = StyleSheet.create({
   root:    { flex:1, backgroundColor:colors.bg },
-  mapWrap: { flex:46 },
+  mapWrap: { flex:54 },
 
   overlay:     { position:'absolute', top:0, left:0, right:0, zIndex:10 },
   header:      { flexDirection:'row', justifyContent:'space-between', alignItems:'center', paddingHorizontal:spacing.xl, paddingTop:TOP+14, paddingBottom:14, backgroundColor:'rgba(15,13,11,0.97)', borderBottomWidth:1, borderBottomColor:colors.cardBorder },
@@ -225,7 +223,7 @@ const s = StyleSheet.create({
   selClose:   { position:'absolute', top:10, right:10, width:28, height:28, borderRadius:14, backgroundColor:'rgba(15,13,11,0.72)', alignItems:'center', justifyContent:'center' },
   selCloseTxt:{ color:colors.text, fontSize:typography.size.body },
 
-  sheet:       { flex:54, backgroundColor:colors.bg, borderTopWidth:1, borderTopColor:colors.cardBorder, paddingTop:8 },
+  sheet:       { flex:46, backgroundColor:colors.bg, borderTopWidth:1, borderTopColor:colors.cardBorder },
   sheetFull:   { flex:1, borderTopWidth:1, borderTopColor:colors.cardBorder, marginTop:TOP+66 },
   sheetHandle: { width:36, height:3, backgroundColor:colors.textDim, borderRadius:2, alignSelf:'center', marginBottom:8, opacity:0.35 },
 
