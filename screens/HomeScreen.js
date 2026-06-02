@@ -110,25 +110,6 @@ export default function HomeScreen({ navigation }) {
         </View>
       </View>
 
-      {/* ── Search bar ── */}
-      <TouchableOpacity style={s.searchBar} onPress={goExplorer} activeOpacity={0.8}>
-        <View style={s.searchSection}>
-          <Text style={s.searchSectionIcon}>{cityObj.emoji}</Text>
-          <Text style={s.searchSectionTxt} numberOfLines={1}>{cityObj.label}</Text>
-        </View>
-        <View style={s.searchDiv} />
-        <View style={s.searchSection}>
-          <Text style={s.searchSectionIcon}>📍</Text>
-          <Text style={s.searchSectionTxt}>Quartier</Text>
-        </View>
-        <View style={s.searchDiv} />
-        <View style={s.searchSection}>
-          <Text style={s.searchSectionIcon}>🍽️</Text>
-          <Text style={s.searchSectionTxt}>Cuisine</Text>
-        </View>
-        <View style={s.searchCta}><Text style={s.searchCtaTxt}>→</Text></View>
-      </TouchableOpacity>
-
       {/* ── Cities ── */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.cityRow} contentContainerStyle={s.cityContent}>
         {CITIES.map(c => (
@@ -199,7 +180,7 @@ export default function HomeScreen({ navigation }) {
         {/* À la une */}
         {!loading && featured.length > 0 && (
           <>
-            <SectionHead label="À LA UNE" right="Voir tout →" rightAction={goExplorer} />
+            <SectionHead label="À LA UNE" />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.featRow}>
               {featured.map(r => (
                 <FeaturedCard
@@ -296,15 +277,6 @@ const s = StyleSheet.create({
   avatar:        { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.card, borderWidth: 1.5, borderColor: colors.accent, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   avatarTxt:     { color: colors.accent, fontWeight: typography.weight.semibold, fontSize: typography.size.subheading },
   avatarPhoto:   { width: 38, height: 38, borderRadius: 19 },
-
-  /* Search */
-  searchBar:         { flexDirection: 'row', alignItems: 'center', marginHorizontal: spacing.xl, marginBottom: spacing.md, marginTop: spacing.xs, backgroundColor: colors.card, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.cardBorder, paddingHorizontal: spacing.lg, height: 50, gap: spacing.sm },
-  searchSection:     { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 5 },
-  searchSectionIcon: { fontSize: 13 },
-  searchSectionTxt:  { color: colors.textMuted, fontSize: typography.size.body, fontWeight: typography.weight.regular, flex: 1 },
-  searchDiv:         { width: 1, height: 22, backgroundColor: colors.cardBorder },
-  searchCta:         { backgroundColor: colors.accent, borderRadius: radius.md, width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  searchCtaTxt:      { color: colors.bg, fontSize: typography.size.subheading, fontWeight: typography.weight.bold },
 
   /* Cities */
   cityRow:        { maxHeight: 50 },

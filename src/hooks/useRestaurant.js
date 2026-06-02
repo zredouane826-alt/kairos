@@ -126,7 +126,7 @@ export default function useRestaurant(restaurant) {
       const { data } = await supabase.auth.getUser();
       const u = data?.user;
       if (!u) return;
-      const { data: row } = await supabase.from('users').select('id').eq('auth_id', u.id).single();
+      const { data: row } = await supabase.from('users').select('id').eq('auth_id', u.id).maybeSingle();
       if (!row) return;
       setUserId(row.id);
       if (!restaurant.id) return;
@@ -160,19 +160,20 @@ export default function useRestaurant(restaurant) {
         }
       })();
     }
-  }, []);
+  }, [restaurant.id]);
 
   const toggleFav = useCallback(async () => {
-    if (!userId || favLoading) return;
+    if (!userId || !restaurant.id || favLoading) return;
     setFavLoading(true);
     try {
       if (isFav) {
-        await supabase.from('favorites').delete().eq('id', favId);
-        setIsFav(false); setFavId(null);
+        const { error } = await supabase.from('favorites').delete().eq('id', favId);
+        if (!error) { setIsFav(false); setFavId(null); }
       } else {
-        const { data } = await supabase.from('favorites')
-          .insert({ user_id: userId, restaurant_id: restaurant.id }).select('id').single();
-        if (data) { setIsFav(true); setFavId(data.id); }
+        const { data, error } = await supabase.from('favorites')
+          .insert({ user_id: userId, restaurant_id: restaurant.id }).select('id');
+        if (error) { console.error('Fav insert:', error.message); }
+        else if (data?.length > 0) { setIsFav(true); setFavId(data[0].id); }
       }
     } finally {
       setFavLoading(false);
