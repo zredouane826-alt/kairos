@@ -229,7 +229,7 @@ const s = StyleSheet.create({
   sheetHandle: { width:36, height:3, backgroundColor:colors.textDim, borderRadius:2, alignSelf:'center', marginBottom:8, opacity:0.35 },
 
   quartierLabel:{ color:colors.textMuted, fontSize:typography.size.xs, letterSpacing:3, paddingHorizontal:spacing.xl, paddingTop:spacing.sm, paddingBottom:spacing.xs },
-  cityGrid:    { flexDirection:'row', paddingHorizontal:14, paddingBottom:8, gap:8 },
+  cityGrid:    { flexDirection:'row', paddingHorizontal:14, paddingVertical:10, gap:8, borderBottomWidth:1, borderBottomColor:colors.cardBorder },
   cityChip:    { flexDirection:'row', alignItems:'center', gap:5, paddingHorizontal:12, paddingVertical:8, borderRadius:radius.full, backgroundColor:colors.card, borderWidth:1, borderColor:colors.cardBorder },
   nearMeChip:  { borderColor:'rgba(90,155,224,0.3)', backgroundColor:colors.blueSoft },
   cityChipOn:  { backgroundColor:colors.accent, borderColor:colors.accent },

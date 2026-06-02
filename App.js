@@ -35,18 +35,6 @@ const C = {
   accent: '#c8975a', dim: '#8a9ab0', text: '#f0ece4',
 };
 
-const TAB_ICON = {
-  Recherche: { off: '🔍', on: '🔍' },
-  Explorer:  { off: '🗺️',  on: '🗺️'  },
-  Favoris:   { off: '🤍', on: '❤️'  },
-  Resa:      { off: '📅', on: '📅'  },
-  Manager:   { off: '🍽️', on: '🍽️'  },
-};
-
-function TabIcon({ name, focused }) {
-  const icons = TAB_ICON[name] || { off: '●', on: '●' };
-  return <Text style={{ fontSize: 20 }}>{focused ? icons.on : icons.off}</Text>;
-}
 
 function TabNavigator({ userRole }) {
   const isManager = userRole === 'manager';
@@ -61,35 +49,20 @@ function TabNavigator({ userRole }) {
           backgroundColor: C.bg2,
           borderTopColor: C.border,
           borderTopWidth: 1,
-          paddingBottom: 34,
+          paddingBottom: 28,
           paddingTop: 10,
-          height: 80,
+          height: 64,
         },
+        tabBarShowIcon: false,
         tabBarActiveTintColor: C.accent,
         tabBarInactiveTintColor: C.dim,
-        tabBarLabelStyle: { fontSize: 10, letterSpacing: 0.5, fontWeight: '300' },
+        tabBarLabelStyle: { fontSize: 11, letterSpacing: 1, fontWeight: '400' },
       }}
     >
-      <Tab.Screen
-        name="Recherche"
-        component={HomeScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="Recherche" focused={focused} /> }}
-      />
-      <Tab.Screen
-        name="Explorer"
-        component={ExplorerScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="Explorer" focused={focused} /> }}
-      />
-      <Tab.Screen
-        name="Favoris"
-        component={FavorisScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="Favoris" focused={focused} /> }}
-      />
-      <Tab.Screen
-        name={lastName}
-        component={LastScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name={lastName} focused={focused} /> }}
-      />
+      <Tab.Screen name="Accueil" component={HomeScreen} />
+      <Tab.Screen name="Recherche" component={ExplorerScreen} />
+      <Tab.Screen name="Favoris" component={FavorisScreen} />
+      <Tab.Screen name={lastName} component={LastScreen} />
     </Tab.Navigator>
   );
 }
