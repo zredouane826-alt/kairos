@@ -9,7 +9,7 @@ import { colors, typography, spacing, radius } from '../src/theme';
 import useExplorer, { CITIES, getCoord } from '../src/hooks/useExplorer';
 import RestaurantPin from '../src/components/RestaurantPin';
 import ExplorerRestoCard, { CARD_W } from '../src/components/ExplorerRestoCard';
-import MidaLogo from '../src/components/MidaLogo';
+
 
 const TOP = Platform.OS === 'android' ? (RNStatusBar.currentHeight || 0) : 0;
 
@@ -128,9 +128,9 @@ export default function ExplorerScreen({ navigation, route }) {
           <TouchableOpacity style={s.backBtn} onPress={goBack}>
             <Text style={s.backBtnTxt}>←</Text>
           </TouchableOpacity>
-          <View>
-            <MidaLogo showTagline={false} style={{ alignItems: 'center', marginBottom: 2 }} />
-            <Text style={s.headerSub}>Explorer</Text>
+          <View style={{ alignItems: 'center' }}>
+            <Text style={s.headerItalic}>découvrir</Text>
+            <Text style={s.headerTitle}>EXPLORER</Text>
           </View>
           <View style={{ flexDirection:'row', gap:8, alignItems:'center' }}>
             {!loading && (
@@ -149,6 +149,7 @@ export default function ExplorerScreen({ navigation, route }) {
       <View style={[s.sheet, mode === 'list' && s.sheetFull]}>
         {mode === 'map' && <View style={s.sheetHandle} />}
 
+        <Text style={s.quartierLabel}>PAR QUARTIER</Text>
         <View style={s.cityGrid}>
           <TouchableOpacity
             style={[s.cityChip, s.nearMeChip, nearMe && s.cityChipOn]}
@@ -196,8 +197,9 @@ const s = StyleSheet.create({
   mapWrap: { flex:46 },
 
   overlay:     { position:'absolute', top:0, left:0, right:0, zIndex:10 },
-  header:      { flexDirection:'row', justifyContent:'space-between', alignItems:'center', margin:14, marginTop:TOP+10, backgroundColor:'rgba(15,13,11,0.92)', borderRadius:radius.xxl, paddingHorizontal:spacing.xl, paddingVertical:11, borderWidth:1, borderColor:colors.cardBorder },
-  headerSub:   { color:colors.textMuted, fontSize:typography.size.sm },
+  header:      { flexDirection:'row', justifyContent:'space-between', alignItems:'center', paddingHorizontal:spacing.xl, paddingTop:TOP+14, paddingBottom:14, backgroundColor:'rgba(15,13,11,0.97)', borderBottomWidth:1, borderBottomColor:colors.cardBorder },
+  headerItalic:{ color:colors.blue, fontSize:typography.size.caption, fontStyle:'italic', letterSpacing:1.5, marginBottom:2 },
+  headerTitle: { color:colors.text, fontSize:typography.size.heading2, fontWeight:typography.weight.bold, letterSpacing:2 },
   countBadge:  { flexDirection:'row', alignItems:'center', gap:5, backgroundColor:colors.accentSoft, borderRadius:radius.full, paddingHorizontal:spacing.md, paddingVertical:5, borderWidth:1, borderColor:'rgba(232,160,69,0.3)' },
   countDot:    { width:6, height:6, borderRadius:3, backgroundColor:colors.green },
   countTxt:    { color:colors.accent, fontSize:typography.size.caption, fontWeight:'500' },
@@ -222,16 +224,17 @@ const s = StyleSheet.create({
   selClose:   { position:'absolute', top:10, right:10, width:28, height:28, borderRadius:14, backgroundColor:'rgba(15,13,11,0.72)', alignItems:'center', justifyContent:'center' },
   selCloseTxt:{ color:colors.text, fontSize:typography.size.body },
 
-  sheet:       { flex:54, backgroundColor:colors.cardHover, borderTopLeftRadius:22, borderTopRightRadius:22, borderWidth:1, borderColor:colors.cardBorder, paddingTop:10 },
-  sheetFull:   { flex:1, borderRadius:0, borderTopWidth:1, marginTop:TOP+62 },
-  sheetHandle: { width:40, height:4, backgroundColor:colors.textDim, borderRadius:2, alignSelf:'center', marginBottom:10, opacity:0.4 },
+  sheet:       { flex:54, backgroundColor:colors.bg, borderTopWidth:1, borderTopColor:colors.cardBorder, paddingTop:8 },
+  sheetFull:   { flex:1, borderTopWidth:1, borderTopColor:colors.cardBorder, marginTop:TOP+66 },
+  sheetHandle: { width:36, height:3, backgroundColor:colors.textDim, borderRadius:2, alignSelf:'center', marginBottom:8, opacity:0.35 },
 
-  cityGrid:    { flexDirection:'row', flexWrap:'wrap', paddingHorizontal:14, paddingVertical:10, gap:8 },
-  cityChip:    { flexDirection:'row', alignItems:'center', gap:6, paddingHorizontal:14, paddingVertical:9, borderRadius:radius.xl, backgroundColor:colors.card, borderWidth:1, borderColor:colors.cardBorder },
-  nearMeChip:  { borderColor:'rgba(90,155,224,0.4)', backgroundColor:colors.blueSoft },
+  quartierLabel:{ color:colors.textMuted, fontSize:typography.size.xs, letterSpacing:3, paddingHorizontal:spacing.xl, paddingTop:spacing.sm, paddingBottom:spacing.xs },
+  cityGrid:    { flexDirection:'row', flexWrap:'wrap', paddingHorizontal:14, paddingBottom:8, gap:8 },
+  cityChip:    { flexDirection:'row', alignItems:'center', gap:5, paddingHorizontal:12, paddingVertical:8, borderRadius:radius.full, backgroundColor:colors.card, borderWidth:1, borderColor:colors.cardBorder },
+  nearMeChip:  { borderColor:'rgba(90,155,224,0.3)', backgroundColor:colors.blueSoft },
   cityChipOn:  { backgroundColor:colors.accent, borderColor:colors.accent },
-  cityEmoji:   { fontSize:14 },
-  cityTxt:     { color:colors.text, fontSize:typography.size.bodyLg },
+  cityEmoji:   { fontSize:13 },
+  cityTxt:     { color:colors.text, fontSize:typography.size.body },
   cityTxtOn:   { color:colors.bg, fontWeight:'600' },
 
   backBtn:     { width:36, height:36, borderRadius:18, backgroundColor:colors.card, borderWidth:1, borderColor:colors.cardBorder, alignItems:'center', justifyContent:'center' },
