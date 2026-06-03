@@ -195,9 +195,9 @@ const s = StyleSheet.create({
 
   tabRow:   { flexDirection: 'row', backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, padding: 4, marginBottom: spacing.xl },
   tabBtn:   { flex: 1, paddingVertical: spacing.lg, alignItems: 'center', borderRadius: radius.xl },
-  tabBtnOn: { backgroundColor: colors.cardHover, borderWidth: 1, borderColor: colors.cardBorder },
+  tabBtnOn: { backgroundColor: colors.accentSoft, borderWidth: 1, borderColor: colors.accent, shadowColor: colors.accent, shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 4 },
   tabTxt:   { color: colors.textDim, fontSize: typography.size.subheading },
-  tabTxtOn: { color: colors.text, fontWeight: typography.weight.medium },
+  tabTxtOn: { color: colors.accent, fontWeight: typography.weight.semibold },
 
   card:      { backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, padding: spacing.xxl, marginBottom: spacing.xl },
   cardHead:  { marginBottom: spacing.xxl },
