@@ -212,16 +212,16 @@ const s = StyleSheet.create({
   statsRow: { paddingHorizontal: spacing.xxl, paddingBottom: spacing.xl, gap: spacing.lg },
 
   chipRow:   { paddingHorizontal: spacing.xxl, paddingBottom: spacing.lg, gap: spacing.md },
-  chip:      { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm + 1, borderRadius: radius.full, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.cardBorder },
-  chipOn:    { backgroundColor: colors.accentSoft, borderColor: colors.accent },
+  chip:      { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm + 1, borderRadius: radius.full, backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  chipOn:    { backgroundColor: colors.accentSoft, borderColor: colors.accent, shadowColor: colors.accent, shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: { width: 0, height: 0 }, elevation: 5 },
   chipTxt:   { color: colors.textMuted, fontSize: typography.size.body },
-  chipTxtOn: { color: colors.accent },
+  chipTxtOn: { color: colors.accent, fontWeight: typography.weight.semibold },
 
   statusTabs:     { flexDirection: 'row', marginHorizontal: spacing.xxl, marginBottom: spacing.lg, backgroundColor: colors.card, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.cardBorder, padding: spacing.xxs + 1, gap: spacing.xxs },
   statusTab:      { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.md + 1, borderRadius: radius.lg, gap: spacing.xs },
-  statusTabOn:    { backgroundColor: colors.cardHover },
+  statusTabOn:    { backgroundColor: colors.accentSoft, shadowColor: colors.accent, shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 4 },
   statusTabTxt:   { color: colors.textDim, fontSize: typography.size.caption },
-  statusTabTxtOn: { color: colors.text },
+  statusTabTxtOn: { color: colors.accent, fontWeight: typography.weight.semibold },
   badge:          { backgroundColor: colors.accent, borderRadius: radius.md, minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xxs + 1 },
   badgeTxt:       { color: colors.bg, fontSize: typography.size.xs, fontWeight: typography.weight.bold },
 
