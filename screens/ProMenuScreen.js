@@ -191,8 +191,8 @@ const s = StyleSheet.create({
 
   catsWrap:     { borderBottomWidth: 1, borderBottomColor: colors.cardBorder, backgroundColor: colors.card },
   catsList:     { flexDirection: 'row', paddingHorizontal: spacing.xxl, paddingVertical: spacing.lg, gap: spacing.md },
-  catChip:      { paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderRadius: radius.pill, backgroundColor: colors.cardHover, borderWidth: 1, borderColor: colors.cardBorder, position: 'relative' },
-  catChipOn:    { backgroundColor: colors.accentSoft, borderColor: 'rgba(232,160,69,0.4)' },
+  catChip:      { paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderRadius: radius.pill, backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', position: 'relative' },
+  catChipOn:    { backgroundColor: colors.accentSoft, borderColor: colors.accent, shadowColor: colors.accent, shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: { width: 0, height: 0 }, elevation: 5 },
   catChipTxt:   { color: colors.textMuted, fontSize: typography.size.body },
   catChipTxtOn: { color: colors.accent, fontWeight: typography.weight.semibold },
   catChipMuted: { color: colors.textDim, fontSize: typography.size.body },
