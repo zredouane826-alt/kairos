@@ -79,16 +79,16 @@ export default function RestaurantScreen({ route, navigation }) {
 
         <MidaLogo showTagline={false} style={s.heroLogo} />
 
-        <TouchableOpacity style={[s.heroBtn, { right: spacing.xl }]} onPress={toggleFav} disabled={favLoading}>
-          <Text style={favLoading ? s.heroBtnActing : s.heroBtnIcon}>
-            {favLoading ? '···' : isFav ? '❤️' : '🤍'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={s.sharePill} onPress={handleShare}>
-          <Text style={s.shareIcon}>↑</Text>
-          <Text style={s.shareTxt}>Partage</Text>
-        </TouchableOpacity>
+        <View style={s.heroRight}>
+          <TouchableOpacity style={s.heroBtn} onPress={toggleFav} disabled={favLoading}>
+            <Text style={favLoading ? s.heroBtnActing : s.heroBtnIcon}>
+              {favLoading ? '···' : isFav ? '❤️' : '🤍'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.sharePill} onPress={handleShare}>
+            <Text style={s.shareTxt}>Partage</Text>
+          </TouchableOpacity>
+        </View>
 
         {photos && photos.length > 1 && (
           <View style={s.photoCounter}>
@@ -204,9 +204,9 @@ const s = StyleSheet.create({
   heroBtnIcon:  { fontSize: typography.size.heading1 },
   heroBtnActing:{ color: colors.accent, fontSize: typography.size.bodyLg, fontWeight: typography.weight.bold },
 
-  sharePill:    { position: 'absolute', top: TOP + 50, right: spacing.xl, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 100, paddingHorizontal: 14, paddingVertical: 7, borderWidth: 1, borderColor: 'rgba(255,255,255,0.13)' },
-  shareIcon:    { color: 'rgba(240,235,227,0.45)', fontSize: 12, fontWeight: '300' },
-  shareTxt:     { color: 'rgba(232,160,69,0.72)', fontSize: typography.size.caption, fontWeight: typography.weight.regular, letterSpacing: 2 },
+  heroRight:    { position: 'absolute', top: TOP, right: spacing.xl, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  sharePill:    { backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 100, paddingHorizontal: 14, paddingVertical: 9, borderWidth: 1, borderColor: 'rgba(255,255,255,0.13)' },
+  shareTxt:     { color: 'rgba(232,160,69,0.75)', fontSize: typography.size.caption, fontWeight: typography.weight.regular, letterSpacing: 2 },
 
   photoCounter:    { position: 'absolute', top: TOP + 5, alignSelf: 'center', backgroundColor: 'rgba(15,13,11,0.7)', borderRadius: radius.full, paddingHorizontal: spacing.md + 2, paddingVertical: spacing.xs },
   photoCounterTxt: { color: colors.text, fontSize: typography.size.caption, fontWeight: typography.weight.regular },
