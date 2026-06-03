@@ -158,13 +158,13 @@ const s = StyleSheet.create({
   /* Ville chips */
   quartierLabel: { color: colors.textMuted, fontSize: typography.size.xs, letterSpacing: 3, paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.xs },
   cityRow:       { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
-  cityChip:      { paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: radius.full, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.cardBorder },
-  cityChipOn:    { backgroundColor: colors.accent, borderColor: colors.accent },
-  nearMeChip:    { flexDirection: 'row', alignItems: 'center', gap: 5, borderColor: 'rgba(90,155,224,0.4)', backgroundColor: colors.blueSoft },
-  nearMeChipOn:  { backgroundColor: colors.blue, borderColor: colors.blue },
+  cityChip:      { paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: radius.full, backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  cityChipOn:    { backgroundColor: colors.accentSoft, borderColor: colors.accent, shadowColor: colors.accent, shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: { width: 0, height: 0 }, elevation: 5 },
+  nearMeChip:    { flexDirection: 'row', alignItems: 'center', gap: 5, borderColor: 'rgba(90,155,224,0.3)', backgroundColor: 'transparent' },
+  nearMeChipOn:  { backgroundColor: colors.blueSoft, borderColor: colors.blue, shadowColor: colors.blue, shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: { width: 0, height: 0 }, elevation: 5 },
   nearMeEmoji:   { fontSize: 13 },
-  cityTxt:       { color: colors.text, fontSize: typography.size.sm },
-  cityTxtOn:     { color: colors.bg, fontWeight: typography.weight.semibold },
+  cityTxt:       { color: colors.textMuted, fontSize: typography.size.sm },
+  cityTxtOn:     { color: colors.accent, fontWeight: typography.weight.semibold },
 
   /* Suggestions */
   suggestionsWrap: { flex: 1, paddingHorizontal: spacing.lg, paddingTop: spacing.xl },
