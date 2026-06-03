@@ -54,8 +54,8 @@ function TabIcon({ name, focused }) {
       {focused && (
         <View style={{
           position: 'absolute', width: 36, height: 36, borderRadius: 18,
-          backgroundColor: 'rgba(200,151,90,0.12)',
-          shadowColor: C.accent, shadowOpacity: 0.6, shadowRadius: 12,
+          backgroundColor: 'rgba(200,151,90,0.07)',
+          shadowColor: C.accent, shadowOpacity: 0.25, shadowRadius: 8,
           shadowOffset: { width: 0, height: 0 },
         }} />
       )}
@@ -66,7 +66,7 @@ function TabIcon({ name, focused }) {
         style={focused ? {
           textShadowColor: C.accent,
           textShadowOffset: { width: 0, height: 0 },
-          textShadowRadius: 8,
+          textShadowRadius: 4,
         } : null}
       />
     </View>
