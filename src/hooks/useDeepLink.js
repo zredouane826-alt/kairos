@@ -13,7 +13,7 @@ async function handleUrl(url, navigation) {
       .from('restaurants')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
     if (data) navigation.navigate('Restaurant', { restaurant: data });
     return;
   }

@@ -26,7 +26,7 @@ export default function useProMenu() {
         .from('restaurant_owners')
         .select('restaurant_id, restaurants(id, name)')
         .eq('auth_id', session.user.id)
-        .single();
+        .maybeSingle();
 
       if (!ownerRow?.restaurants) return;
       setRestaurant(ownerRow.restaurants);

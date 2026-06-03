@@ -12,6 +12,7 @@ export const TYPE_CFG = {
   new_resa:       { icon: '📅', color: colors.blue,   label: 'Réservation',  group: 'resa' },
   reminder:       { icon: '⏰', color: colors.accent, label: 'Rappel',       group: 'rappel' },
   review_ask:     { icon: '⭐', color: colors.accent, label: 'Avis',         group: 'rappel' },
+  review_request: { icon: '⭐', color: colors.accent, label: 'Avis',         group: 'rappel' },
 };
 
 export const TABS = [
@@ -62,7 +63,7 @@ export default function useNotifications() {
       const { data } = await supabase.auth.getUser();
       const u = data?.user;
       if (!u) return;
-      const { data: row } = await supabase.from('users').select('id').eq('auth_id', u.id).single();
+      const { data: row } = await supabase.from('users').select('id').eq('auth_id', u.id).maybeSingle();
       if (row) setUserId(row.id);
     })();
   }, []);

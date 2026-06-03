@@ -66,37 +66,35 @@ export default function ProDashboard({ navigation }) {
       >
         {/* Header */}
         <View style={s.header}>
-          <View style={{ flex: 1 }}>
-            <MidaLogo showTagline={false} style={{ alignItems: 'flex-start', marginBottom: spacing.xs }} />
-            <Text style={s.headerGreeting}>{greetingTxt} 👋</Text>
-            <Text style={s.headerTitle}>{restaurant?.name || 'Manager'}</Text>
-          </View>
-          <View style={{ gap: spacing.md, alignItems: 'flex-end' }}>
-            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-              <TouchableOpacity style={s.comptoirBtn} onPress={goMenu}>
-                <Text style={s.comptoirBtnTxt}>🍽️  Menu</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={s.comptoirBtn} onPress={goAvis}>
-                <Text style={s.comptoirBtnTxt}>⭐  Avis</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-              <TouchableOpacity style={s.comptoirBtn} onPress={goPhotos}>
-                <Text style={s.comptoirBtnTxt}>📷  Photos</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={s.comptoirBtn} onPress={goPromos}>
-                <Text style={s.comptoirBtnTxt}>🏷️  Promos</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={s.comptoirBtn} onPress={goComptoir}>
-                <Text style={s.comptoirBtnTxt}>📟  Comptoir</Text>
-              </TouchableOpacity>
-            </View>
+          <View style={s.headerTop}>
+            <MidaLogo showTagline={false} style={{ alignItems: 'flex-start' }} />
             <View style={s.onlineBadge}>
               <View style={s.onlineDot} />
               <Text style={s.onlineTxt}>En ligne</Text>
             </View>
           </View>
+          <Text style={s.headerGreeting}>{greetingTxt} 👋</Text>
+          <Text style={s.headerTitle}>{restaurant?.name || 'Manager'}</Text>
         </View>
+
+        {/* Actions rapides */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.actionsRow}>
+          <TouchableOpacity style={s.comptoirBtn} onPress={goMenu}>
+            <Text style={s.comptoirBtnTxt}>🍽️  Menu</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.comptoirBtn} onPress={goAvis}>
+            <Text style={s.comptoirBtnTxt}>⭐  Avis</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.comptoirBtn} onPress={goPhotos}>
+            <Text style={s.comptoirBtnTxt}>📷  Photos</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.comptoirBtn} onPress={goPromos}>
+            <Text style={s.comptoirBtnTxt}>🏷️  Promos</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.comptoirBtn} onPress={goComptoir}>
+            <Text style={s.comptoirBtnTxt}>📟  Comptoir</Text>
+          </TouchableOpacity>
+        </ScrollView>
 
         {/* KPIs */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.statsRow}>
@@ -204,9 +202,11 @@ export default function ProDashboard({ navigation }) {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
 
-  header:         { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: spacing.xxl, paddingTop: spacing.xl, paddingBottom: spacing.xl, borderBottomWidth: 1, borderBottomColor: colors.cardBorder, gap: spacing.lg },
+  header:         { paddingHorizontal: spacing.xxl, paddingTop: spacing.xl, paddingBottom: spacing.xl, borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  headerTop:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
   headerGreeting: { color: colors.textMuted, fontSize: typography.size.body, marginBottom: spacing.xxs },
   headerTitle:    { color: colors.text, fontSize: typography.size.title + 4, fontWeight: '300', letterSpacing: 0.5 },
+  actionsRow:     { paddingHorizontal: spacing.xxl, paddingVertical: spacing.md, gap: spacing.sm },
   comptoirBtn:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.sm + 1, borderRadius: radius.lg, backgroundColor: colors.accentSoft, borderWidth: 1, borderColor: 'rgba(232,160,69,0.3)' },
   comptoirBtnTxt: { color: colors.accent, fontSize: typography.size.body },
   onlineBadge:    { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.greenSoft, borderRadius: radius.full, paddingHorizontal: spacing.lg, paddingVertical: spacing.xs, borderWidth: 1, borderColor: 'rgba(76,175,130,0.25)' },

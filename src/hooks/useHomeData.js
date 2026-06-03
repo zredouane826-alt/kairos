@@ -70,7 +70,7 @@ export default function useHomeData() {
 
       const { data: row } = await supabase.from('users')
         .select('id, avatar_url, first_name')
-        .eq('auth_id', u.id).single();
+        .eq('auth_id', u.id).maybeSingle();
       if (!row) return;
 
       setAvatarUrl(row.avatar_url ?? null);

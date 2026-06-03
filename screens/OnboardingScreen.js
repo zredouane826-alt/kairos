@@ -2,7 +2,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Animated,
 } from 'react-native';
 import { colors, typography, spacing, radius } from '../src/theme';
-import useOnboarding, { SLIDES, CITIES, TOTAL } from '../src/hooks/useOnboarding';
+import useOnboarding, { SLIDES, TOTAL } from '../src/hooks/useOnboarding';
 import MidaLogo from '../src/components/MidaLogo';
 
 function Dots({ total, current, accentColor }) {
@@ -31,9 +31,9 @@ const d = StyleSheet.create({
 
 export default function OnboardingScreen({ onSelect }) {
   const {
-    step, city, setCity,
+    step,
     fadeAnim, slideAnim, scaleAnim,
-    goToFinal, goToNext, goContinue, goClient, goPro,
+    goToFinal, goToNext, goClient, goPro,
   } = useOnboarding({ onSelect });
 
   if (step <= 2) {
@@ -74,61 +74,6 @@ export default function OnboardingScreen({ onSelect }) {
             </TouchableOpacity>
             <TouchableOpacity style={[s.nextBtn, { backgroundColor: sl.accentColor }]} onPress={goToNext} activeOpacity={0.85}>
               <Text style={s.nextTxt}>{step === 2 ? 'Commencer  ✦' : 'Suivant  →'}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (step === 3) {
-    return (
-      <SafeAreaView style={s.root}>
-        <Animated.View style={[s.stepWrap, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-
-          <View style={s.stepHeader}>
-            <Text style={s.stepTag}>VOTRE VILLE</Text>
-            <Text style={s.stepTitle}>Où êtes-vous ?</Text>
-            <Text style={s.stepSub}>Personnalisez votre expérience selon{'\n'}votre ville.</Text>
-          </View>
-
-          <View style={s.cityCards}>
-            {CITIES.map((c) => (
-              <TouchableOpacity
-                key={c.id}
-                style={[s.cityCard, city === c.id && s.cityCardOn]}
-                onPress={() => setCity(c.id)}
-                activeOpacity={0.78}
-              >
-                <View style={[s.cityEmojiWrap, city === c.id && s.cityEmojiWrapOn]}>
-                  <Text style={s.cityEmoji}>{c.emoji}</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[s.cityLabel, city === c.id && s.cityLabelOn]}>{c.label}</Text>
-                  <Text style={s.citySub}>{c.sub}</Text>
-                </View>
-                <View style={s.cityCountBadge}>
-                  <Text style={[s.cityCount, city === c.id && { color: colors.accent }]}>{c.count}</Text>
-                  <Text style={s.cityCountLbl}>tables</Text>
-                </View>
-                {city === c.id
-                  ? <View style={s.cityCheck}><Text style={s.cityCheckTxt}>✓</Text></View>
-                  : <View style={s.cityUncheck} />
-                }
-              </TouchableOpacity>
-            ))}
-          </View>
-
-        </Animated.View>
-
-        <View style={s.footer}>
-          <Dots total={TOTAL} current={3} accentColor={colors.accent} />
-          <View style={s.footerBtns}>
-            <TouchableOpacity style={s.skipBtn} onPress={goToFinal} activeOpacity={0.6}>
-              <Text style={s.skipTxt}>Passer</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[s.nextBtn, !city && s.nextBtnDim]} onPress={goContinue} disabled={!city} activeOpacity={0.85}>
-              <Text style={s.nextTxt}>Continuer  →</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -195,7 +140,7 @@ export default function OnboardingScreen({ onSelect }) {
       </Animated.View>
 
       <View style={[s.footer, { paddingBottom: spacing.lg }]}>
-        <Dots total={TOTAL} current={4} accentColor={colors.accent} />
+        <Dots total={TOTAL} current={3} accentColor={colors.accent} />
       </View>
     </SafeAreaView>
   );

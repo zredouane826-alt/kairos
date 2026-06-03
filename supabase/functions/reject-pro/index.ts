@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -9,90 +9,65 @@ const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-const enc = new TextEncoder();
+const BASE_URL = "https://rghjgyzpdadapmktislv.supabase.co/functions/v1";
 
-function html(title: string, emoji: string, body: string): Response {
-  const content = `<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>${title}</title>
-  <style>
-    body{font-family:Georgia,serif;max-width:520px;margin:80px auto;padding:32px;color:#1a1a1a;text-align:center;}
-    h1{font-size:28px;letter-spacing:4px;color:#0F0D0B;}
-    .accent{color:#E8A045;}
-    p{color:#555;line-height:1.7;font-size:16px;}
-  </style>
-</head>
-<body>
-  <h1>MIDA</h1>
-  <p style="font-size:52px;margin:24px 0">${emoji}</p>
-  <p class="accent" style="letter-spacing:2px;font-size:13px">${title.toUpperCase()}</p>
-  ${body}
-</body>
-</html>`;
-  return new Response(enc.encode(content), {
+function txt(body: string): Response {
+  return new Response(body + "\n", {
     status: 200,
-    headers: new Headers({
-      "Content-Type": "text/html; charset=utf-8",
-      "X-Content-Type-Options": "nosniff",
-      "Cache-Control": "no-store",
-    }),
+    headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" },
   });
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   const url = new URL(req.url);
   const requestId = url.searchParams.get("id");
+  const step = url.searchParams.get("step");
 
-  if (!requestId) {
-    return html("Lien invalide", "⚠️", "<p>Aucun identifiant de demande fourni.</p>");
-  }
+  if (!requestId) return txt("MIDA\n\nErreur : identifiant manquant.");
 
-  const { data: req_row, error: reqErr } = await admin
-    .from("pro_requests")
-    .select("*")
-    .eq("id", requestId)
-    .single();
+  const { data: row } = await admin.from("pro_requests").select("*").eq("id", requestId).single();
+  if (!row) return txt("MIDA\n\nDemande introuvable ou deja traitee.");
+  if (row.status !== "pending") return txt("MIDA\n\nCette demande a deja ete traitee : " + row.status);
 
-  if (reqErr || !req_row) {
-    return html("Demande introuvable", "❌", "<p>Cette demande n’existe pas ou a déjà été traitée.</p>");
-  }
-  if (req_row.status !== "pending") {
-    return html("Déjà traitée", "✅", `<p>Cette demande a déjà été <strong>${req_row.status}</strong>.</p>`);
+  if (step !== "confirm") {
+    return txt(
+      "MIDA — Administration\n" +
+      "─────────────────────────────\n\n" +
+      "Refuser cette demande ?\n\n" +
+      "Nom        : " + row.first_name + " " + row.last_name + "\n" +
+      "Restaurant : " + row.restaurant_name + "\n" +
+      "Ville      : " + (row.city || "—") + "\n\n" +
+      "OUI — confirmez en cliquant sur ce lien :\n\n" +
+      BASE_URL + "/reject-pro?id=" + requestId + "&step=confirm" +
+      "\n\n" +
+      "Fermez cette fenetre pour annuler."
+    );
   }
 
   await admin.from("pro_requests").update({ status: "rejected" }).eq("id", requestId);
 
   if (RESEND_KEY) {
-    const { data: authUser } = await admin.auth.admin.getUserById(req_row.user_id);
+    const { data: authUser } = await admin.auth.admin.getUserById(row.user_id);
     const userEmail = authUser?.user?.email ?? "";
     if (userEmail) {
       await fetch("https://api.resend.com/emails", {
         method: "POST",
-        headers: { "Authorization": `Bearer ${RESEND_KEY}`, "Content-Type": "application/json" },
+        headers: { "Authorization": "Bearer " + RESEND_KEY, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "MIDA <onboarding@resend.dev>",
-          to: [userEmail],
-          subject: "MIDA — Votre demande n’a pas été retenue",
-          html: `
-          <div style="font-family:Georgia,serif;max-width:520px;margin:0 auto;color:#1a1a1a;">
-            <h1 style="letter-spacing:4px;font-size:20px;">MIDA</h1>
-            <h2>Bonjour ${req_row.first_name},</h2>
-            <p>Après examen, votre demande pour <strong>${req_row.restaurant_name}</strong> n’a pas pu être validée pour le moment.</p>
-            <p>Pour toute question : <a href="mailto:contact@mida-food.com">contact@mida-food.com</a></p>
-            <p style="color:#888;font-size:13px;">L’équipe MIDA</p>
-          </div>
-          `,
+          from: "MIDA <onboarding@resend.dev>", to: [userEmail],
+          subject: "MIDA — Votre demande n'a pas ete retenue",
+          html: "<div style='font-family:Georgia,serif;max-width:520px;margin:0 auto'><h1>MIDA</h1><h2>Bonjour " + row.first_name + ",</h2><p>Après examen, votre demande pour <strong>" + row.restaurant_name + "</strong> n'a pas pu être validée. Contactez-nous : <a href='mailto:contact@mida-food.com'>contact@mida-food.com</a></p><p style='color:#888;font-size:13px'>L'équipe MIDA</p></div>",
         }),
       }).catch(() => {});
     }
   }
 
-  return html(
-    "Demande refusée",
-    "❌",
-    `<p><strong>${req_row.first_name} ${req_row.last_name}</strong> a été notifié(e) du refus de sa demande pour <strong>${req_row.restaurant_name}</strong>.</p>`,
+  return txt(
+    "MIDA\n" +
+    "─────────────────────────────\n\n" +
+    "✗ REFUSE\n\n" +
+    row.first_name + " " + row.last_name + " a ete notifie(e)\n" +
+    "du refus de sa demande pour " + row.restaurant_name + ".\n\n" +
+    "Vous pouvez fermer cette fenetre."
   );
 });

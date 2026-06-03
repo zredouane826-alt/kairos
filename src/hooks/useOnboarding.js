@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Animated } from 'react-native';
 import { colors } from '../theme';
 
-export const TOTAL = 5;
+export const TOTAL = 4;
 
 export const SLIDES = [
   {
@@ -75,7 +75,7 @@ export default function useOnboarding({ onSelect }) {
     });
   }, []);
 
-  const goToFinal  = useCallback(() => goTo(4), [goTo]);
+  const goToFinal  = useCallback(() => goTo(3), [goTo]);
   const goToNext   = useCallback(() => goTo(step + 1), [goTo, step]);
   const goContinue = useCallback(() => city && goTo(4), [city, goTo]);
   const goClient   = useCallback(() => onSelect('client'), [onSelect]);

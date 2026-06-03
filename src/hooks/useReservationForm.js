@@ -96,7 +96,7 @@ export default function useReservationForm(restaurant, onSuccess, existingResa =
       const { data: authData } = await supabase.auth.getUser();
       const u = authData?.user;
       if (!u) { setError('Connectez-vous pour réserver.'); return; }
-      const { data: userRow } = await supabase.from('users').select('id').eq('auth_id', u.id).single();
+      const { data: userRow } = await supabase.from('users').select('id').eq('auth_id', u.id).maybeSingle();
       if (!userRow) { setError('Compte introuvable.'); return; }
       const uid = userRow.id;
 
@@ -200,7 +200,7 @@ export default function useReservationForm(restaurant, onSuccess, existingResa =
     } finally {
       setLoading(false);
     }
-  }, [date, heure, restaurant, occasion, occasionObj, notes, adults, children, existingResa, triggerShake]);
+  }, [date, heure, restaurant, occasion, occasionObj, notes, adults, children, existingResa, onSuccess, triggerShake]);
 
   return {
     date, setDate, heure, setHeure,
