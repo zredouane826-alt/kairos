@@ -51,17 +51,17 @@ export default function useProPhotos(restaurantId) {
       const uri  = result.assets[0].uri;
       const path = `${restaurantId}/${Date.now()}.jpg`;
 
-      const response = await fetch(uri);
-      const blob     = await response.blob();
+      const response    = await fetch(uri);
+      const arrayBuffer = await response.arrayBuffer();
 
-      if (blob.size > 3 * 1024 * 1024) {
+      if (arrayBuffer.byteLength > 3 * 1024 * 1024) {
         setError('Photo trop lourde (max 3 Mo). Choisissez une image plus petite.');
         return;
       }
 
       const { error: upErr } = await supabase.storage
         .from('restaurant-photos')
-        .upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+        .upload(path, arrayBuffer, { contentType: 'image/jpeg', upsert: false });
       if (upErr) { setError(upErr.message); return; }
 
       const { data: { publicUrl } } = supabase.storage

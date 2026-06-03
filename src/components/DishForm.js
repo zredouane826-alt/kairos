@@ -56,12 +56,12 @@ export default function DishForm({ initial, categories, isEdit, restaurantId, on
         ? `${restaurantId}/${Date.now()}.jpg`
         : `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
 
-      const response = await fetch(uri);
-      const blob     = await response.blob();
+      const response    = await fetch(uri);
+      const arrayBuffer = await response.arrayBuffer();
 
       const { error: upErr } = await supabase.storage
         .from('dishes')
-        .upload(path, blob, { contentType: 'image/jpeg', upsert: true });
+        .upload(path, arrayBuffer, { contentType: 'image/jpeg', upsert: true });
 
       if (upErr) throw upErr;
 
