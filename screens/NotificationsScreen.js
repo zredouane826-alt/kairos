@@ -163,9 +163,9 @@ const s = StyleSheet.create({
 
   tabBar:       { flexDirection: 'row', backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
   tabBtn:       { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.lg, gap: spacing.sm, position: 'relative' },
-  tabBtnOn:     {},
+  tabBtnOn:     { backgroundColor: colors.accentSoft, shadowColor: colors.accent, shadowOpacity: 0.25, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 4 },
   tabTxt:       { color: colors.textMuted, fontSize: typography.size.body, fontWeight: typography.weight.regular },
-  tabTxtOn:     { color: colors.text },
+  tabTxtOn:     { color: colors.accent, fontWeight: typography.weight.semibold },
   tabBadge:     { backgroundColor: colors.accent, borderRadius: radius.md, minWidth: 16, height: 16, paddingHorizontal: spacing.xxs+1, alignItems: 'center', justifyContent: 'center' },
   tabBadgeTxt:  { color: colors.bg, fontSize: typography.size.xs, fontWeight: typography.weight.bold },
   tabLine:      { position: 'absolute', bottom: 0, left: '15%', right: '15%', height: 2, backgroundColor: colors.accent, borderRadius: 1 },
