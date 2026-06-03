@@ -5,7 +5,7 @@ import { CUISINE_EMOJI } from '../hooks/useExplorer';
 const SW = Dimensions.get('window').width;
 export const CARD_W = (SW - 14 * 2 - 10) / 2;
 
-export default function ExplorerRestoCard({ r, rank, onPress, onReserve }) {
+export default function ExplorerRestoCard({ r, rank, distance, onPress, onReserve }) {
   return (
     <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.88}>
       <View style={s.imgWrap}>
@@ -37,7 +37,9 @@ export default function ExplorerRestoCard({ r, rank, onPress, onReserve }) {
 
       <View style={s.body}>
         <Text style={s.name} numberOfLines={1}>{r.name}</Text>
-        {r.quartier && <Text style={s.quartier} numberOfLines={1}>📍 {r.quartier}</Text>}
+        <Text style={s.quartier} numberOfLines={1}>
+          {distance ? `📍 ${distance}` : r.quartier ? `📍 ${r.quartier}` : ''}
+        </Text>
         <View style={s.footer}>
           <View>
             {r.avg_ticket > 0 && <Text style={s.price}>{r.avg_ticket.toLocaleString('fr-FR')} DA</Text>}

@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { colors, typography, spacing, radius } from '../src/theme';
-import useExplorer, { CITIES, getCoord } from '../src/hooks/useExplorer';
+import useExplorer, { CITIES, getCoord, haversineKm } from '../src/hooks/useExplorer';
 import RestaurantPin from '../src/components/RestaurantPin';
 import ExplorerRestoCard, { CARD_W } from '../src/components/ExplorerRestoCard';
 
@@ -53,14 +53,23 @@ export default function ExplorerScreen({ navigation, route }) {
     }
   }, [selected, cityDefault, setSelected]);
 
-  const renderItem = useCallback(({ item: r, index }) => (
-    <ExplorerRestoCard
-      r={r}
-      rank={index}
-      onPress={() => navigation.navigate('Restaurant', { restaurant: r })}
-      onReserve={() => navigation.navigate('ReservationForm', { restaurant: r })}
-    />
-  ), [navigation]);
+  const renderItem = useCallback(({ item: r, index }) => {
+    let distance = null;
+    if (nearMe && userLocation) {
+      const coord = getCoord(r, cityDefault);
+      const km = haversineKm(userLocation.latitude, userLocation.longitude, coord.latitude, coord.longitude);
+      distance = km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
+    }
+    return (
+      <ExplorerRestoCard
+        r={r}
+        rank={nearMe ? null : index}
+        distance={distance}
+        onPress={() => navigation.navigate('Restaurant', { restaurant: r })}
+        onReserve={() => navigation.navigate('ReservationForm', { restaurant: r })}
+      />
+    );
+  }, [navigation, nearMe, userLocation, cityDefault]);
 
   const canBack           = navigation.canGoBack();
   const goBack            = useCallback(() => { if (navigation.canGoBack()) navigation.goBack(); }, [navigation]);

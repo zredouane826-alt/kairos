@@ -51,7 +51,7 @@ export const QUARTIER_COORDS = {
   'zouaghi':{ latitude:36.3300, longitude:6.5800 },
 };
 
-function haversineKm(lat1, lon1, lat2, lon2) {
+export function haversineKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
