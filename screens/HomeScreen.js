@@ -314,11 +314,11 @@ const s = StyleSheet.create({
 
   /* Pills */
   pillRow:   { paddingHorizontal: spacing.xl, gap: spacing.md, paddingBottom: spacing.xs },
-  pill:      { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.xl, paddingVertical: spacing.md, borderRadius: 100, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.cardBorder },
-  pillOn:    { backgroundColor: colors.accentSoft, borderColor: colors.accent },
+  pill:      { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.xl, paddingVertical: spacing.md, borderRadius: 100, backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  pillOn:    { backgroundColor: colors.accentSoft, borderColor: colors.accent, shadowColor: colors.accent, shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: { width: 0, height: 0 }, elevation: 5 },
   pillEmoji: { fontSize: typography.size.subheading },
   pillTxt:   { color: colors.textMuted, fontSize: typography.size.body },
-  pillTxtOn: { color: colors.accent },
+  pillTxtOn: { color: colors.accent, fontWeight: typography.weight.semibold },
 
   /* Quick filters */
   quickRow:    { paddingHorizontal: spacing.xl, gap: spacing.md, paddingTop: spacing.lg, paddingBottom: spacing.xs },
