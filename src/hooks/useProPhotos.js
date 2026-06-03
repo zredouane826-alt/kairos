@@ -39,7 +39,7 @@ export default function useProPhotos(restaurantId) {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      quality: 0.8,
+      quality: 0.5,
       allowsEditing: true,
       aspect: [4, 3],
     });
@@ -54,6 +54,11 @@ export default function useProPhotos(restaurantId) {
 
       const response = await fetch(uri);
       const blob     = await response.blob();
+
+      if (blob.size > 3 * 1024 * 1024) {
+        setError('Photo trop lourde (max 3 Mo). Choisissez une image plus petite.');
+        return;
+      }
 
       const { error: upErr } = await supabase.storage
         .from('restaurant-photos')
