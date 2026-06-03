@@ -278,15 +278,15 @@ const s = StyleSheet.create({
   /* Cities */
   cityRow:        { maxHeight: 50 },
   cityContent:    { paddingHorizontal: spacing.xl, paddingVertical: 5, flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
-  cityChip:       { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: spacing.lg, paddingVertical: 7, borderRadius: 100, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.cardBorder },
-  cityChipOn:     { backgroundColor: colors.accent, borderColor: colors.accent },
+  cityChip:       { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: spacing.lg, paddingVertical: 7, borderRadius: 100, backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  cityChipOn:     { backgroundColor: colors.accentSoft, borderColor: colors.accent, shadowColor: colors.accent, shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: { width: 0, height: 0 }, elevation: 5 },
   cityEmoji:      { fontSize: typography.size.body },
-  cityTxt:        { color: colors.text, fontSize: typography.size.body },
-  cityTxtOn:      { color: colors.bg, fontWeight: typography.weight.semibold },
-  cityCount:      { backgroundColor: colors.cardBorder, borderRadius: 100, paddingHorizontal: 5, paddingVertical: 1, minWidth: 22, alignItems: 'center' },
-  cityCountOn:    { backgroundColor: 'rgba(15,13,11,0.25)' },
+  cityTxt:        { color: colors.textMuted, fontSize: typography.size.body },
+  cityTxtOn:      { color: colors.accent, fontWeight: typography.weight.semibold },
+  cityCount:      { backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 100, paddingHorizontal: 5, paddingVertical: 1, minWidth: 22, alignItems: 'center' },
+  cityCountOn:    { backgroundColor: 'rgba(232,160,69,0.2)' },
   cityCountTxt:   { color: colors.textDim, fontSize: typography.size.xs, fontWeight: typography.weight.semibold },
-  cityCountTxtOn: { color: 'rgba(15,13,11,0.7)' },
+  cityCountTxtOn: { color: colors.accent },
 
   /* Stats bar */
   statsBar:      { flexDirection: 'row', alignItems: 'center', marginHorizontal: spacing.xl, marginTop: spacing.md, marginBottom: spacing.xs, backgroundColor: colors.card, borderRadius: radius.lg, paddingVertical: spacing.lg, paddingHorizontal: spacing.xl, borderWidth: 1, borderColor: colors.cardBorder },
