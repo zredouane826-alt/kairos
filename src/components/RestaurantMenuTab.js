@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { colors, typography, spacing, radius } from '../theme';
 
 export default function RestaurantMenuTab({ menu }) {
@@ -21,6 +21,9 @@ export default function RestaurantMenuTab({ menu }) {
       <View style={s.items}>
         {catData?.items.map((item, i) => (
           <View key={i} style={[s.row, i < catData.items.length - 1 && s.rowBorder]}>
+            {item.photo ? (
+              <Image source={{ uri: item.photo }} style={s.dishPhoto} resizeMode="cover" />
+            ) : null}
             <View style={s.rowLeft}>
               <View style={s.nomRow}>
                 <Text style={s.nom}>{item.nom}</Text>
@@ -30,7 +33,7 @@ export default function RestaurantMenuTab({ menu }) {
                   </View>
                 )}
               </View>
-              <Text style={s.desc}>{item.desc}</Text>
+              {!!item.desc && <Text style={s.desc}>{item.desc}</Text>}
             </View>
             <View style={s.priceBox}>
               <Text style={s.price}>{item.prix.toLocaleString('fr-FR')}</Text>
@@ -52,7 +55,8 @@ const s = StyleSheet.create({
   pillTxtOn:   { color: colors.accent, fontWeight: typography.weight.regular },
   pillDot:     { position: 'absolute', bottom: -1, left: '50%', width: 4, height: 4, borderRadius: 2, backgroundColor: colors.accent, marginLeft: -2 },
   items:       { marginHorizontal: spacing.xl, backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden' },
-  row:         { flexDirection: 'row', alignItems: 'center', gap: spacing.xl - 2, paddingHorizontal: spacing.xl + 2, paddingVertical: spacing.xl },
+  row:         { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, paddingHorizontal: spacing.xl + 2, paddingVertical: spacing.lg },
+  dishPhoto:   { width: 64, height: 64, borderRadius: radius.lg, backgroundColor: colors.card, flexShrink: 0 },
   rowBorder:   { borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
   rowLeft:     { flex: 1, gap: spacing.xs + 1 },
   nomRow:      { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: spacing.sm + 1 },

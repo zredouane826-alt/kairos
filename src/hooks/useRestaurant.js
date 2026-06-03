@@ -106,6 +106,7 @@ export default function useRestaurant(restaurant) {
   const [userId,         setUserId]         = useState(null);
   const [reviews,        setReviews]        = useState([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
+  const [dbDishes,       setDbDishes]       = useState([]);
   const tabAnim = useRef(new Animated.Value(1)).current;
 
   const photos = useMemo(
@@ -113,7 +114,24 @@ export default function useRestaurant(restaurant) {
       : restaurant.photo_url ? [restaurant.photo_url] : null,
     [restaurant.photos, restaurant.photo_url],
   );
-  const menu         = useMemo(() => MENUS[restaurant.cuisine_type] || MENUS.default, [restaurant.cuisine_type]);
+  const menu = useMemo(() => {
+    if (dbDishes.length > 0) {
+      const cats = [...new Set(dbDishes.map(d => d.category).filter(Boolean))];
+      return cats.map(cat => ({
+        cat,
+        items: dbDishes
+          .filter(d => d.category === cat)
+          .map(d => ({
+            nom:     d.name,
+            desc:    d.description || '',
+            prix:    Number(d.price),
+            popular: d.is_dish_of_day,
+            photo:   d.photo || null,
+          })),
+      }));
+    }
+    return MENUS[restaurant.cuisine_type] || MENUS.default;
+  }, [dbDishes, restaurant.cuisine_type]);
   const rating       = useMemo(() => restaurant.avg_rating > 0 ? Number(restaurant.avg_rating).toFixed(1) : null, [restaurant.avg_rating]);
   const cuisineEmoji = useMemo(() => CUISINE_EMOJI[restaurant.cuisine_type] || '🍽️', [restaurant.cuisine_type]);
   const desc         = useMemo(
@@ -136,6 +154,15 @@ export default function useRestaurant(restaurant) {
     })();
 
     if (restaurant.id) {
+      (async () => {
+        const { data } = await supabase.from('dishes')
+          .select('id, name, description, price, category, is_dish_of_day, photo')
+          .eq('restaurant_id', restaurant.id)
+          .eq('is_available', true)
+          .order('created_at', { ascending: true });
+        if (data?.length > 0) setDbDishes(data);
+      })();
+
       setLoadingReviews(true);
       (async () => {
         try {
