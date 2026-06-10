@@ -15,6 +15,9 @@ export default function SettingsScreen({ navigation }) {
   return (
     <SafeAreaView style={s.root} edges={['top', 'left', 'right']}>
       <View style={s.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+          <Text style={s.backBtnTxt}>←</Text>
+        </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={s.title}>Paramètres</Text>
         </View>
@@ -97,6 +100,8 @@ const r = StyleSheet.create({
 const s = StyleSheet.create({
   root:         { flex: 1, backgroundColor: colors.bg },
   header:       { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, paddingHorizontal: spacing.xl, paddingVertical: spacing.lg, borderBottomWidth: 1, borderBottomColor: colors.cardBorder, backgroundColor: colors.card },
+  backBtn:      { padding: spacing.xs },
+  backBtnTxt:   { color: colors.text, fontSize: 22 },
   title:        { color: colors.text, fontSize: typography.size.heading2, fontWeight: typography.weight.semibold },
   sectionLabel: { color: colors.accent, fontSize: typography.size.xs, fontWeight: typography.weight.bold, letterSpacing: 2, textTransform: 'uppercase', marginBottom: spacing.md },
   card:         { backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden' },

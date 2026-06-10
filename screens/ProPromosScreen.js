@@ -35,6 +35,9 @@ export default function ProPromosScreen({ navigation }) {
     <SafeAreaView style={s.root} edges={['top', 'left', 'right']}>
       <View style={s.header}>
         <View style={s.headerLeft}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+            <Text style={s.backBtnTxt}>←</Text>
+          </TouchableOpacity>
           <View>
             <Text style={s.title}>
               {view === 'list'   ? 'Mes promotions'      :
@@ -65,6 +68,8 @@ const s = StyleSheet.create({
   root:         { flex: 1, backgroundColor: colors.bg },
   header:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.xl, paddingVertical: spacing.lg, borderBottomWidth: 1, borderBottomColor: colors.cardBorder, backgroundColor: colors.card },
   headerLeft:   { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
+  backBtn:      { padding: spacing.xs },
+  backBtnTxt:   { color: colors.text, fontSize: 22 },
   title:        { color: colors.text, fontSize: typography.size.heading2, fontWeight: typography.weight.semibold },
   subtitle:     { color: colors.textMuted, fontSize: typography.size.caption, marginTop: 1 },
   createBtn:    { backgroundColor: '#c8975a', borderRadius: radius.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, shadowColor: '#000', shadowOpacity: 0.45, shadowRadius: 10, shadowOffset: { width: 0, height: 0 }, elevation: 5 },

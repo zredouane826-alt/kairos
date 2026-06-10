@@ -90,6 +90,11 @@ export default function ProMenuScreen({ navigation, route }) {
   return (
     <SafeAreaView style={s.root} edges={['top', 'left', 'right']}>
       <View style={s.header}>
+        {!onSetupComplete ? (
+          <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+            <Text style={s.backBtnTxt}>←</Text>
+          </TouchableOpacity>
+        ) : <View style={s.backBtn} />}
         <View style={s.headerCenter}>
           <Text style={s.headerSub}>GESTION DU MENU</Text>
           <Text style={s.headerTitle}>{restaurant?.name || 'Menu'}</Text>
@@ -204,6 +209,8 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
 
   header:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.xxl, paddingTop: spacing.xl, paddingBottom: spacing.xl, borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  backBtn:      { width: 36, padding: spacing.xs },
+  backBtnTxt:   { color: colors.text, fontSize: 22 },
   headerCenter: { flex: 1, alignItems: 'center' },
   headerSub:    { color: colors.accent, fontSize: typography.size.xs, letterSpacing: 3, marginBottom: 2 },
   headerTitle:  { color: colors.text, fontSize: typography.size.title, fontWeight: '300', letterSpacing: 1 },

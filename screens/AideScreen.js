@@ -170,6 +170,9 @@ export default function AideScreen({ navigation }) {
   return (
     <SafeAreaView style={s.root} edges={['top', 'left', 'right']}>
       <View style={s.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.mainBackBtn}>
+          <Text style={s.mainBackBtnTxt}>←</Text>
+        </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={s.title}>Aide & Support</Text>
           <Text style={s.subtitle}>On est là pour t'aider</Text>
@@ -240,6 +243,8 @@ const s = StyleSheet.create({
   root:  { flex: 1, backgroundColor: colors.bg },
 
   header:     { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, paddingHorizontal: spacing.xl, paddingVertical: spacing.lg, borderBottomWidth: 1, borderBottomColor: colors.cardBorder, backgroundColor: colors.card },
+  mainBackBtn:    { padding: spacing.xs },
+  mainBackBtnTxt: { color: colors.text, fontSize: 22 },
   backBtn:    { width: 36, height: 36, borderRadius: 0, backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center' },
   backBtnTxt: { color: '#1A1A1A', fontSize: typography.size.subheading },
   title:      { color: colors.text, fontSize: typography.size.heading2, fontWeight: typography.weight.semibold },

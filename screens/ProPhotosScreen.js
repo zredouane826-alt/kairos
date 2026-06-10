@@ -41,6 +41,11 @@ export default function ProPhotosScreen({ navigation, route }) {
   return (
     <SafeAreaView style={s.root} edges={['top', 'left', 'right']}>
       <View style={s.header}>
+        {!onSetupComplete && (
+          <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+            <Text style={s.backBtnTxt}>←</Text>
+          </TouchableOpacity>
+        )}
         <Text style={s.title}>Photos du restaurant</Text>
       </View>
 
@@ -95,7 +100,9 @@ export default function ProPhotosScreen({ navigation, route }) {
 const s = StyleSheet.create({
   root:   { flex: 1, backgroundColor: colors.bg },
 
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl, paddingVertical: spacing.lg, borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  header:     { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.xl, paddingVertical: spacing.lg, borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
+  backBtn:    { padding: spacing.xs },
+  backBtnTxt: { color: colors.text, fontSize: 22 },
   title:  { color: colors.text, fontSize: typography.size.subheading, fontWeight: typography.weight.semibold, letterSpacing: 1 },
 
   error:  { color: colors.red, fontSize: typography.size.caption, textAlign: 'center', margin: spacing.lg },

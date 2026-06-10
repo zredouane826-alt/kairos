@@ -39,6 +39,9 @@ export default function ProAvisScreen({ navigation }) {
   return (
     <SafeAreaView style={s.root} edges={['top', 'left', 'right']}>
       <View style={s.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+          <Text style={s.backBtnTxt}>←</Text>
+        </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={s.title}>Avis clients</Text>
           {restaurant && <Text style={s.subtitle}>{restaurant.name}</Text>}
@@ -122,6 +125,8 @@ const s = StyleSheet.create({
   root:   { flex: 1, backgroundColor: colors.bg },
 
   header:     { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, paddingHorizontal: spacing.xl, paddingVertical: spacing.lg, borderBottomWidth: 1, borderBottomColor: colors.cardBorder, backgroundColor: colors.card },
+  backBtn:    { padding: spacing.xs },
+  backBtnTxt: { color: colors.text, fontSize: 22 },
   title:      { color: colors.text, fontSize: typography.size.heading2, fontWeight: typography.weight.semibold },
   subtitle:   { color: colors.textMuted, fontSize: typography.size.caption, marginTop: 1 },
   badge:      { backgroundColor: colors.red, borderRadius: radius.full, minWidth: 22, height: 22, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.sm },
