@@ -4,6 +4,10 @@ import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { supabase } from '../../supabase';
 
+// Handled only once per app session — prevents navigating to Notifications
+// every time HomeScreen remounts after a user previously tapped a notification
+let _coldStartHandled = false;
+
 // Comportement des notifications quand l'app est au premier plan
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -72,10 +76,17 @@ export default function usePushNotifications(navigation) {
   useEffect(() => {
     registerForPushNotifications().then(savePushToken);
 
-    // Tap sur notif quand app était fermée (cold start)
-    Notifications.getLastNotificationResponseAsync().then(response => {
-      if (response) handleNotificationTap(response, navigation);
-    });
+    // Cold start: handle once per session — not on every HomeScreen remount
+    if (!_coldStartHandled) {
+      _coldStartHandled = true;
+      Notifications.getLastNotificationResponseAsync().then(response => {
+        if (!response) return;
+        // Only act if notification is very recent (< 5s = truly launched the app)
+        const raw = response.notification?.date ?? 0;
+        const sec = raw > 1e10 ? raw / 1000 : raw;
+        if (Date.now() / 1000 - sec < 5) handleNotificationTap(response, navigation);
+      });
+    }
 
     // Notification reçue quand app est ouverte
     notifListener.current = Notifications.addNotificationReceivedListener(() => {});
