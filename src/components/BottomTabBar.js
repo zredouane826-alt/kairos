@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -58,13 +58,34 @@ function detectManager(navigation) {
     const routes = state.type === 'tab'
       ? state.routes
       : state.routes?.find(r => r.name === 'Main')?.state?.routes;
-    return routes?.some(r => r.name === 'Manager') ?? false;
+    if (routes) return routes.some(r => r.name === 'Manager');
+    // Fallback: check parent navigator
+    const parent = navigation.getParent?.();
+    if (parent) {
+      const ps = parent.getState?.();
+      if (ps?.type === 'tab') return ps.routes?.some(r => r.name === 'Manager') ?? false;
+    }
+    return false;
   } catch { return false; }
 }
 
 export default function BottomTabBar({ navigation, isPro = false, activeTab = null }) {
   const insets = useSafeAreaInsets();
-  const effectiveIsPro = isPro || detectManager(navigation);
+
+  // Sticky detection: once resolved as pro, never revert to client
+  const [effectiveIsPro, setEffectiveIsPro] = useState(() => isPro || detectManager(navigation));
+
+  useEffect(() => {
+    if (effectiveIsPro) return;
+    // Check immediately (state might not be ready on first render)
+    if (detectManager(navigation)) { setEffectiveIsPro(true); return; }
+    // Subscribe to state changes to detect as soon as it's available
+    const unsub = navigation.addListener?.('state', () => {
+      if (detectManager(navigation)) setEffectiveIsPro(true);
+    });
+    return unsub;
+  }, [navigation, effectiveIsPro]);
+
   const tabs = effectiveIsPro ? PRO_TABS : CLIENT_TABS;
 
   const goTab = useCallback((route) => {

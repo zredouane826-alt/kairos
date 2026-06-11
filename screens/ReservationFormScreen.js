@@ -59,7 +59,7 @@ export default function ReservationFormScreen({ route, navigation }) {
           date={formatDateLong(date)}
           heure={heure}
           adults={adults}
-          onGoHome={() => navigation.navigate('Main')}
+          onGoHome={() => navigation.navigate('Main', { screen: 'Accueil' })}
           onReset={() => setSuccess(false)}
         />
     </SafeAreaView>
