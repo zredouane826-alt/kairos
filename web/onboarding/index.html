@@ -286,6 +286,26 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    .password-wrap { position: relative; }
+    .password-wrap input { padding-right: 44px; }
+    .eye-btn {
+      position: absolute; right: 0; top: 0; bottom: 0;
+      width: 44px; background: none; border: none;
+      cursor: pointer; font-size: 15px; color: var(--dim);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .eye-btn:hover { color: var(--muted); }
+
+    .strength-bar {
+      height: 3px; border-radius: 2px;
+      background: var(--border); margin-top: 6px;
+      overflow: hidden;
+    }
+    .strength-fill {
+      height: 100%; width: 0%; border-radius: 2px;
+      transition: width .3s, background .3s;
+    }
+
     @media (max-width: 480px) {
       .hero { padding: 56px 20px 44px; }
       .form-card-body { padding: 24px 20px; }
@@ -382,10 +402,29 @@
             </select>
           </div>
 
+          <p class="section-label" style="margin-top:24px">Créer votre compte</p>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6;">Votre compte vous permettra d'accéder à votre tableau de bord dès validation de votre restaurant.</p>
+
+          <div class="field">
+            <label>Mot de passe <span class="req">*</span></label>
+            <div class="password-wrap">
+              <input type="password" id="password" placeholder="8 caractères minimum" autocomplete="new-password" />
+              <button type="button" class="eye-btn" id="eyeBtn1" onclick="togglePwd('password','eyeBtn1')">👁</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Confirmer le mot de passe <span class="req">*</span></label>
+            <div class="password-wrap">
+              <input type="password" id="password2" placeholder="Répéter le mot de passe" autocomplete="new-password" />
+              <button type="button" class="eye-btn" id="eyeBtn2" onclick="togglePwd('password2','eyeBtn2')">👁</button>
+            </div>
+          </div>
+
           <div class="error-msg" id="errorMsg"></div>
 
           <button type="submit" class="submit-btn" id="submitBtn">
-            Envoyer ma candidature →
+            Créer mon compte et envoyer →
           </button>
 
           <p class="legal">Activation immédiate et gratuite pendant 3 mois.</p>
@@ -415,14 +454,37 @@
       errorMsg.textContent = '⚠️  ' + msg;
       errorMsg.classList.add('visible');
       submitBtn.disabled = false;
-      submitBtn.innerHTML = 'Envoyer ma candidature →';
+      submitBtn.innerHTML = 'Créer mon compte et envoyer →';
     }
 
-    function clearError() {
-      errorMsg.classList.remove('visible');
-    }
-
+    function clearError() { errorMsg.classList.remove('visible'); }
     function val(id) { return document.getElementById(id).value.trim(); }
+
+    function togglePwd(inputId, btnId) {
+      const input = document.getElementById(inputId);
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    // Indicateur force du mot de passe
+    document.getElementById('password').addEventListener('input', function() {
+      const v = this.value;
+      let score = 0;
+      if (v.length >= 8)              score++;
+      if (/[A-Z]/.test(v))            score++;
+      if (/[0-9]/.test(v))            score++;
+      if (/[^A-Za-z0-9]/.test(v))     score++;
+      let bar = document.getElementById('strengthFill');
+      if (!bar) {
+        const wrap = document.createElement('div');
+        wrap.className = 'strength-bar';
+        wrap.innerHTML = '<div class="strength-fill" id="strengthFill"></div>';
+        this.closest('.password-wrap').after(wrap);
+        bar = document.getElementById('strengthFill');
+      }
+      const colors = ['#e05a5a','#e09a5a','#c8975a','#4caf82'];
+      bar.style.width  = (score * 25) + '%';
+      bar.style.background = colors[score - 1] || 'var(--border)';
+    });
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -435,22 +497,51 @@
       const restaurant = val('restaurant');
       const adresse    = val('adresse');
       const ville      = val('ville');
+      const password   = document.getElementById('password').value;
+      const password2  = document.getElementById('password2').value;
 
-      if (!prenom || !nom || !email || !telephone || !restaurant || !adresse || !ville) {
+      if (!prenom || !nom || !email || !telephone || !restaurant || !adresse || !ville || !password) {
         showError('Tous les champs sont obligatoires.');
         return;
       }
-
-      const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRx.test(email)) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         showError('Adresse email invalide.');
+        return;
+      }
+      if (password.length < 8) {
+        showError('Le mot de passe doit contenir au moins 8 caractères.');
+        return;
+      }
+      if (password !== password2) {
+        showError('Les mots de passe ne correspondent pas.');
         return;
       }
 
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span class="spinner"></span>Envoi en cours…';
+      submitBtn.innerHTML = '<span class="spinner"></span>Création du compte…';
 
-      const { error } = await sb.rpc('submit_pro_request', {
+      // 1. Créer le compte Supabase
+      const { data: authData, error: authError } = await sb.auth.signUp({
+        email,
+        password,
+        options: { data: { first_name: prenom, last_name: nom } },
+      });
+
+      if (authError) {
+        if (authError.message?.toLowerCase().includes('already registered')) {
+          showError('Cet email est déjà utilisé. Connectez-vous depuis l\'app MIDA.');
+        } else {
+          showError(authError.message || 'Erreur lors de la création du compte.');
+        }
+        return;
+      }
+
+      const userId = authData?.user?.id ?? null;
+
+      submitBtn.innerHTML = '<span class="spinner"></span>Envoi de la candidature…';
+
+      // 2. Soumettre la demande pro avec le user_id
+      const { error: rpcError } = await sb.rpc('submit_pro_request', {
         p_first_name:      prenom,
         p_last_name:       nom,
         p_email:           email,
@@ -458,11 +549,12 @@
         p_restaurant_name: restaurant,
         p_address:         adresse,
         p_city:            ville,
+        p_user_id:         userId,
       });
 
-      if (error) {
-        showError('Une erreur est survenue. Réessayez ou contactez contact@mida-food.com');
-        console.error(error);
+      if (rpcError) {
+        showError('Compte créé mais erreur lors de l\'envoi. Contactez contact@mida-food.com');
+        console.error(rpcError);
         return;
       }
 
