@@ -224,6 +224,11 @@ export default function ProInfoScreen({ navigation, route }) {
           <View style={{ height: 120 }} />
         </ScrollView>
       )}
+      <View style={s.terminerBar}>
+        <TouchableOpacity style={s.terminerBtn} onPress={() => navigation.navigate('Main', { screen: 'Manager' })}>
+          <Text style={s.terminerTxt}>Terminer → Dashboard</Text>
+        </TouchableOpacity>
+      </View>
       <BottomTabBar navigation={navigation} isPro={true} activeTab={null} />
     </SafeAreaView>
   );
@@ -236,6 +241,9 @@ const s = StyleSheet.create({
   backBtn:     { marginRight: spacing.sm, padding: spacing.xs },
   backBtnTxt:  { color: colors.text, fontSize: 22 },
   title:       { color: colors.text, fontSize: typography.size.heading2, fontWeight: typography.weight.semibold },
+  terminerBar: { paddingHorizontal: spacing.xl, paddingVertical: spacing.md, backgroundColor: colors.card, borderTopWidth: 1, borderTopColor: colors.cardBorder },
+  terminerBtn: { alignItems: 'center', paddingVertical: spacing.md },
+  terminerTxt: { color: colors.accent, fontSize: typography.size.body, fontWeight: typography.weight.medium },
   saveBtn:     { backgroundColor: PRO_ACCENT, borderRadius: radius.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, opacity: 1 },
   saveBtnActive:{ opacity: 0.75 },
   saveBtnTxt:  { color: '#fff', fontSize: typography.size.caption, fontWeight: typography.weight.extrabold },

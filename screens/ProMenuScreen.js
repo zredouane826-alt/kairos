@@ -200,6 +200,11 @@ export default function ProMenuScreen({ navigation, route }) {
           </ScrollView>
         </>
       )}
+      <View style={s.terminerBar}>
+        <TouchableOpacity style={s.terminerBtn} onPress={() => navigation.navigate('Main', { screen: 'Manager' })}>
+          <Text style={s.terminerTxt}>Terminer → Dashboard</Text>
+        </TouchableOpacity>
+      </View>
       <BottomTabBar navigation={navigation} isPro={true} activeTab="Manager" />
     </SafeAreaView>
   );
@@ -208,6 +213,9 @@ export default function ProMenuScreen({ navigation, route }) {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
 
+  terminerBar: { paddingHorizontal: spacing.xl, paddingVertical: spacing.md, backgroundColor: colors.card, borderTopWidth: 1, borderTopColor: colors.cardBorder },
+  terminerBtn: { alignItems: 'center', paddingVertical: spacing.md },
+  terminerTxt: { color: colors.accent, fontSize: typography.size.body, fontWeight: typography.weight.medium },
   header:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.xxl, paddingTop: spacing.xl, paddingBottom: spacing.xl, borderBottomWidth: 1, borderBottomColor: colors.cardBorder },
   backBtn:      { width: 36, padding: spacing.xs },
   backBtnTxt:   { color: colors.text, fontSize: 22 },

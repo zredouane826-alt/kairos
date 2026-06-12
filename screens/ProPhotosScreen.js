@@ -91,6 +91,9 @@ export default function ProPhotosScreen({ navigation, route }) {
           }
         </TouchableOpacity>
         <Text style={s.hint}>JPG / PNG · max 5 Mo · ratio 4:3 recommandé</Text>
+        <TouchableOpacity style={s.terminerBtn} onPress={() => navigation.navigate('Main', { screen: 'Manager' })}>
+          <Text style={s.terminerTxt}>Terminer → Dashboard</Text>
+        </TouchableOpacity>
       </View>
       <BottomTabBar navigation={navigation} isPro={true} activeTab={null} />
     </SafeAreaView>
@@ -127,4 +130,6 @@ const s = StyleSheet.create({
   addBtnDisabled: { opacity: 0.6 },
   addBtnTxt:  { color: colors.bg, fontSize: typography.size.subheading, fontWeight: typography.weight.semibold },
   hint:       { color: colors.textDim, fontSize: typography.size.xs, textAlign: 'center', marginTop: spacing.sm },
+  terminerBtn: { alignItems: 'center', paddingVertical: spacing.md },
+  terminerTxt: { color: colors.accent, fontSize: typography.size.body, fontWeight: typography.weight.medium },
 });
