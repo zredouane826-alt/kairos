@@ -38,7 +38,7 @@ const Stack = createNativeStackNavigator();
 const C = {
   bg: '#0d1628', bg2: 'transparent',
   border: 'transparent',
-  accent: '#006233', dim: '#5A6478', text: '#f0ece4',
+  accent: '#0D1628', dim: '#b0bec5', text: '#f0ece4',
 };
 
 const TAB_ICONS = {
@@ -58,14 +58,13 @@ function TabIcon({ name, focused }) {
       {focused && (
         <View style={{
           position: 'absolute', width: 40, height: 32, borderRadius: 16,
-          backgroundColor: 'rgba(255,255,255,0.5)',
+          backgroundColor: 'rgba(13,22,40,0.13)',
         }} />
       )}
       <Ionicons
         name={iconName}
         size={focused ? 22 : 20}
         color={focused ? C.accent : C.dim}
-        style={{ textShadowColor: 'rgba(255,255,255,0.85)', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 5 }}
       />
     </View>
   );
@@ -83,14 +82,20 @@ function TabNavigator({ userRole }) {
         headerShown: false,
         tabBarIcon: ({ focused }) => <TabIcon name={route.name} focused={focused} />,
         tabBarStyle: {
-          backgroundColor: 'transparent',
+          backgroundColor: 'rgba(255,255,255,0.97)',
           borderTopWidth: 0,
           borderTopColor: 'transparent',
-          paddingBottom: 20,
-          paddingTop: 6,
-          height: 68,
-          elevation: 0,
-          shadowOpacity: 0,
+          marginHorizontal: 16,
+          marginBottom: 12,
+          borderRadius: 36,
+          paddingBottom: 8,
+          paddingTop: 8,
+          height: 66,
+          elevation: 16,
+          shadowColor: '#000',
+          shadowOpacity: 0.16,
+          shadowRadius: 24,
+          shadowOffset: { width: 0, height: 8 },
         },
         tabBarActiveTintColor: C.accent,
         tabBarInactiveTintColor: C.dim,
