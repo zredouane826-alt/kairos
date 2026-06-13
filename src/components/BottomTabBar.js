@@ -111,21 +111,14 @@ export default function BottomTabBar({ navigation, isPro = false, activeTab = nu
 
 const s = StyleSheet.create({
   outerWrap: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
     backgroundColor: 'transparent',
   },
   container: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.97)',
-    borderRadius: 36,
+    backgroundColor: 'transparent',
     paddingTop: 6,
     paddingBottom: 6,
-    shadowColor: '#000',
-    shadowOpacity: 0.16,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 16,
+    elevation: 0,
   },
   tab: {
     flex: 1,
