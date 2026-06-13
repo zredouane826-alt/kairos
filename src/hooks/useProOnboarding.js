@@ -9,50 +9,67 @@ export const SETUP_STEPS = [
   { key: 'horaires', icon: '🕐', label: 'Horaires',       desc: "Définissez vos heures d'ouverture",  screen: 'ProHoraires' },
 ];
 
-export default function useProOnboarding() {
-  const [userId,  setUserId]  = useState(null);
-  const [visible, setVisible] = useState(false);
-  const [visited, setVisited] = useState({});
+async function checkDbCompletion(restaurantId) {
+  const [restoRes, dishRes, schedRes] = await Promise.all([
+    supabase.from('restaurants').select('description, cuisine_type, photos').eq('id', restaurantId).maybeSingle(),
+    supabase.from('dishes').select('id', { count: 'exact', head: true }).eq('restaurant_id', restaurantId),
+    supabase.from('restaurant_schedules').select('id', { count: 'exact', head: true }).eq('restaurant_id', restaurantId),
+  ]);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+  const r = restoRes.data;
+  return {
+    info:     !!(r?.description && r?.cuisine_type),
+    photos:   Array.isArray(r?.photos) && r.photos.length > 0,
+    menu:     (dishRes.count || 0) > 0,
+    horaires: (schedRes.count || 0) > 0,
+  };
+}
+
+export default function useProOnboarding() {
+  const [userId,       setUserId]      = useState(null);
+  const [restaurantId, setRestaurantId] = useState(null);
+  const [visible,      setVisible]     = useState(false);
+  const [visited,      setVisited]     = useState({});
+
+  const load = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
       const uid = session.user.id;
       setUserId(uid);
-      AsyncStorage.getItem('@mida_setup_' + uid).then(val => {
-        const saved = val ? JSON.parse(val) : {};
-        const savedVisited = saved.visited || {};
-        setVisited(savedVisited);
-        const allDone = SETUP_STEPS.every(s => savedVisited[s.key]);
-        if (!allDone) setVisible(true);
-      });
-    });
+
+      const { data: ownerRow } = await supabase
+        .from('restaurant_owners')
+        .select('restaurant_id')
+        .eq('auth_id', uid)
+        .maybeSingle();
+
+      if (!ownerRow?.restaurant_id) return;
+      setRestaurantId(ownerRow.restaurant_id);
+
+      const dbDone = await checkDbCompletion(ownerRow.restaurant_id);
+      setVisited(dbDone);
+
+      const allDone = SETUP_STEPS.every(s => dbDone[s.key]);
+      setVisible(!allDone);
+    } catch {
+      setVisible(true);
+    }
   }, []);
 
-  const markVisited = useCallback(async (key) => {
-    setVisited(prev => {
-      const next = { ...prev, [key]: true };
-      if (userId) AsyncStorage.setItem('@mida_setup_' + userId, JSON.stringify({ visited: next, dismissed: false })).catch(() => {});
-      return next;
-    });
-  }, [userId]);
+  useEffect(() => { load(); }, [load]);
 
-  const dismiss = useCallback(async () => {
-    const allDone = SETUP_STEPS.every(s => visited[s.key]);
-    setVisible(false);
-    if (userId) {
-      await AsyncStorage.setItem('@mida_setup_' + userId, JSON.stringify({
-        visited,
-        dismissed: allDone,
-      })).catch(() => {});
-    }
-  }, [userId, visited]);
+  // Mise à jour optimiste locale après retour d'un écran
+  const markVisited = useCallback((key) => {
+    setVisited(prev => ({ ...prev, [key]: true }));
+  }, []);
+
+  const dismiss = useCallback(() => setVisible(false), []);
 
   const reset = useCallback(async () => {
-    setVisited({});
-    setVisible(true);
     if (userId) await AsyncStorage.removeItem('@mida_setup_' + userId).catch(() => {});
-  }, [userId]);
+    await load();
+  }, [userId, load]);
 
   return { visible, visited, markVisited, dismiss, reset };
 }

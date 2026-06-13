@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
+import { Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../supabase';
 
@@ -24,17 +25,25 @@ export default function useProMenu() {
 
       const { data: ownerRow } = await supabase
         .from('restaurant_owners')
-        .select('restaurant_id, restaurants(id, name)')
+        .select('restaurant_id')
         .eq('auth_id', session.user.id)
         .maybeSingle();
 
-      if (!ownerRow?.restaurants) return;
-      setRestaurant(ownerRow.restaurants);
+      if (!ownerRow?.restaurant_id) return;
+
+      const { data: resto } = await supabase
+        .from('restaurants')
+        .select('id, name')
+        .eq('id', ownerRow.restaurant_id)
+        .maybeSingle();
+
+      if (!resto) return;
+      setRestaurant(resto);
 
       const { data: rows } = await supabase
         .from('dishes')
         .select('id, name, description, price, category, is_available, is_dish_of_day, has_allergens, photo, created_at')
-        .eq('restaurant_id', ownerRow.restaurants.id)
+        .eq('restaurant_id', resto.id)
         .order('created_at', { ascending: true });
 
       const list = rows ?? [];
@@ -65,7 +74,10 @@ export default function useProMenu() {
   }, []);
 
   const saveDish = useCallback(async (form) => {
-    if (!restaurant) return;
+    if (!restaurant) {
+      Alert.alert('Erreur', 'Restaurant non chargé. Réessayez.');
+      return;
+    }
     const payload = {
       name:           form.name.trim(),
       description:    form.description.trim(),
@@ -76,10 +88,15 @@ export default function useProMenu() {
       has_allergens:  form.hasAllergens,
       photo:          form.photo || null,
     };
+    let err;
     if (editingDish) {
-      await supabase.from('dishes').update(payload).eq('id', editingDish.id);
+      ({ error: err } = await supabase.from('dishes').update(payload).eq('id', editingDish.id));
     } else {
-      await supabase.from('dishes').insert({ ...payload, restaurant_id: restaurant.id });
+      ({ error: err } = await supabase.from('dishes').insert({ ...payload, restaurant_id: restaurant.id }));
+    }
+    if (err) {
+      Alert.alert('Erreur sauvegarde', err.message);
+      return;
     }
     setView('list');
     setEditingDish(null);

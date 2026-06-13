@@ -233,7 +233,17 @@ export default function DishForm({ initial, categories, isEdit, restaurantId, on
             <Text style={s.saveBtnTxt}>{saving ? '···' : isEdit ? 'Enregistrer →' : 'Ajouter au menu →'}</Text>
           </TouchableOpacity>
           {onTerminer && (
-            <TouchableOpacity style={s.terminerBtn} onPress={onTerminer}>
+            <TouchableOpacity
+              style={s.terminerBtn}
+              onPress={async () => {
+                if (canSave && !saving) {
+                  setSaving(true);
+                  try { await onSave(form); } finally { setSaving(false); }
+                }
+                onTerminer();
+              }}
+              disabled={saving}
+            >
               <Text style={s.terminerTxt}>Terminer → Dashboard</Text>
             </TouchableOpacity>
           )}

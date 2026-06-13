@@ -75,15 +75,15 @@ export default function ProSetupCard({ navigation, restaurantId, visited, onVisi
         </TouchableOpacity>
       )}
 
-      {/* Étapes à venir */}
+      {/* Étapes à venir (toutes accessibles) */}
       {activeStep && SETUP_STEPS.filter(s => !visited[s.key] && s.key !== activeStep.key).map((step) => (
-        <View key={step.key} style={s.pendingRow}>
+        <TouchableOpacity key={step.key} style={s.pendingRow} onPress={() => handleStep(step)} activeOpacity={0.65}>
           <View style={s.pendingIcon}>
             <Text style={s.pendingEmoji}>{step.icon}</Text>
           </View>
           <Text style={s.pendingLabel}>{step.label}</Text>
-          <View style={s.lockBadge}><Text style={s.lockTxt}>À venir</Text></View>
-        </View>
+          <Text style={s.pendingArrow}>→</Text>
+        </TouchableOpacity>
       ))}
     </View>
   );
@@ -140,10 +140,9 @@ const s = StyleSheet.create({
   activeBtnTxt:{ color: '#fff', fontSize: typography.size.caption, fontWeight: typography.weight.extrabold },
 
   // Étapes à venir
-  pendingRow:   { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.xl, paddingVertical: spacing.sm, opacity: 0.35, marginTop: spacing.xs },
+  pendingRow:   { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.xl, paddingVertical: spacing.sm, opacity: 0.55, marginTop: spacing.xs },
   pendingIcon:  { width: 28, height: 28, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', alignItems: 'center', justifyContent: 'center' },
   pendingEmoji: { fontSize: 13 },
   pendingLabel: { flex: 1, color: 'rgba(245,242,236,0.55)', fontSize: typography.size.caption },
-  lockBadge:    { backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: radius.pill, paddingHorizontal: spacing.sm, paddingVertical: 3 },
-  lockTxt:      { color: 'rgba(245,242,236,0.35)', fontSize: 10 },
+  pendingArrow: { color: 'rgba(200,151,90,0.7)', fontSize: 14 },
 });
