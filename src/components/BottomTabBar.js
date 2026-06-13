@@ -4,11 +4,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 const C = {
-  bg:     'rgba(255,255,255,0.97)',
-  border: 'rgba(0,0,0,0.06)',
-  accent: '#0D1628',
-  dim:    '#b0bec5',
-  activeBg: 'rgba(13,22,40,0.08)',
+  bg:     'transparent',
+  border: 'transparent',
+  accent: '#006233',
+  dim:    '#5A6478',
+  activeBg: 'rgba(255,255,255,0.5)',
 };
 
 const CLIENT_TABS = [
@@ -45,6 +45,7 @@ function TabItem({ tab, isActive, onPress }) {
           name={isActive ? tab.icon : `${tab.icon}-outline`}
           size={isActive ? 22 : 20}
           color={isActive ? C.accent : C.dim}
+          style={{ textShadowColor: 'rgba(255,255,255,0.85)', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 5 }}
         />
         <Text style={[s.label, isActive && s.labelActive]}>{tab.label ?? tab.name}</Text>
       </Animated.View>
