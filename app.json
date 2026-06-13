@@ -72,7 +72,7 @@
     },
     "owner": "zlabia",
     "runtimeVersion": {
-      "policy": "appVersion"
+      "policy": "sdkVersion"
     },
     "updates": {
       "url": "https://u.expo.dev/ce226e39-fe42-4bbe-a556-055b49805840"
