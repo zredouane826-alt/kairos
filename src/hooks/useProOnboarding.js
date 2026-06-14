@@ -38,11 +38,12 @@ export default function useProOnboarding() {
       const uid = session.user.id;
       setUserId(uid);
 
-      const { data: ownerRow } = await supabase
+      const { data: ownerRows } = await supabase
         .from('restaurant_owners')
         .select('restaurant_id')
         .eq('auth_id', uid)
-        .maybeSingle();
+        .limit(1);
+      const ownerRow = ownerRows?.[0] ?? null;
 
       if (!ownerRow?.restaurant_id) return;
       setRestaurantId(ownerRow.restaurant_id);

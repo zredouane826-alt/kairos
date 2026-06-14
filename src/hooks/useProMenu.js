@@ -23,11 +23,12 @@ export default function useProMenu() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { data: ownerRow } = await supabase
+      const { data: ownerRows } = await supabase
         .from('restaurant_owners')
         .select('restaurant_id')
         .eq('auth_id', session.user.id)
-        .maybeSingle();
+        .limit(1);
+      const ownerRow = ownerRows?.[0] ?? null;
 
       if (!ownerRow?.restaurant_id) return;
 
