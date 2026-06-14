@@ -183,9 +183,10 @@ export default function useReservationForm(restaurant, onSuccess, existingResa =
           });
         } catch (_) {}
         try {
-          const { data: owner } = await supabase
+          const { data: ownerRows } = await supabase
             .from('restaurant_owners').select('auth_id')
-            .eq('restaurant_id', restaurant.id).maybeSingle();
+            .eq('restaurant_id', restaurant.id).limit(1);
+          const owner = ownerRows?.[0] ?? null;
           if (owner?.auth_id) {
             const { data: mgr } = await supabase
               .from('users').select('id')
@@ -230,9 +231,10 @@ export default function useReservationForm(restaurant, onSuccess, existingResa =
           });
         } catch (_) {}
         try {
-          const { data: owner } = await supabase
+          const { data: ownerRows } = await supabase
             .from('restaurant_owners').select('auth_id')
-            .eq('restaurant_id', restaurant.id).maybeSingle();
+            .eq('restaurant_id', restaurant.id).limit(1);
+          const owner = ownerRows?.[0] ?? null;
           if (owner?.auth_id) {
             const { data: mgr } = await supabase
               .from('users').select('id')

@@ -105,11 +105,12 @@ export default function useReservations() {
 
             // Notification au manager
             try {
-              const { data: owner } = await supabase
+              const { data: ownerRows } = await supabase
                 .from('restaurant_owners')
                 .select('auth_id')
                 .eq('restaurant_id', r.restaurant_id)
-                .maybeSingle();
+                .limit(1);
+              const owner = ownerRows?.[0] ?? null;
               if (owner) {
                 const { data: managerUser } = await supabase
                   .from('users')
