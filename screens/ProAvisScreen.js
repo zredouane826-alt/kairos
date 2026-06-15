@@ -10,7 +10,6 @@ import MLoader from '../src/components/MLoader';
 import useProAvis, { FILTERS } from '../src/hooks/useProAvis';
 import AvisStats from '../src/components/AvisStats';
 import ReviewCard from '../src/components/ReviewCard';
-import BottomTabBar from '../src/components/BottomTabBar';
 
 function Skeleton() {
   return (
@@ -122,7 +121,6 @@ export default function ProAvisScreen({ navigation }) {
           <Text style={s.terminerTxt}>Terminer → Dashboard</Text>
         </TouchableOpacity>
       </View>
-      <BottomTabBar navigation={navigation} isPro={true} activeTab={null} />
     </SafeAreaView>
   );
 }

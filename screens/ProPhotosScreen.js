@@ -4,7 +4,6 @@ import { colors, typography, spacing, radius } from '../src/theme';
 import useProPhotos from '../src/hooks/useProPhotos';
 import { useEffect } from 'react';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import BottomTabBar from '../src/components/BottomTabBar';
 
 export default function ProPhotosScreen({ navigation, route }) {
   const restaurantId   = route?.params?.restaurantId;
@@ -95,7 +94,6 @@ export default function ProPhotosScreen({ navigation, route }) {
           <Text style={s.terminerTxt}>Terminer → Dashboard</Text>
         </TouchableOpacity>
       </View>
-      <BottomTabBar navigation={navigation} isPro={true} activeTab={null} />
     </SafeAreaView>
   );
 }

@@ -11,7 +11,6 @@ import useRestaurant from '../src/hooks/useRestaurant';
 import RestaurantMenuTab from '../src/components/RestaurantMenuTab';
 import RestaurantAvisTab from '../src/components/RestaurantAvisTab';
 import RestaurantInfosTab from '../src/components/RestaurantInfosTab';
-import BottomTabBar from '../src/components/BottomTabBar';
 
 const SW   = Dimensions.get('window').width;
 const HERO = 310;
@@ -185,7 +184,6 @@ export default function RestaurantScreen({ route, navigation }) {
         </View>
       </View>
 
-      <BottomTabBar navigation={navigation} activeTab={null} />
     </SafeAreaView>
   );
 }

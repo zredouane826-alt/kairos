@@ -14,7 +14,6 @@ import Clock from '../src/components/Clock';
 import ResaRow from '../src/components/ResaRow';
 import CompactResaRow from '../src/components/CompactResaRow';
 import ResaDetail from '../src/components/ResaDetail';
-import BottomTabBar from '../src/components/BottomTabBar';
 
 function StatBox({ label, value, color }) {
   return (
@@ -194,7 +193,6 @@ export default function ProComptoir({ navigation }) {
             />
           </View>
         </View>
-        <BottomTabBar navigation={navigation} isPro={true} activeTab="Manager" />
       </View>
     );
   }
@@ -227,7 +225,6 @@ export default function ProComptoir({ navigation }) {
         contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 40 }}
         style={{ flex: 1 }}
       />
-      <BottomTabBar navigation={navigation} isPro={true} activeTab="Manager" />
     </View>
   );
 }

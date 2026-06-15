@@ -7,7 +7,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, typography, spacing, radius } from '../src/theme';
 import MLoader from '../src/components/MLoader';
 import useProInfo, { CUISINE_OPTIONS, OCCASION_OPTIONS } from '../src/hooks/useProInfo';
-import BottomTabBar from '../src/components/BottomTabBar';
 
 const PRO_ACCENT = '#c8975a';
 
@@ -229,7 +228,6 @@ export default function ProInfoScreen({ navigation, route }) {
           <Text style={s.terminerTxt}>Terminer → Dashboard</Text>
         </TouchableOpacity>
       </View>
-      <BottomTabBar navigation={navigation} isPro={true} activeTab={null} />
     </SafeAreaView>
   );
 }

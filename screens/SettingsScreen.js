@@ -6,7 +6,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, typography, spacing, radius } from '../src/theme';
 import useSettings, { GROUPS } from '../src/hooks/useSettings';
-import BottomTabBar from '../src/components/BottomTabBar';
 import CGUModal from '../src/components/CGUModal';
 
 export default function SettingsScreen({ navigation }) {
@@ -100,7 +99,6 @@ export default function SettingsScreen({ navigation }) {
           <View style={{ height: 32 }} />
         </View>
       </ScrollView>
-      <BottomTabBar navigation={navigation} activeTab={null} />
     </SafeAreaView>
   );
 }

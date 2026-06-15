@@ -11,7 +11,6 @@ import useProMenu, { DEFAULT_CATS, EMPTY_FORM } from '../src/hooks/useProMenu';
 import DishCard from '../src/components/DishCard';
 import DishForm from '../src/components/DishForm';
 import MenuCategoriesView from '../src/components/MenuCategoriesView';
-import BottomTabBar from '../src/components/BottomTabBar';
 
 function SkeletonMenu() {
   return (
@@ -207,7 +206,6 @@ export default function ProMenuScreen({ navigation, route }) {
           <Text style={s.terminerTxt}>Terminer → Dashboard</Text>
         </TouchableOpacity>
       </View>
-      <BottomTabBar navigation={navigation} isPro={true} activeTab="Manager" />
     </SafeAreaView>
   );
 }

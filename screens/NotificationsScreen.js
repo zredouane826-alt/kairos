@@ -6,7 +6,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, typography, spacing, radius } from '../src/theme';
 import MLoader from '../src/components/MLoader';
 import useNotifications, { TYPE_CFG, TABS, timeAgo } from '../src/hooks/useNotifications';
-import BottomTabBar from '../src/components/BottomTabBar';
 
 function SkeletonList() {
   return (
@@ -136,7 +135,6 @@ export default function NotificationsScreen({ navigation }) {
           <View style={{ height: 60 }} />
         </ScrollView>
       )}
-      <BottomTabBar navigation={navigation} activeTab={null} />
     </SafeAreaView>
   );
 }

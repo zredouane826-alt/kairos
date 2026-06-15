@@ -8,7 +8,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing } from '../src/theme';
 import useSearch from '../src/hooks/useSearch';
 import { CUISINE_EMOJI } from '../src/hooks/useMapScreen';
-import BottomTabBar from '../src/components/BottomTabBar';
 
 let MapView, Marker;
 if (Platform.OS !== 'web') {
@@ -187,7 +186,6 @@ export default function SearchScreen({ navigation, route }) {
 
       </View>
 
-      <BottomTabBar navigation={navigation} activeTab="Recherche" />
 
     </SafeAreaView>
   );

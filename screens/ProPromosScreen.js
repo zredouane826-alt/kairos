@@ -10,7 +10,6 @@ import useProPromos from '../src/hooks/useProPromos';
 import PromoListView from '../src/components/PromoListView';
 import PromoCreateView from '../src/components/PromoCreateView';
 import PromoActiveView from '../src/components/PromoActiveView';
-import BottomTabBar from '../src/components/BottomTabBar';
 
 function Skeleton() {
   return (
@@ -64,7 +63,6 @@ export default function ProPromosScreen({ navigation }) {
           <Text style={s.terminerTxt}>Terminer → Dashboard</Text>
         </TouchableOpacity>
       </View>
-      <BottomTabBar navigation={navigation} isPro={true} activeTab={null} />
     </SafeAreaView>
   );
 }

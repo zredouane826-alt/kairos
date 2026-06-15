@@ -10,7 +10,6 @@ import useReservationForm, { OCCASIONS, DAYS, formatDateLong } from '../src/hook
 import FormProgressBar from '../src/components/FormProgressBar';
 import FormStepper from '../src/components/FormStepper';
 import ReservationSuccess from '../src/components/ReservationSuccess';
-import BottomTabBar from '../src/components/BottomTabBar';
 import GuestWall from '../src/components/GuestWall';
 import { useGuestContext } from '../src/context/GuestContext';
 
@@ -298,7 +297,6 @@ export default function ReservationFormScreen({ route, navigation }) {
 
         <View style={{ height: 60 }} />
       </ScrollView>
-      <BottomTabBar navigation={navigation} activeTab={null} />
     </SafeAreaView>
   );
 }

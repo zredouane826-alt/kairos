@@ -5,7 +5,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, typography, spacing, radius } from '../src/theme';
 import useAide, { FAQS } from '../src/hooks/useAide';
-import BottomTabBar from '../src/components/BottomTabBar';
 
 const CONDITIONS = `CONDITIONS GÉNÉRALES D'UTILISATION — MIDA
 Dernière mise à jour : juin 2026
@@ -234,7 +233,6 @@ export default function AideScreen({ navigation }) {
           <View style={{ height: 32 }} />
         </View>
       </ScrollView>
-      <BottomTabBar navigation={navigation} activeTab={null} />
     </SafeAreaView>
   );
 }
