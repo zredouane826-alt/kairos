@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Animated } from 'react-native';
 import { supabase } from '../../supabase';
+import usePushToken from './usePushToken';
 
 export default function useAuth({ onAuth, userType, onSwitchType }) {
   const isPro = useMemo(() => userType === 'pro', [userType]);
@@ -15,6 +16,9 @@ export default function useAuth({ onAuth, userType, onSwitchType }) {
   const [success,      setSuccess]      = useState('');
   const [resetSent,    setResetSent]    = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
+  const [loggedInUserId, setLoggedInUserId] = useState(null);
+
+  usePushToken(loggedInUserId);
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const shakeAnim = useRef(new Animated.Value(0)).current;
@@ -73,7 +77,7 @@ export default function useAuth({ onAuth, userType, onSwitchType }) {
       if (mode === 'signin') {
         const { data, error: err } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
         if (err) { setError(err.message); shake(); }
-        else if (data?.session) onAuth(data.session);
+        else if (data?.session) { setLoggedInUserId(data.session.user.id); onAuth(data.session); }
         else setError('Connexion échouée. Vérifiez vos identifiants.');
       } else {
         const { data, error: err } = await supabase.auth.signUp({ email: email.trim(), password });
@@ -83,10 +87,10 @@ export default function useAuth({ onAuth, userType, onSwitchType }) {
             switchMode('signin');
           } else { setError(err.message); shake(); }
         } else if (data?.session) {
-          onAuth(data.session);
+          setLoggedInUserId(data.session.user.id); onAuth(data.session);
         } else {
           const { data: d2 } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-          if (d2?.session) { onAuth(d2.session); }
+          if (d2?.session) { setLoggedInUserId(d2.session.user.id); onAuth(d2.session); }
           else { setSuccess('Compte créé ! Connectez-vous avec vos identifiants.'); switchMode('signin'); }
         }
       }
