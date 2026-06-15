@@ -104,7 +104,6 @@ export default function ReservationFormScreen({ route, navigation }) {
             : (
               <View style={[s.banner, s.bannerPlaceholder]}>
                 <Text style={{ fontSize: 48, opacity: 0.5 }}>🍽️</Text>
-                <Text style={s.bannerPlaceholderTxt}>{restaurant.name}</Text>
               </View>
             )
           }

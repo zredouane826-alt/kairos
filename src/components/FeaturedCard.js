@@ -40,7 +40,6 @@ export default function FeaturedCard({ r, onPress, onReserve }) {
                 {(r.cuisine_type || '').replace(/_/g, ' ')}
               </Text>
               {!!r.quartier && <Text style={s.infoQuartier} numberOfLines={1}>{r.quartier}</Text>}
-              <Text style={s.infoName} numberOfLines={1}>{r.name}</Text>
             </View>
             <TouchableOpacity style={s.resaBtn} onPress={onReserve}>
               <Text style={s.resaBtnTxt}>Réserver</Text>

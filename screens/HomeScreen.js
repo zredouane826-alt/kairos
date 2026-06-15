@@ -152,21 +152,18 @@ export default function HomeScreen({ navigation }) {
       {/* ── Contenu scrollable ── */}
       <ScrollView showsVerticalScrollIndicator={false} style={s.scroll}>
 
-        {/* Ce soir */}
+        {/* Tables d'aujourd'hui */}
         {slots.length > 0 && (
           <LinearGradient colors={['#094e2e', '#072e1d']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.tonightCard}>
             <View style={s.tonightBody}>
-              <Text style={s.tonightLabel}>🌙  CE SOIR</Text>
-              <Text style={s.tonightTitle}>Trouvez votre table</Text>
+              <Text style={s.tonightLabel}>🍽️  TABLES D'AUJOURD'HUI</Text>
+              <Text style={s.tonightTitle}>Réserve ta table maintenant</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.slotRow} delayContentTouches={false}>
                 {slots.map(slot => (
                   <TouchableOpacity key={slot} delayPressIn={0} style={s.slotChip} onPress={goExplorer}>
                     <Text style={s.slotTxt}>{slot}</Text>
                   </TouchableOpacity>
                 ))}
-                <TouchableOpacity delayPressIn={0} style={[s.slotChip, s.slotAll]} onPress={goExplorer}>
-                  <Text style={s.slotAllTxt}>Voir tout →</Text>
-                </TouchableOpacity>
               </ScrollView>
             </View>
           </LinearGradient>
@@ -221,7 +218,6 @@ export default function HomeScreen({ navigation }) {
         {/* Liste */}
         <SectionHead
           label={category === 'all' ? 'TOP RESTAURANTS' : (CATEGORIES.find(c => c.id === category)?.label || '').toUpperCase()}
-          right={!loading ? `${filtered.length} résultat${filtered.length > 1 ? 's' : ''}` : null}
         />
 
         {loading ? (

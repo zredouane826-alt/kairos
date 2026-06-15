@@ -1,31 +1,29 @@
 import { useRef, useCallback, useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 
 const C = {
-  bg:       'rgba(255,255,255,0.98)',
-  border:   'rgba(0,0,0,0.06)',
-  accent:   '#0D6B3F',
-  dim:      '#8B95A1',
-  activeBg: 'rgba(13,107,63,0.09)',
-  outerBg:  '#F5F6F8',
+  accent:    '#006233',
+  dim:       'rgba(255,255,255,0.45)',
+  activeTxt: '#FFFFFF',
+  activeBg:  'rgba(255,255,255,0.18)',
+  border:    'rgba(255,255,255,0.12)',
 };
 
 const CLIENT_TABS = [
-  { name: 'Accueil',   label: 'Accueil',  icon: 'home',     route: 'Accueil' },
-  { name: 'Recherche', label: 'Rech',     icon: 'search',   route: 'Recherche' },
-  { name: 'Favoris',   label: 'Favoris',  icon: 'heart',    route: 'Favoris' },
-  { name: 'Resa',      label: 'Resa',     icon: 'calendar', route: 'Resa' },
-  { name: 'Profil',    label: 'Profil',   icon: 'person',   route: 'Profil' },
+  { name: 'Accueil',   label: 'Accueil',      route: 'Accueil' },
+  { name: 'Recherche', label: 'Recherche',     route: 'Recherche' },
+  { name: 'Favoris',   label: 'Favoris',       route: 'Favoris' },
+  { name: 'Resa',      label: 'Réservations',  route: 'Resa' },
+  { name: 'Profil',    label: 'Profil',        route: 'Profil' },
 ];
 
 const PRO_TABS = [
-  { name: 'Accueil',   label: 'Accueil',  icon: 'home',     route: 'Accueil' },
-  { name: 'Recherche', label: 'Rech',     icon: 'search',   route: 'Recherche' },
-  { name: 'Favoris',   label: 'Favoris',  icon: 'heart',    route: 'Favoris' },
-  { name: 'Manager',   label: 'Manager',  icon: 'grid',     route: 'Manager' },
-  { name: 'Profil',    label: 'Profil',   icon: 'person',   route: 'Profil' },
+  { name: 'Accueil',   label: 'Accueil',   route: 'Accueil' },
+  { name: 'Recherche', label: 'Recherche', route: 'Recherche' },
+  { name: 'Favoris',   label: 'Favoris',   route: 'Favoris' },
+  { name: 'Manager',   label: 'Manager',   route: 'Manager' },
+  { name: 'Profil',    label: 'Profil',    route: 'Profil' },
 ];
 
 function TabItem({ tab, isActive, onPress }) {
@@ -33,7 +31,7 @@ function TabItem({ tab, isActive, onPress }) {
 
   const handlePress = useCallback(() => {
     Animated.sequence([
-      Animated.spring(scale, { toValue: 0.82, useNativeDriver: true, speed: 50, bounciness: 0 }),
+      Animated.spring(scale, { toValue: 0.84, useNativeDriver: true, speed: 50, bounciness: 0 }),
       Animated.spring(scale, { toValue: 1,    useNativeDriver: true, speed: 20, bounciness: 12 }),
     ]).start();
     onPress();
@@ -42,12 +40,10 @@ function TabItem({ tab, isActive, onPress }) {
   return (
     <TouchableOpacity style={s.tab} onPress={handlePress} activeOpacity={1}>
       <Animated.View style={[s.tabInner, isActive && s.tabInnerActive, { transform: [{ scale }] }]}>
-        <Ionicons
-          name={isActive ? tab.icon : `${tab.icon}-outline`}
-          size={isActive ? 22 : 20}
-          color={isActive ? C.accent : C.dim}
-        />
-        <Text style={[s.label, isActive && s.labelActive]}>{tab.label ?? tab.name}</Text>
+        <Text style={[s.label, isActive && s.labelActive]} numberOfLines={1}>
+          {tab.label}
+        </Text>
+        {isActive && <View style={s.activeDot} />}
       </Animated.View>
     </TouchableOpacity>
   );
@@ -61,7 +57,6 @@ function detectManager(navigation) {
       ? state.routes
       : state.routes?.find(r => r.name === 'Main')?.state?.routes;
     if (routes) return routes.some(r => r.name === 'Manager');
-    // Fallback: check parent navigator
     const parent = navigation.getParent?.();
     if (parent) {
       const ps = parent.getState?.();
@@ -73,15 +68,11 @@ function detectManager(navigation) {
 
 export default function BottomTabBar({ navigation, isPro = false, activeTab = null }) {
   const insets = useSafeAreaInsets();
-
-  // Sticky detection: once resolved as pro, never revert to client
   const [effectiveIsPro, setEffectiveIsPro] = useState(() => isPro || detectManager(navigation));
 
   useEffect(() => {
     if (effectiveIsPro) return;
-    // Check immediately (state might not be ready on first render)
     if (detectManager(navigation)) { setEffectiveIsPro(true); return; }
-    // Subscribe to state changes to detect as soon as it's available
     const unsub = navigation.addListener?.('state', () => {
       if (detectManager(navigation)) setEffectiveIsPro(true);
     });
@@ -89,7 +80,6 @@ export default function BottomTabBar({ navigation, isPro = false, activeTab = nu
   }, [navigation, effectiveIsPro]);
 
   const tabs = effectiveIsPro ? PRO_TABS : CLIENT_TABS;
-
   const goTab = useCallback((route) => {
     navigation.navigate('Main', { screen: route });
   }, [navigation]);
@@ -112,39 +102,58 @@ export default function BottomTabBar({ navigation, isPro = false, activeTab = nu
 
 const s = StyleSheet.create({
   outerWrap: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 12,
+    paddingTop: 6,
+    backgroundColor: 'transparent',
   },
   container: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.97)',
-    borderRadius: 36,
-    paddingTop: 6,
-    paddingBottom: 6,
+    backgroundColor: 'rgba(13,22,40,0.72)',
+    borderRadius: 32,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
     shadowColor: '#000',
-    shadowOpacity: 0.16,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 16,
+    shadowOpacity: 0.28,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 18,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 48,
+    minHeight: 40,
   },
   tabInner: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 3,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
     borderRadius: 20,
+    gap: 3,
   },
   tabInnerActive: {
     backgroundColor: C.activeBg,
+    borderWidth: 1,
+    borderColor: C.border,
   },
-  label:       { fontSize: 10, letterSpacing: 0.5, fontWeight: '400', color: C.dim, marginTop: 1 },
-  labelActive: { color: C.accent, fontWeight: '600' },
+  label: {
+    fontSize: 11,
+    letterSpacing: 0.3,
+    fontWeight: '400',
+    color: C.dim,
+  },
+  labelActive: {
+    color: C.activeTxt,
+    fontWeight: '600',
+    fontSize: 11,
+  },
+  activeDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#006233',
+  },
 });
