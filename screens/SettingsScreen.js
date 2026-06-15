@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Switch, Linking, Alert,
@@ -7,13 +7,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, typography, spacing, radius } from '../src/theme';
 import useSettings, { GROUPS } from '../src/hooks/useSettings';
 import BottomTabBar from '../src/components/BottomTabBar';
+import CGUModal from '../src/components/CGUModal';
 
 export default function SettingsScreen({ navigation }) {
   const { toggles, toggle } = useSettings();
+  const [showCGU, setShowCGU] = useState(false);
   const goAide = useCallback(() => navigation.navigate('Aide'), [navigation]);
 
   const handleItem = useCallback((item) => {
-    if (item.url) {
+    if (item.cgu) {
+      setShowCGU(true);
+    } else if (item.url) {
       Linking.openURL(item.url);
     } else if (item.screen) {
       navigation.navigate(item.screen);
@@ -24,6 +28,7 @@ export default function SettingsScreen({ navigation }) {
 
   return (
     <SafeAreaView style={s.root} edges={['top', 'left', 'right']}>
+      <CGUModal visible={showCGU} onClose={() => setShowCGU(false)} />
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
           <Text style={s.backBtnTxt}>←</Text>

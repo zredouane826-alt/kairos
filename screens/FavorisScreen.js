@@ -8,6 +8,8 @@ import { colors, typography, spacing, radius } from '../src/theme';
 import MLoader from '../src/components/MLoader';
 import useFavoris, { CUISINE_EMOJI, SORT_OPTIONS, timeAdded } from '../src/hooks/useFavoris';
 import FavCard, { CARD_W } from '../src/components/FavCard';
+import GuestWall from '../src/components/GuestWall';
+import { useGuestContext } from '../src/context/GuestContext';
 
 function SkeletonGrid() {
   return (
@@ -23,6 +25,7 @@ function SkeletonGrid() {
 }
 
 export default function FavorisScreen({ navigation }) {
+  const { isGuest } = useGuestContext();
   const {
     favorites, loading, refreshing, removing,
     search, setSearch, sort,
@@ -31,6 +34,10 @@ export default function FavorisScreen({ navigation }) {
   } = useFavoris();
 
   const goExplorer = useCallback(() => navigation.navigate('Explorer'), [navigation]);
+
+  if (isGuest) {
+    return <GuestWall title="Vos favoris" message="Connectez-vous pour sauvegarder vos restaurants préférés et y accéder depuis n'importe quel appareil." />;
+  }
 
   return (
     <SafeAreaView style={s.root}>

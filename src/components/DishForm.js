@@ -196,13 +196,14 @@ export default function DishForm({ initial, categories, isEdit, restaurantId, on
           {/* Catégorie */}
           <View style={f.field}>
             <Text style={f.label}>Catégorie *</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} delayContentTouches={false}>
               <View style={{ flexDirection: 'row', gap: spacing.md, paddingVertical: spacing.xs }}>
                 {categories.map(cat => {
                   const active = form.category === cat;
                   return (
                     <TouchableOpacity
                       key={cat}
+                      delayPressIn={0}
                       style={[f.catChip, active && f.catChipOn]}
                       onPress={() => set('category', cat)}
                     >
@@ -260,8 +261,8 @@ const s = StyleSheet.create({
   headerCenter:{ flex: 1, alignItems: 'center' },
   headerSub:   { color: colors.accent, fontSize: typography.size.xs, letterSpacing: 3, marginBottom: 2 },
   headerTitle: { color: colors.text, fontSize: typography.size.title, fontWeight: '300', letterSpacing: 1 },
-  saveBtn:     { backgroundColor: '#c8975a', borderRadius: radius.xl, paddingVertical: 15, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.5, shadowRadius: 14, shadowOffset: { width: 0, height: 0 }, elevation: 7 },
-  saveBtnTxt:  { color: colors.bg, fontSize: typography.size.subheading, fontWeight: typography.weight.bold, letterSpacing: 0.3 },
+  saveBtn:     { backgroundColor: colors.noir, borderRadius: radius.xl, paddingVertical: 15, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.4, shadowRadius: 14, shadowOffset: { width: 0, height: 0 }, elevation: 7 },
+  saveBtnTxt:  { color: '#FFFFFF', fontSize: typography.size.subheading, fontWeight: typography.weight.bold, letterSpacing: 0.3 },
   terminerBtn: { alignItems: 'center', paddingVertical: spacing.lg },
   terminerTxt: { color: colors.accent, fontSize: typography.size.body, fontWeight: typography.weight.medium },
 });

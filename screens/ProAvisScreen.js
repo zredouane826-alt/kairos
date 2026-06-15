@@ -63,7 +63,7 @@ export default function ProAvisScreen({ navigation }) {
               <AvisStats reviews={reviews} />
             </View>
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filterRow}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filterRow} delayContentTouches={false}>
               {FILTERS.map(f => {
                 const isActive = filter === f;
                 const count = f === 'Sans réponse' ? noReply
@@ -76,6 +76,7 @@ export default function ProAvisScreen({ navigation }) {
                 return (
                   <TouchableOpacity
                     key={f}
+                    delayPressIn={0}
                     style={[s.chip, isActive && s.chipOn, f === 'Sans réponse' && noReply > 0 && !isActive && s.chipAlert, f === 'En attente' && pendingCount > 0 && !isActive && s.chipPending]}
                     onPress={() => setFilter(f)}
                   >

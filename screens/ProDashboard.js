@@ -152,9 +152,9 @@ export default function ProDashboard({ navigation }) {
         <View style={s.sep} />
 
         {/* Date filter */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipRow}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipRow} delayContentTouches={false}>
           {DATE_FILTERS.map(f => (
-            <TouchableOpacity key={f} style={[s.chip, dateFilter === f && s.chipOn]} onPress={() => setDateFilter(f)}>
+            <TouchableOpacity key={f} delayPressIn={0} style={[s.chip, dateFilter === f && s.chipOn]} onPress={() => setDateFilter(f)}>
               <Text style={[s.chipTxt, dateFilter === f && s.chipTxtOn]}>{f}</Text>
             </TouchableOpacity>
           ))}

@@ -119,12 +119,13 @@ export default function ProMenuScreen({ navigation, route }) {
       ) : (
         <>
           <View style={s.catsWrap}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.catsList}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.catsList} delayContentTouches={false}>
               {categories.map(cat => {
                 const active = activeCat === cat;
                 return (
                   <TouchableOpacity
                     key={cat}
+                    delayPressIn={0}
                     style={[s.catChip, active && s.catChipOn]}
                     onPress={() => setActiveCat(cat)}
                     activeOpacity={0.7}
@@ -134,7 +135,7 @@ export default function ProMenuScreen({ navigation, route }) {
                   </TouchableOpacity>
                 );
               })}
-              <TouchableOpacity style={s.catChip} onPress={goCategories} activeOpacity={0.7}>
+              <TouchableOpacity delayPressIn={0} style={s.catChip} onPress={goCategories} activeOpacity={0.7}>
                 <Text style={s.catChipMuted}>⚙️ Catégories</Text>
               </TouchableOpacity>
             </ScrollView>

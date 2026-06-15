@@ -11,6 +11,8 @@ import FormProgressBar from '../src/components/FormProgressBar';
 import FormStepper from '../src/components/FormStepper';
 import ReservationSuccess from '../src/components/ReservationSuccess';
 import BottomTabBar from '../src/components/BottomTabBar';
+import GuestWall from '../src/components/GuestWall';
+import { useGuestContext } from '../src/context/GuestContext';
 
 function SumRow({ icon, label, val, accent, last }) {
   return (
@@ -24,6 +26,7 @@ function SumRow({ icon, label, val, accent, last }) {
 
 
 export default function ReservationFormScreen({ route, navigation }) {
+  const { isGuest } = useGuestContext();
   const restaurant   = route?.params?.restaurant || { name: 'Restaurant', id: null, photo_url: null, avg_rating: null };
   const existingResa = route?.params?.reservation || null;
   const isEdit       = !!existingResa;
@@ -50,6 +53,10 @@ export default function ReservationFormScreen({ route, navigation }) {
   ];
 
   const step = date ? (heure ? 2 : 1) : 0;
+
+  if (isGuest) {
+    return <GuestWall title="Réserver une table" message="Connectez-vous pour réserver une table en quelques secondes." />;
+  }
 
   if (success) {
     return (
@@ -115,10 +122,11 @@ export default function ReservationFormScreen({ route, navigation }) {
           {date && <Text style={s.sectionChosen}>{formatDateLong(date)}</Text>}
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.dateRow}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.dateRow} delayContentTouches={false}>
           {availableDays.map(d => (
             <TouchableOpacity
               key={d.value}
+              delayPressIn={0}
               style={[
                 s.dateCard,
                 d.isToday && s.dateCardToday,

@@ -28,7 +28,7 @@ export const GROUPS = [
   {
     section: '📄 Légal',
     items: [
-      { label: "Conditions d'utilisation",    arrow: true, url: 'https://www.mida-food.com/cgu' },
+      { label: "Conditions d'utilisation",    arrow: true, cgu: true },
       { label: 'Politique de confidentialité', arrow: true, url: 'https://www.mida-food.com/confidentialite' },
     ],
   },

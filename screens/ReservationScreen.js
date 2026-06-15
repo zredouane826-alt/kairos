@@ -12,6 +12,8 @@ import NextResaCard from '../src/components/NextResaCard';
 import SmallResaCard from '../src/components/SmallResaCard';
 import HistResaCard from '../src/components/HistResaCard';
 import ReviewModal from '../src/components/ReviewModal';
+import GuestWall from '../src/components/GuestWall';
+import { useGuestContext } from '../src/context/GuestContext';
 
 function SkeletonView() {
   return (
@@ -32,6 +34,7 @@ function SkeletonView() {
 }
 
 export default function ReservationScreen({ navigation }) {
+  const { isGuest } = useGuestContext();
   const {
     tab, setTab, loading, refreshing,
     today, aVenir, historique, next, later, pending, histByMonth,
@@ -67,6 +70,10 @@ export default function ReservationScreen({ navigation }) {
     (r) => r?.restaurants?.id && navigation?.navigate('ReservationForm', { restaurant: r.restaurants, reservation: r }),
     [navigation],
   );
+
+  if (isGuest) {
+    return <GuestWall title="Mes réservations" message="Connectez-vous pour gérer vos réservations et ne rater aucune table." />;
+  }
 
   if (loading) return (
     <SafeAreaView style={s.root}>

@@ -111,12 +111,12 @@ export default function ExplorerScreen({ navigation, route }) {
           {/* Chips collés en bas de la carte */}
           {!selected && (
             <View style={s.mapChips}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.cityGrid}>
-                <TouchableOpacity style={[s.cityChip, s.nearMeChip, nearMe && s.cityChipOn]} onPress={handleNearMe} disabled={locLoading}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.cityGrid} delayContentTouches={false}>
+                <TouchableOpacity delayPressIn={0} style={[s.cityChip, s.nearMeChip, nearMe && s.cityChipOn]} onPress={handleNearMe} disabled={locLoading}>
                   <Text style={[s.cityTxt, nearMe && s.cityTxtOn]}>Près de moi</Text>
                 </TouchableOpacity>
                 {CITIES.map(c => (
-                  <TouchableOpacity key={c.id} style={[s.cityChip, !nearMe && city === c.id && s.cityChipOn]} onPress={() => changeCity(c.id)}>
+                  <TouchableOpacity key={c.id} delayPressIn={0} style={[s.cityChip, !nearMe && city === c.id && s.cityChipOn]} onPress={() => changeCity(c.id)}>
                     <Text style={[s.cityTxt, !nearMe && city === c.id && s.cityTxtOn]}>{c.label}</Text>
                   </TouchableOpacity>
                 ))}
@@ -178,12 +178,12 @@ export default function ExplorerScreen({ navigation, route }) {
 
       <View style={[s.sheet, mode === 'list' && s.sheetFull]}>
         {mode === 'list' && (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.chipsScroll} contentContainerStyle={s.cityGrid}>
-            <TouchableOpacity style={[s.cityChip, s.nearMeChip, nearMe && s.cityChipOn]} onPress={handleNearMe} disabled={locLoading}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.chipsScroll} contentContainerStyle={s.cityGrid} delayContentTouches={false}>
+            <TouchableOpacity delayPressIn={0} style={[s.cityChip, s.nearMeChip, nearMe && s.cityChipOn]} onPress={handleNearMe} disabled={locLoading}>
               <Text style={[s.cityTxt, nearMe && s.cityTxtOn]}>Près de moi</Text>
             </TouchableOpacity>
             {CITIES.map(c => (
-              <TouchableOpacity key={c.id} style={[s.cityChip, !nearMe && city === c.id && s.cityChipOn]} onPress={() => changeCity(c.id)}>
+              <TouchableOpacity key={c.id} delayPressIn={0} style={[s.cityChip, !nearMe && city === c.id && s.cityChipOn]} onPress={() => changeCity(c.id)}>
                 <Text style={[s.cityTxt, !nearMe && city === c.id && s.cityTxtOn]}>{c.label}</Text>
               </TouchableOpacity>
             ))}

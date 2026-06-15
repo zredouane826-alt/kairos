@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -7,6 +7,7 @@ import { View, Text, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from './supabase';
+import { GuestContext } from './src/context/GuestContext';
 import { linkingConfig } from './src/linking';
 import OnboardingScreen from './screens/OnboardingScreen';
 import HomeScreen from './screens/HomeScreen';
@@ -116,6 +117,7 @@ export default function App() {
   const [session, setSession]       = useState(null);
   const [loading, setLoading]       = useState(true);
   const [userRole, setUserRole]     = useState('user');
+  const [guestMode, setGuestMode]   = useState(false);
 
   function applyRoleFromSession(s) {
     if (!s?.user) return;
@@ -144,6 +146,12 @@ export default function App() {
 
   const [webUserType, setWebUserType] = useState('client');
 
+  const enterGuestMode = useCallback(() => setGuestMode(true), []);
+  const exitGuestMode  = useCallback(() => {
+    setGuestMode(false);
+    setUserType('client');
+  }, []);
+
   function renderContent() {
     if (loading) {
       return (
@@ -152,35 +160,37 @@ export default function App() {
         </View>
       );
     }
-    if (!session && !userType) {
+    if (!session && !userType && !guestMode) {
       if (Platform.OS === 'web') return <AuthScreen userType={webUserType} onAuth={(s) => setSession(s)} onSwitchType={setWebUserType} />;
-      return <OnboardingScreen onSelect={setUserType} />;
+      return <OnboardingScreen onSelect={setUserType} onGuest={enterGuestMode} />;
     }
-    if (!session) return <AuthScreen userType={userType} onAuth={(s) => setSession(s)} />;
+    if (!session && !guestMode) return <AuthScreen userType={userType} onAuth={(s) => setSession(s)} />;
     return (
-      <NavigationContainer linking={linkingConfig}>
-        <StatusBar style="light" />
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Main">{() => <TabNavigator userRole={userRole} />}</Stack.Screen>
-          <Stack.Screen name="Restaurant" component={RestaurantScreen} />
-          <Stack.Screen name="ReservationForm" component={ReservationFormScreen} />
-          <Stack.Screen name="ProInscription" component={ProInscriptionScreen} />
-          <Stack.Screen name="Profil" component={ProfilScreen} />
-          <Stack.Screen name="Notifications" component={NotificationsScreen} />
-          <Stack.Screen name="Search" component={SearchScreen} />
-          <Stack.Screen name="ProComptoir" component={ProComptoir} />
-          <Stack.Screen name="Explorer" component={ExplorerScreen} />
-          <Stack.Screen name="ProPromos" component={ProPromosScreen} />
-          <Stack.Screen name="ProAvis" component={ProAvisScreen} />
-          <Stack.Screen name="ProMenu" component={ProMenuScreen} />
-          <Stack.Screen name="ProPhotos" component={ProPhotosScreen} />
-          <Stack.Screen name="Settings" component={SettingsScreen} />
-          <Stack.Screen name="Aide" component={AideScreen} />
-          <Stack.Screen name="Map" component={MapScreen} />
-          <Stack.Screen name="ProInfo" component={ProInfoScreen} />
-          <Stack.Screen name="ProHoraires" component={ProHorairesScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <GuestContext.Provider value={{ isGuest: guestMode && !session, exitGuestMode }}>
+        <NavigationContainer linking={linkingConfig}>
+          <StatusBar style="light" />
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Main">{() => <TabNavigator userRole={userRole} />}</Stack.Screen>
+            <Stack.Screen name="Restaurant" component={RestaurantScreen} />
+            <Stack.Screen name="ReservationForm" component={ReservationFormScreen} />
+            <Stack.Screen name="ProInscription" component={ProInscriptionScreen} />
+            <Stack.Screen name="Profil" component={ProfilScreen} />
+            <Stack.Screen name="Notifications" component={NotificationsScreen} />
+            <Stack.Screen name="Search" component={SearchScreen} />
+            <Stack.Screen name="ProComptoir" component={ProComptoir} />
+            <Stack.Screen name="Explorer" component={ExplorerScreen} />
+            <Stack.Screen name="ProPromos" component={ProPromosScreen} />
+            <Stack.Screen name="ProAvis" component={ProAvisScreen} />
+            <Stack.Screen name="ProMenu" component={ProMenuScreen} />
+            <Stack.Screen name="ProPhotos" component={ProPhotosScreen} />
+            <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen name="Aide" component={AideScreen} />
+            <Stack.Screen name="Map" component={MapScreen} />
+            <Stack.Screen name="ProInfo" component={ProInfoScreen} />
+            <Stack.Screen name="ProHoraires" component={ProHorairesScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </GuestContext.Provider>
     );
   }
 

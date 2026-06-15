@@ -4,11 +4,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 const C = {
-  bg:     'rgba(255,255,255,0.97)',
-  border: 'rgba(0,0,0,0.06)',
-  accent: '#0D1628',
-  dim:    '#b0bec5',
-  activeBg: 'rgba(13,22,40,0.08)',
+  bg:       'rgba(255,255,255,0.98)',
+  border:   'rgba(0,0,0,0.06)',
+  accent:   '#0D6B3F',
+  dim:      '#8B95A1',
+  activeBg: 'rgba(13,107,63,0.09)',
+  outerBg:  '#F5F6F8',
 };
 
 const CLIENT_TABS = [
@@ -113,7 +114,7 @@ const s = StyleSheet.create({
   outerWrap: {
     paddingHorizontal: 16,
     paddingTop: 8,
-    backgroundColor: 'transparent',
+    backgroundColor: '#FFFFFF',
   },
   container: {
     flexDirection: 'row',

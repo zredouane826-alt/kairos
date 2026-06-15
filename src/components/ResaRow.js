@@ -75,5 +75,5 @@ const s = StyleSheet.create({
   btnConfirm: { backgroundColor: 'rgba(76,175,130,0.22)', borderColor: 'rgba(76,175,130,0.70)' },
   btnArrive:  { backgroundColor: 'rgba(90,155,224,0.22)', borderColor: 'rgba(90,155,224,0.70)' },
   btnCancel:  { backgroundColor: 'rgba(224,90,90,0.22)',  borderColor: 'rgba(224,90,90,0.65)' },
-  acting:     { color: '#C87860', fontSize: 22, textAlign: 'center', flex: 1 },
+  acting:     { color: colors.primary, fontSize: 22, textAlign: 'center', flex: 1 },
 });

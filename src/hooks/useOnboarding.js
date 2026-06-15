@@ -43,7 +43,7 @@ export const CITIES = [
   { id: 'constantine', label: 'Constantine',  emoji: '🌉', sub: 'Cité des Ponts',  count: '5+'  },
 ];
 
-export default function useOnboarding({ onSelect }) {
+export default function useOnboarding({ onSelect, onGuest }) {
   const [step, setStep] = useState(0);
   const [city, setCity] = useState(null);
 
@@ -80,10 +80,11 @@ export default function useOnboarding({ onSelect }) {
   const goContinue = useCallback(() => city && goTo(4), [city, goTo]);
   const goClient   = useCallback(() => onSelect('client'), [onSelect]);
   const goPro      = useCallback(() => onSelect('pro'), [onSelect]);
+  const goGuest    = useCallback(() => onGuest?.(), [onGuest]);
 
   return {
     step, city, setCity,
     fadeAnim, slideAnim, scaleAnim,
-    goToFinal, goToNext, goContinue, goClient, goPro,
+    goToFinal, goToNext, goContinue, goClient, goPro, goGuest,
   };
 }

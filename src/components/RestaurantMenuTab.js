@@ -19,9 +19,9 @@ export default function RestaurantMenuTab({ menu }) {
 
   return (
     <>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.pillRow}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.pillRow} delayContentTouches={false}>
         {cats.map(cat => (
-          <TouchableOpacity key={cat} style={[s.pill, active === cat && s.pillOn]} onPress={() => setActive(cat)}>
+          <TouchableOpacity key={cat} delayPressIn={0} style={[s.pill, active === cat && s.pillOn]} onPress={() => setActive(cat)}>
             <Text style={[s.pillTxt, active === cat && s.pillTxtOn]}>{cat}</Text>
             {active === cat && <View style={s.pillDot} />}
           </TouchableOpacity>
@@ -60,9 +60,9 @@ export default function RestaurantMenuTab({ menu }) {
 const s = StyleSheet.create({
   pillRow:     { paddingHorizontal: spacing.xl, paddingVertical: spacing.xl, gap: spacing.md },
   pill:        { paddingHorizontal: spacing.xl + 2, paddingVertical: spacing.md + 1, borderRadius: radius.full, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.cardBorder, position: 'relative' },
-  pillOn:      { backgroundColor: 'rgba(200,151,90,0.14)', borderColor: '#c8975a', shadowColor: '#000', shadowOpacity: 0.35, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 4 },
+  pillOn:      { backgroundColor: colors.primaryDim, borderColor: colors.primary, shadowColor: '#000', shadowOpacity: 0.35, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 4 },
   pillTxt:     { color: colors.textMuted, fontSize: typography.size.bodyLg, fontWeight: typography.weight.regular },
-  pillTxtOn:   { color: colors.accent, fontWeight: typography.weight.regular },
+  pillTxtOn:   { color: colors.primary, fontWeight: typography.weight.regular },
   pillDot:     { position: 'absolute', bottom: -1, left: '50%', width: 4, height: 4, borderRadius: 0, backgroundColor: colors.accent, marginLeft: -2 },
   items:       { marginHorizontal: spacing.xl, backgroundColor: colors.card, borderRadius: radius.xxl, borderWidth: 1, borderColor: colors.cardBorder, overflow: 'hidden' },
   row:         { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, paddingHorizontal: spacing.xl + 2, paddingVertical: spacing.lg },

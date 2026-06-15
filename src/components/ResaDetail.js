@@ -92,7 +92,7 @@ const s = StyleSheet.create({
 
   metaRow:     { flexDirection: 'row', gap: spacing.xxxl, marginBottom: spacing.xxl },
   metaBox:     { alignItems: 'center' },
-  metaVal:     { color: '#C87860', fontSize: 48, fontWeight: '200', lineHeight: 52 },
+  metaVal:     { color: colors.primary, fontSize: 48, fontWeight: '200', lineHeight: 52 },
   metaLbl:     { color: 'rgba(245,242,236,0.40)', fontSize: typography.size.xs, letterSpacing: 2, marginTop: spacing.xs },
 
   notesBox:    { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: radius.xl, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', padding: spacing.xl, width: '100%', marginBottom: spacing.xxl },
@@ -100,7 +100,7 @@ const s = StyleSheet.create({
   notesTxt:    { color: '#F5F2EC', fontSize: typography.size.bodyLg, lineHeight: 20 },
 
   actions:       { width: '100%', gap: spacing.lg, marginTop: spacing.lg },
-  acting:        { color: '#C87860', fontSize: 36, fontWeight: '200', textAlign: 'center' },
+  acting:        { color: colors.primary, fontSize: 36, fontWeight: '200', textAlign: 'center' },
   btnConfirm:    { backgroundColor: colors.greenSoft, borderRadius: radius.xl, borderWidth: 1.5, borderColor: 'rgba(76,175,130,0.5)', paddingVertical: spacing.xl, alignItems: 'center' },
   btnConfirmTxt: { color: colors.green, fontSize: typography.size.heading2, fontWeight: typography.weight.semibold, letterSpacing: 1.5 },
   btnArrive:     { backgroundColor: colors.blueSoft, borderRadius: radius.xl, borderWidth: 1.5, borderColor: 'rgba(90,155,224,0.4)', paddingVertical: spacing.xl, alignItems: 'center' },

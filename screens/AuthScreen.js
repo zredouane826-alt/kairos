@@ -1,9 +1,10 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   KeyboardAvoidingView, Platform, ScrollView,
   Animated, Linking,
 } from 'react-native';
+import CGUModal from '../src/components/CGUModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, typography, spacing, radius } from '../src/theme';
 import useAuth from '../src/hooks/useAuth';
@@ -27,6 +28,7 @@ const f = StyleSheet.create({
 });
 
 export default function AuthScreen({ onAuth, userType, onSwitchType }) {
+  const [showCGU, setShowCGU] = useState(false);
   const {
     isPro, mode, email, setEmail, password, setPassword, confirm, setConfirm,
     loading, error, showPwd, success, resetSent, resetLoading,
@@ -164,10 +166,11 @@ export default function AuthScreen({ onAuth, userType, onSwitchType }) {
 
           <Text style={s.legal}>
             En continuant, vous acceptez nos{' '}
-            <Text style={s.legalLink} onPress={() => Linking.openURL('https://mida-food.com/conditions')}>Conditions</Text>
+            <Text style={s.legalLink} onPress={() => setShowCGU(true)}>Conditions</Text>
             {' '}et notre{' '}
             <Text style={s.legalLink} onPress={() => Linking.openURL('https://mida-food.com/confidentialite')}>Politique de confidentialité</Text>.
           </Text>
+          <CGUModal visible={showCGU} onClose={() => setShowCGU(false)} />
 
           {onSwitchType && (
             <TouchableOpacity style={s.switchTypeBtn} onPress={switchType}>

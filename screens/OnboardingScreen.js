@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Animated, Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, typography, spacing, radius } from '../src/theme';
 import useOnboarding, { SLIDES, TOTAL } from '../src/hooks/useOnboarding';
+import CGUModal from '../src/components/CGUModal';
 
 function Dots({ total, current, accentColor }) {
   return (
@@ -29,12 +31,13 @@ const d = StyleSheet.create({
   dot: { height: 6, borderRadius: 0 },
 });
 
-export default function OnboardingScreen({ onSelect }) {
+export default function OnboardingScreen({ onSelect, onGuest }) {
+  const [showCGU, setShowCGU] = useState(false);
   const {
     step,
     fadeAnim, slideAnim, scaleAnim,
-    goToFinal, goToNext, goClient, goPro,
-  } = useOnboarding({ onSelect });
+    goToFinal, goToNext, goClient, goPro, goGuest,
+  } = useOnboarding({ onSelect, onGuest });
 
   if (step <= 2) {
     const sl = SLIDES[step];
@@ -136,10 +139,15 @@ export default function OnboardingScreen({ onSelect }) {
 
         <Text style={s.legal}>
           En continuant, vous acceptez nos{' '}
-          <Text onPress={() => Linking.openURL('https://mida-food.com/conditions')}>conditions d'utilisation</Text>
+          <Text style={s.legalLink} onPress={() => setShowCGU(true)}>conditions d'utilisation</Text>
           {'\n'}et notre{' '}
-          <Text onPress={() => Linking.openURL('https://mida-food.com/confidentialite')}>politique de confidentialité</Text>.
+          <Text style={s.legalLink} onPress={() => Linking.openURL('https://mida-food.com/confidentialite')}>politique de confidentialité</Text>.
         </Text>
+        <CGUModal visible={showCGU} onClose={() => setShowCGU(false)} />
+
+        <TouchableOpacity style={s.guestBtn} onPress={goGuest} activeOpacity={0.6}>
+          <Text style={s.guestTxt}>Explorer sans compte →</Text>
+        </TouchableOpacity>
 
       </Animated.View>
 
@@ -204,6 +212,9 @@ const s = StyleSheet.create({
   roleSepLine:   { flex: 1, height: 1, backgroundColor: colors.cardBorder },
   roleSepTxt:    { color: colors.textDim, fontSize: typography.size.sm, letterSpacing: 2 },
   legal:         { color: colors.textDim, fontSize: typography.size.sm, textAlign: 'center', lineHeight: 16, marginTop: spacing.xxl },
+  legalLink:     { color: colors.textMuted, textDecorationLine: 'underline' },
+  guestBtn:      { alignSelf: 'center', paddingVertical: spacing.md, paddingHorizontal: spacing.xxl, marginTop: spacing.lg },
+  guestTxt:      { color: colors.textMuted, fontSize: typography.size.bodyLg, fontWeight: typography.weight.regular },
 
   footer:     { paddingHorizontal: spacing.xxl, paddingBottom: spacing.section - 4, gap: spacing.xxl - 2 },
   footerBtns: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

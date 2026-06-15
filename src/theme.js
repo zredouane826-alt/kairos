@@ -5,6 +5,14 @@
 // ─────────────────────────────────────────────
 
 export const colors = {
+  // Palette principale MIDA v2
+  primary: '#0D6B3F',
+  primarySoft: 'rgba(13,107,63,0.10)',
+  primaryDim: 'rgba(13,107,63,0.06)',
+  noir: '#0A0A0A',
+  cream: '#F5EDD6',
+  greyBg: '#F5F6F8',
+
   // Backgrounds
   bg: '#FFFFFF',
   card: '#F4F2EE',
@@ -21,7 +29,7 @@ export const colors = {
   accentSoft: 'rgba(155,144,136,0.18)',
   accentDim: '#7A7270',
 
-  // CTA Pro — ambre doré
+  // CTA Pro — ambre doré (héritage, à remplacer progressivement)
   gold: '#c8975a',
   goldSoft: 'rgba(200,151,90,0.14)',
 
@@ -206,20 +214,20 @@ export const common = {
 export const buttonVariants = {
   primary: {
     container: {
-      backgroundColor: '#c8975a',
+      backgroundColor: colors.noir,
       borderRadius: radius.xl,
       padding: spacing.xl,
       alignItems: 'center',
       borderWidth: 1,
-      borderColor: 'rgba(200,151,90,0.5)',
-      shadowColor: '#c8975a',
-      shadowOpacity: 0.5,
+      borderColor: 'rgba(10,10,10,0.5)',
+      shadowColor: colors.noir,
+      shadowOpacity: 0.4,
       shadowRadius: 14,
       shadowOffset: { width: 0, height: 0 },
       elevation: 7,
     },
     text: {
-      color: '#000000',
+      color: '#FFFFFF',
       fontSize: typography.size.subheading,
       fontWeight: typography.weight.extrabold,
       letterSpacing: 0.3,
